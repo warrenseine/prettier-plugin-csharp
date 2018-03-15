@@ -1,0 +1,22 @@
+{
+  "name": "prettier-csharp",
+  "version": "0.0.0-development",
+  "description": "Prettier C# Plugin",
+  "repository": "prettier/prettier-csharp",
+  "author": "Warren Seine <@warrenseine>",
+  "license": "MIT",
+  "main": "src",
+  "dependencies": {
+    "antlr4": "4.7.1",
+    "is-alphanumerical": "1.0.1",
+    "lodash": "4.17.5",
+    "prettier": "1.11.1"
+  },
+  "scripts": {
+    "start":
+      "node node_modules/.bin/prettier node_modules/prettier/src/cli/index.js --plugin=. --parser=cs asset/csharp/examples/AllInOneNoPreprocessor.cs",
+    "start:debug":
+      "node --lazy --inspect-brk node_modules/.bin/prettier node_modules/prettier/src/cli/index.js --plugin=. --parser=cs asset/csharp/examples/AllInOneNoPreprocessor.cs",
+    "generate-parser": "antlr4 -Dlanguage=JavaScript asset/csharp/*.g4"
+  }
+}

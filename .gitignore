@@ -1,0 +1,6 @@
+node_modules
+asset/csharp/*.js
+asset/csharp/*.interp
+asset/csharp/*.tokens
+yarn-error.log
+.antlr

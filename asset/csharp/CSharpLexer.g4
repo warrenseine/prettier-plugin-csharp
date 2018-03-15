@@ -4,16 +4,13 @@
 
 lexer grammar CSharpLexer;
 
-@lexer::header
-{import java.util.Stack;}
-
 channels { COMMENTS_CHANNEL, DIRECTIVE }
 
 @lexer::members
-{private int interpolatedStringLevel;
-private Stack<Boolean> interpolatedVerbatiums = new Stack<Boolean>();
-private Stack<Integer> curlyLevels = new Stack<Integer>();
-private boolean verbatium;
+{var interpolatedStringLevel = 0;
+var interpolatedVerbatiums = []; // new Stack<Boolean>();
+var curlyLevels = []; //new Stack<Integer>();
+var verbatium = false;
 }
 
 BYTE_ORDER_MARK: '\u00EF\u00BB\u00BF';
@@ -163,11 +160,11 @@ CLOSE_BRACE:              '}'
 if (interpolatedStringLevel > 0)
 {
     curlyLevels.push(curlyLevels.pop() - 1);
-    if (curlyLevels.peek() == 0)
+    if (curlyLevels[curlyLevels.length - 1] == 0)
     {
         curlyLevels.pop();
-        skip();
-        popMode();
+        this.skip();
+        this.popMode();
     }
 }
 };
@@ -181,11 +178,11 @@ COLON:                    ':'
 {
 if (interpolatedStringLevel > 0)
 {
-    int ind = 1;
-    boolean switchToFormatString = true;
-    while ((char)_input.LA(ind) != '}')
+    var ind = 1;
+    var switchToFormatString = true;
+    while (this._input.LA(ind) != '}')
     {
-        if (_input.LA(ind) == ':' || _input.LA(ind) == ')')
+        if (this._input.LA(ind) == ':' || this._input.LA(ind) == ')')
         {
             switchToFormatString = false;
             break;
@@ -243,7 +240,7 @@ OPEN_BRACE_INSIDE:             '{' { curlyLevels.push(1); } -> skip, pushMode(DE
 REGULAR_CHAR_INSIDE:           { !verbatium }? SimpleEscapeSequence;
 VERBATIUM_DOUBLE_QUOTE_INSIDE: {  verbatium }? '""';
 DOUBLE_QUOTE_INSIDE:           '"' { interpolatedStringLevel--; interpolatedVerbatiums.pop();
-    verbatium = (interpolatedVerbatiums.size() > 0 ? interpolatedVerbatiums.peek() : false); } -> popMode;
+    verbatium = (interpolatedVerbatiums.length > 0 ? interpolatedVerbatiums[interpolatedVerbatiums.length - 1] : false); } -> popMode;
 REGULAR_STRING_INSIDE:         { !verbatium }? ~('{' | '\\' | '"')+;
 VERBATIUM_INSIDE_STRING:       {  verbatium }? ~('{' | '"')+;
 
