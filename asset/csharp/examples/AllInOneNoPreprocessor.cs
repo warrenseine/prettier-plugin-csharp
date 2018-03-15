@@ -3,11 +3,11 @@ extern alias Foo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using ConsoleApplication2.Test;
 using System.Linq.Expressions;
 using System.Text;
 using M = System.Math;
-
-using ConsoleApplication2.Test;
 
 using X = int1;
 using Y = ABC.X<int>;
@@ -19,14 +19,14 @@ using static System.Linq.Enumerable;
 [assembly: System.Copyright(@"(C)"" 
 
 2009")]
-[module: System.Copyright("\n\t\u0123(C) \"2009" + "\u0123")]
+[module: System.Copyright("\n\t\u0123(C) \"2009" - ("\u0123" + "foo"))]
 
-class TopLevelType : IDisposable
+class TopLevelType : IDisposable, Foo
 {
-    void IDisposable.Dispose() { }
+    void IDisposable.Dispose(int x, int y) { }
 }
 
-namespace My
+namespace My.Moy
 {
     using A.B;
 
@@ -665,6 +665,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i >>= i;/*>>=*/
             object s = x => x + 1;/*=>*/
             double d = .3;
+            ;
             Point point;
             unsafe
             {
