@@ -207,9 +207,32 @@ function printTypeArgumentList(node) {
 }
 
 function printType(node) {
-  assertNodeStructure(node, 1);
+  const baseType = getChildNode(node, "Base_typeContext");
+  const specifiers = node.children.slice(1);
 
-  return printNode(node.children[0]);
+  return concat([printNode(baseType), ...specifiers.map(printNode)]);
+}
+
+function printBaseType(node) {
+  const simpleType = getOptionalChildNode(node, "Simple_typeContext");
+  const classType = getOptionalChildNode(node, "Class_typeContext");
+
+  if (simpleType) return printNode(simpleType);
+  if (classType) return printNode(classType);
+
+  return concat(["void", "*"]);
+}
+
+function printSimpleType(node) {
+  return printGenericSymbol(node);
+}
+
+function printClassType(node) {
+  const namespace = getOptionalChildNode(node, "Namespace_or_type_nameContext");
+
+  if (namespace) return printNode(namespace);
+
+  return printGenericSymbol(node);
 }
 
 function printList(separator, list) {
@@ -313,7 +336,21 @@ function printAttributeSection(node) {
 }
 
 function printExpression(node) {
+  if (node.children.length === 1) return printNode(node.children[0]);
+
   return group(join(line, node.children.map(printNode)));
+}
+
+function printUnaryExpression(node) {
+  if (node.children.length === 1) return printNode(node.children[0]);
+
+  let separator = softline;
+
+  if (isSymbol(node.children[0], "await")) {
+    separator = line;
+  }
+
+  return group(join(softline, node.children.map(printNode)));
 }
 
 function printParenthesisExpression(node) {
@@ -512,6 +549,29 @@ function printMethodMemberName(node) {
   return printDotList(node.children);
 }
 
+function printMemberAccess(node) {
+  const identifier = getChildNode(node, "IdentifierContext");
+  const typeArgumentList = getOptionalChildNode(
+    node,
+    "Type_argument_listContext"
+  );
+  const isNullCoalescent = isSymbol(node.children[0], "?");
+
+  const docs = [];
+
+  if (isNullCoalescent) {
+    docs.push("?");
+  }
+
+  docs.push(softline, ".", printNode(identifier));
+
+  if (typeArgumentList) {
+    docs.push(softline, printNode(typeArgumentList));
+  }
+
+  return concat(docs);
+}
+
 function printMethodBody(node) {
   assertNodeStructure(node, 1);
 
@@ -570,6 +630,34 @@ function printArgDeclaration(node) {
   return printSpaceList([type, identifier]);
 }
 
+function printConstantDeclaration(node) {
+  const type = getChildNode(node, "TypeContext");
+  const constantDeclarators = getChildNode(node, "Constant_declaratorsContext");
+
+  return group(
+    concat([
+      group(concat(["const", line, printNode(type)])),
+      indent(concat([line, printNode(constantDeclarators)])),
+      ";"
+    ])
+  );
+}
+
+function printConstantDeclarators(node) {
+  const constantDeclarators = getChildNodes(node, "Constant_declaratorContext");
+
+  return printCommaList(constantDeclarators);
+}
+
+function printConstantDeclarator(node) {
+  const identifier = getChildNode(node, "IdentifierContext");
+  const expression = getChildNode(node, "ExpressionContext");
+
+  return group(
+    concat([printNode(identifier), line, "=", line, printNode(expression)])
+  );
+}
+
 function printInterfaceDefinition(node) {
   const identifier = getChildNode(node, "IdentifierContext");
   const variantTypeParameterList = getOptionalChildNode(
@@ -600,7 +688,9 @@ function printVariantTypeParameterList(node) {
     "Variant_type_parameterContext"
   );
 
-  return group(concat(["<", printCommaList(variantTypeParameters), ">"]));
+  return group(
+    concat(["<", indent(group(printCommaList(variantTypeParameters))), ">"])
+  );
 }
 
 function printVariantTypeParameter(node) {
@@ -739,12 +829,44 @@ function printAssignmentOperator(node) {
   return printGenericSymbol(node);
 }
 
+function printTypedMemberDeclaration(node) {
+  const type = getChildNode(node, "TypeContext");
+  const declaration = getAnyChildNode(node, [
+    "Namespace_or_type_nameContext",
+    "Method_declarationContext",
+    "Property_declarationContext",
+    "Indexer_declarationContext",
+    "Operator_declarationContext",
+    "Field_declarationContext"
+  ]);
+
+  if (
+    declaration &&
+    declaration.constructor.name === "Namespace_or_type_nameContext"
+  ) {
+    const indexer = getChildNode(node, "Indexer_declarationContext");
+
+    return group(
+      concat([
+        printNode(type),
+        line,
+        printNode(declaration),
+        softline,
+        ".",
+        softline,
+        printNode(indexer)
+      ])
+    );
+  }
+
+  return group(concat([printNode(type), line, printNode(declaration)]));
+}
+
 function printNode(node) {
   if (!node || node.parentCtx === undefined) {
     throw new Error(`Not a node: ${node}`);
   }
 
-  // console.log(node.constructor.name);
   switch (node.constructor.name) {
     case "Compilation_unitContext":
       return printCompilationUnit(node);
@@ -767,12 +889,16 @@ function printNode(node) {
     case "Type_argument_listContext":
       return printTypeArgumentList(node);
     case "TypeContext":
+      return printType(node);
     case "Base_typeContext":
+      return printBaseType(node);
     case "Class_typeContext":
+      return printClassType(node);
+    case "Predefined_typeContext":
     case "Simple_typeContext":
     case "Numeric_typeContext":
     case "Integral_typeContext":
-      return printType(node);
+      return printSimpleType(node);
     case "UsingStaticDirectiveContext":
       return printUsingStaticDirective(node);
     case "Global_attribute_sectionContext":
@@ -800,6 +926,7 @@ function printNode(node) {
     case "Method_bodyContext":
       return printMethodBody(node);
     case "ExpressionContext":
+    case "MemberAccessExpressionContext":
     case "Non_assignment_expressionContext":
     case "Conditional_expressionContext":
     case "Null_coalescing_expressionContext":
@@ -813,13 +940,14 @@ function printNode(node) {
     case "Shift_expressionContext":
     case "Additive_expressionContext":
     case "Multiplicative_expressionContext":
-    case "Unary_expressionContext":
-    case "Primary_expressionContext":
     case "LiteralExpressionContext":
     case "LiteralContext":
     case "Boolean_literalContext":
     case "String_literalContext":
       return printExpression(node);
+    case "Primary_expressionContext":
+    case "Unary_expressionContext":
+      return printUnaryExpression(node);
     case "ParenthesisExpressionsContext":
       return printParenthesisExpression(node);
     case "SimpleNameExpressionContext":
@@ -856,6 +984,12 @@ function printNode(node) {
       return printMethodDeclaration(node);
     case "Arg_declarationContext":
       return printArgDeclaration(node);
+    case "Constant_declarationContext":
+      return printConstantDeclaration(node);
+    case "Constant_declaratorsContext":
+      return printConstantDeclarators(node);
+    case "Constant_declaratorContext":
+      return printConstantDeclarator(node);
     case "BlockContext":
       return printBlock(node);
     case "Interface_definitionContext":
@@ -882,6 +1016,10 @@ function printNode(node) {
       return printAssignment(node);
     case "Assignment_operatorContext":
       return printAssignmentOperator(node);
+    case "Typed_member_declarationContext":
+      return printTypedMemberDeclaration(node);
+    case "Member_accessContext":
+      return printMemberAccess(node);
     default:
       console.error("Unknown C# node:", node.constructor.name);
       return `{${node.constructor.name}}`;
@@ -913,6 +1051,10 @@ function getChildNode(node, type) {
   }
 
   return child;
+}
+
+function isSymbol(node, symbol) {
+  return node && node.symbol && node.symbol.text === symbol;
 }
 
 function assertNodeStructure(node, expectedLength, atLeast = false) {
