@@ -758,12 +758,12 @@ CSharpParserListener.prototype.exitEmbeddedStatement = function(ctx) {
 };
 
 
-// Enter a parse tree produced by CSharpParser#labeled_Statement.
-CSharpParserListener.prototype.enterLabeled_Statement = function(ctx) {
+// Enter a parse tree produced by CSharpParser#labeled_statement.
+CSharpParserListener.prototype.enterLabeled_statement = function(ctx) {
 };
 
-// Exit a parse tree produced by CSharpParser#labeled_Statement.
-CSharpParserListener.prototype.exitLabeled_Statement = function(ctx) {
+// Exit a parse tree produced by CSharpParser#labeled_statement.
+CSharpParserListener.prototype.exitLabeled_statement = function(ctx) {
 };
 
 

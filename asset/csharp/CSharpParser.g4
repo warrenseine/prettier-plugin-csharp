@@ -349,12 +349,12 @@ query_continuation
 
 //B.2.5 Statements
 statement
-	: labeled_Statement			                                     #labeledStatement
+	: labeled_statement			                                     #labeledStatement
 	| (local_variable_declaration | local_constant_declaration) ';'  #declarationStatement
 	| embedded_statement                                             #embeddedStatement
 	;
 
-labeled_Statement
+labeled_statement
 	: identifier ':' statement  
 	;
 

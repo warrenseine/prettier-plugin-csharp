@@ -456,7 +456,7 @@ ordering
 select_or_group_clause
 query_continuation
 statement
-labeled_Statement
+labeled_statement
 embedded_statement
 simple_embedded_statement
 block

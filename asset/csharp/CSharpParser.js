@@ -1767,7 +1767,7 @@ var ruleNames =  [ "compilation_unit", "namespace_or_type_name", "type",
                    "query_body", "query_body_clause", "let_clause", "where_clause", 
                    "combined_join_clause", "orderby_clause", "ordering", 
                    "select_or_group_clause", "query_continuation", "statement", 
-                   "labeled_Statement", "embedded_statement", "simple_embedded_statement", 
+                   "labeled_statement", "embedded_statement", "simple_embedded_statement", 
                    "block", "local_variable_declaration", "local_variable_type", 
                    "local_variable_declarator", "local_variable_initializer", 
                    "local_constant_declaration", "if_body", "switch_section", 
@@ -2095,7 +2095,7 @@ CSharpParser.RULE_ordering = 63;
 CSharpParser.RULE_select_or_group_clause = 64;
 CSharpParser.RULE_query_continuation = 65;
 CSharpParser.RULE_statement = 66;
-CSharpParser.RULE_labeled_Statement = 67;
+CSharpParser.RULE_labeled_statement = 67;
 CSharpParser.RULE_embedded_statement = 68;
 CSharpParser.RULE_simple_embedded_statement = 69;
 CSharpParser.RULE_block = 70;
@@ -9661,8 +9661,8 @@ LabeledStatementContext.prototype.constructor = LabeledStatementContext;
 
 CSharpParser.LabeledStatementContext = LabeledStatementContext;
 
-LabeledStatementContext.prototype.labeled_Statement = function() {
-    return this.getTypedRuleContext(Labeled_StatementContext,0);
+LabeledStatementContext.prototype.labeled_statement = function() {
+    return this.getTypedRuleContext(Labeled_statementContext,0);
 };
 LabeledStatementContext.prototype.enterRule = function(listener) {
     if(listener instanceof CSharpParserListener ) {
@@ -9693,7 +9693,7 @@ CSharpParser.prototype.statement = function() {
             localctx = new LabeledStatementContext(this, localctx);
             this.enterOuterAlt(localctx, 1);
             this.state = 1076;
-            this.labeled_Statement();
+            this.labeled_statement();
             break;
 
         case 2:
@@ -9782,7 +9782,7 @@ CSharpParser.prototype.statement = function() {
     return localctx;
 };
 
-function Labeled_StatementContext(parser, parent, invokingState) {
+function Labeled_statementContext(parser, parent, invokingState) {
 	if(parent===undefined) {
 	    parent = null;
 	}
@@ -9791,42 +9791,42 @@ function Labeled_StatementContext(parser, parent, invokingState) {
 	}
 	antlr4.ParserRuleContext.call(this, parent, invokingState);
     this.parser = parser;
-    this.ruleIndex = CSharpParser.RULE_labeled_Statement;
+    this.ruleIndex = CSharpParser.RULE_labeled_statement;
     return this;
 }
 
-Labeled_StatementContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
-Labeled_StatementContext.prototype.constructor = Labeled_StatementContext;
+Labeled_statementContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
+Labeled_statementContext.prototype.constructor = Labeled_statementContext;
 
-Labeled_StatementContext.prototype.identifier = function() {
+Labeled_statementContext.prototype.identifier = function() {
     return this.getTypedRuleContext(IdentifierContext,0);
 };
 
-Labeled_StatementContext.prototype.statement = function() {
+Labeled_statementContext.prototype.statement = function() {
     return this.getTypedRuleContext(StatementContext,0);
 };
 
-Labeled_StatementContext.prototype.enterRule = function(listener) {
+Labeled_statementContext.prototype.enterRule = function(listener) {
     if(listener instanceof CSharpParserListener ) {
-        listener.enterLabeled_Statement(this);
+        listener.enterLabeled_statement(this);
 	}
 };
 
-Labeled_StatementContext.prototype.exitRule = function(listener) {
+Labeled_statementContext.prototype.exitRule = function(listener) {
     if(listener instanceof CSharpParserListener ) {
-        listener.exitLabeled_Statement(this);
+        listener.exitLabeled_statement(this);
 	}
 };
 
 
 
 
-CSharpParser.Labeled_StatementContext = Labeled_StatementContext;
+CSharpParser.Labeled_statementContext = Labeled_statementContext;
 
-CSharpParser.prototype.labeled_Statement = function() {
+CSharpParser.prototype.labeled_statement = function() {
 
-    var localctx = new Labeled_StatementContext(this, this._ctx, this.state);
-    this.enterRule(localctx, 134, CSharpParser.RULE_labeled_Statement);
+    var localctx = new Labeled_statementContext(this, this._ctx, this.state);
+    this.enterRule(localctx, 134, CSharpParser.RULE_labeled_statement);
     try {
         this.enterOuterAlt(localctx, 1);
         this.state = 1086;
