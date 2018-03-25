@@ -641,6 +641,14 @@ function printMethodDeclaration(node) {
   return concat(docs);
 }
 
+function printMethodInvocation(node) {
+  const argumentList = getOptionalChildNode(node, "Argument_listContext");
+
+  return group(
+    concat(["(", argumentList ? printNode(argumentList) : softline, ")"])
+  );
+}
+
 function printQualifiedIdentifier(node) {
   return printDotList(node.children);
 }
@@ -1250,6 +1258,42 @@ function printBaseAccessExpression(node) {
   return group(concat(docs));
 }
 
+function printInterpolatedRegularString(node) {
+  const parts = getChildNodes(node, "Interpolated_regular_string_partContext");
+
+  return group(concat(['$"', concat(parts.map(printNode)), '"']));
+}
+
+function printInterpolatedStringPart(node) {
+  const expression = getOptionalChildNode(
+    node,
+    "Interpolated_string_expressionContext"
+  );
+
+  if (expression) {
+    if (getOptionalChildNode(expression, "ExpressionContext")) {
+      return group(
+        concat([
+          "{",
+          indent(concat([softline, group(printNode(expression))])),
+          "}"
+        ])
+      );
+    }
+
+    return group(printNode(expression));
+  }
+
+  return printGenericSymbol(node.children[0]);
+}
+
+function printInterpolatedStringExpression(node) {
+  // FIXME: Handle format strings.
+  const expressions = getChildNodes(node, "ExpressionContext");
+
+  return group(printCommaList(expressions));
+}
+
 function printNode(node) {
   if (!node || node.parentCtx === undefined) {
     debugger;
@@ -1466,6 +1510,15 @@ function printNode(node) {
       return printObjectCreationExpression(node);
     case "BaseAccessExpressionContext":
       return printBaseAccessExpression(node);
+    case "Method_invocationContext":
+      return printMethodInvocation(node);
+    case "Interpolated_regular_stringContext":
+      return printInterpolatedRegularString(node);
+    case "Interpolated_regular_string_partContext":
+    case "Interpolated_verbatium_string_partContext":
+      return printInterpolatedStringPart(node);
+    case "Interpolated_string_expressionContext":
+      return printInterpolatedStringExpression(node);
     default:
       console.error("Unknown C# node:", node.constructor.name);
       return `{${node.constructor.name}}`;
