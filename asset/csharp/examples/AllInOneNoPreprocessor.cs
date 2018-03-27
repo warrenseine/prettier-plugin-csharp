@@ -31,7 +31,7 @@ namespace My.Moy
     using A.B;
 
     interface CoContra<out T, in K> { }
-    delegate void CoContra2<[System.Obsolete()] out T, in K> () where T : struct;
+    delegate void CoContra2<[System.Obsolete()] out T, in K> (int i) where T : struct;
 
     public unsafe partial class A : C, I
     {
@@ -42,10 +42,11 @@ namespace My.Moy
 
         static A() 
         { 
+            a.a.a->c.a++.b().a;
         }
 
         [method: Obsolete]
-        public A([param: Obsolete] int foo) :
+        public A([param: Obsolete] int foo, [param: Obsolete] int foo, [param: Obsolete] int foo, [param: Obsolete] int foo) :
             base(1)
         {
         L:
