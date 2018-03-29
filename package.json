@@ -17,6 +17,11 @@
       "node node_modules/.bin/prettier node_modules/prettier/src/cli/index.js --plugin=. --parser=cs asset/csharp/examples/AllInOneNoPreprocessor.cs",
     "start:debug":
       "node --lazy --inspect-brk node_modules/.bin/prettier node_modules/prettier/src/cli/index.js --plugin=. --parser=cs asset/csharp/examples/AllInOneNoPreprocessor.cs",
-    "generate-parser": "antlr4 -Dlanguage=JavaScript asset/csharp/*.g4"
+    "generate-parser": "antlr4 -Dlanguage=JavaScript asset/csharp/*.g4",
+    "precommit": "pretty-quick --staged"
+  },
+  "devDependencies": {
+    "husky": "^0.14.3",
+    "pretty-quick": "^1.4.1"
   }
 }
