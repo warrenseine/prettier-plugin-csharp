@@ -42,7 +42,7 @@ namespace My.Moy
 
         static A() 
         { 
-            a.a.a->c.a++.b().a;
+            a.a.d().e().a->c.a++.b().a;
         }
 
         [method: Obsolete]
@@ -441,7 +441,8 @@ namespace My.Moy
             }
             async void Wait()
             {
-                await System.Threading.Tasks.Task.Delay(0);
+                // await System.Threading.Tasks.Task.Foooooooooooooooooooo.Delay(0);
+                await SystemxThreadingxTasksxTaskxFooooooooooooooooooooxDelay(0);
             }
             void AsyncAnonymous() // C # 5 feature
             {

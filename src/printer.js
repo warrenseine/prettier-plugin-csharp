@@ -274,8 +274,8 @@ function printCommaList(list, separator = line) {
   return printList(concat([",", separator]), list);
 }
 
-function printCommaList(list) {
-  return printList(concat([",", line]), list);
+function printSemiColumnList(list) {
+  return printList(concat([";", line]), list);
 }
 
 function printGlobalAttributeSection(node) {
@@ -509,7 +509,7 @@ function printNamespaceDeclaration(node) {
   );
 }
 
-function printBracketBody(node) {
+function printBraceBody(node) {
   assertNodeStructure(node, 2, true);
 
   const children = node.children.slice(1, -1);
@@ -1407,6 +1407,7 @@ function printIfStatement(node) {
   const expression = getChildNode(node, "ExpressionContext");
   const ifBodies = getChildNodes(node, "If_bodyContext");
   const hasElse = ifBodies.length > 1;
+  const hasBraces = !!getOptionalChildNode(ifBodies[0], "BlockContext");
 
   let docs = [
     "if",
@@ -1419,7 +1420,7 @@ function printIfStatement(node) {
       ])
     ),
     ")",
-    hardline
+    hasBraces ? hardline : line
   ];
 
   docs.push(printNode(ifBodies[0]));
@@ -1474,10 +1475,131 @@ function printGotoStatement(node) {
   } else if (expression) {
     docs.push(indent(concat([line, "case", line, printNode(expression), ";"])));
   } else {
-    docs.push("default", ";");
+    docs.push(" ", "default", ";");
   }
 
   return group(concat(docs));
+}
+
+function printWhileStatement(node) {
+  const expression = getChildNode(node, "ExpressionContext");
+  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
+
+  return group(
+    concat([
+      group(
+        concat([
+          "while",
+          " ",
+          "(",
+          indent(printNode(expression)),
+          softline,
+          ")"
+        ])
+      ),
+      line,
+      printNode(embeddedStatement)
+    ])
+  );
+}
+
+function printDoStatement(node) {
+  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
+  const expression = getChildNode(node, "ExpressionContext");
+
+  return group(
+    concat([
+      "do",
+      line,
+      printNode(embeddedStatement),
+      line,
+      group(
+        concat([
+          "while",
+          " ",
+          "(",
+          indent(printNode(expression)),
+          softline,
+          ")",
+          ";"
+        ])
+      )
+    ])
+  );
+}
+
+function printForStatement(node) {
+  const forInitializer = getOptionalChildNode(node, "For_initializerContext");
+  const expression = getOptionalChildNode(node, "ExpressionContext");
+  const forIterator = getOptionalChildNode(node, "For_iteratorContext");
+  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
+
+  const forExpressions = [forInitializer, expression, forIterator];
+
+  return group(
+    concat([
+      group(
+        concat([
+          "for",
+          " ",
+          "(",
+          indent(
+            group(concat([softline, printSemiColumnList(forExpressions)]))
+          ),
+          softline,
+          ")"
+        ])
+      ),
+      line,
+      printNode(embeddedStatement)
+    ])
+  );
+}
+
+function printSwitchStatement(node) {
+  const expression = getChildNode(node, "ExpressionContext");
+  const switchSections = getChildNodes(node, "Switch_sectionContext");
+
+  const docs = [
+    group(
+      concat(["switch", " ", "(", indent(printNode(expression)), softline, ")"])
+    ),
+    line
+  ];
+
+  docs.push("{");
+
+  if (switchSections.length) {
+    docs.push(
+      indent(concat([line, join(hardline, switchSections.map(printNode))]))
+    );
+  }
+
+  docs.push(line, "}");
+
+  return group(concat(docs));
+}
+
+function printSwitchSection(node) {
+  const switchLabels = getChildNodes(node, "Switch_labelContext");
+  const statementList = getChildNode(node, "Statement_listContext");
+
+  return group(
+    concat([
+      join(hardline, switchLabels.map(printNode)),
+      indent(concat([hardline, printNode(statementList)]))
+    ])
+  );
+}
+
+function printSwitchLabel(node) {
+  const expression = getOptionalChildNode(node, "ExpressionContext");
+
+  if (expression) {
+    return group(concat(["case", " ", printNode(expression), ":"]));
+  }
+
+  return group(concat(["default", ":"]));
 }
 
 function printObjectOrCollectionInitializer(node) {
@@ -1650,6 +1772,21 @@ function printBracketExpression(node) {
   return concat(docs);
 }
 
+function printIndexerArgument(node) {
+  const identifier = getOptionalChildNode(node, "IdentifierContext");
+  const expression = getChildNode(node, "ExpressionContext");
+
+  const docs = [];
+
+  if (identifier) {
+    docs.push(printNode(identifier), ":", line);
+  }
+
+  docs.push(printNode(expression));
+
+  return group(concat(docs));
+}
+
 function printNode(node) {
   if (!node || node.parentCtx === undefined) {
     debugger;
@@ -1762,7 +1899,7 @@ function printNode(node) {
     case "Namespace_bodyContext":
     case "Class_bodyContext":
     case "Interface_bodyContext":
-      return printBracketBody(node);
+      return printBraceBody(node);
     case "Class_definitionContext":
       return printClassDefinition(node);
     case "Class_baseContext":
@@ -1890,6 +2027,18 @@ function printNode(node) {
       return printBreakingStatement(node);
     case "GotoStatementContext":
       return printGotoStatement(node);
+    case "SwitchStatementContext":
+      return printSwitchStatement(node);
+    case "Switch_sectionContext":
+      return printSwitchSection(node);
+    case "Switch_labelContext":
+      return printSwitchLabel(node);
+    case "WhileStatementContext":
+      return printWhileStatement(node);
+    case "ForStatementContext":
+      return printForStatement(node);
+    case "DoStatementContext":
+      return printDoStatement(node);
     case "Object_or_collection_initializerContext":
       return printObjectOrCollectionInitializer(node);
     case "Object_initializerContext":
@@ -1919,6 +2068,8 @@ function printNode(node) {
       return printVariableInitializer(node);
     case "Bracket_expressionContext":
       return printBracketExpression(node);
+    case "Indexer_argumentContext":
+      return printIndexerArgument(node);
     default:
       console.error("Unknown C# node:", node.constructor.name);
       return `{${node.constructor.name}}`;
