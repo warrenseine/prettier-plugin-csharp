@@ -384,33 +384,39 @@ function printExpression(node) {
 function printPrimaryExpression(node) {
   const parts = [];
 
-  let currentPart = [];
-  parts.push(currentPart);
+  let currentPart = null;
 
   for (let child of node.children) {
-    if (child.constructor.name === "Member_accessContext") {
+    if (currentPart === null) {
       currentPart = [];
       parts.push(currentPart);
     }
 
-    currentPart.push(child);
+    if (child.constructor.name === "Method_invocationContext") {
+      currentPart.push(printNode(child));
+      currentPart = null;
+    } else {
+      currentPart.push(softline, printNode(child));
+    }
   }
 
-  const separator = parts.length > 3 ? hardline : softline;
+  const headPart = parts[0];
+  const tailPart = parts.slice(1);
+
+  if (tailPart.length === 0) {
+    return group(concat(headPart));
+  }
+
+  const separator = tailPart.length >= 3 ? hardline : softline;
 
   return group(
     concat([
-      group(join(softline, parts[0].map(printNode))),
+      group(concat(headPart)),
       indent(
         group(
           concat([
             separator,
-            join(
-              separator,
-              parts
-                .slice(1)
-                .map(part => group(join(softline, part.map(printNode))))
-            )
+            join(separator, tailPart.map(part => group(concat(part))))
           ])
         )
       )
@@ -438,9 +444,13 @@ function printUnaryExpression(node) {
     );
   }
 
-  let separator = isSymbol(node.children[0], "await") ? line : softline;
-
-  return group(join(softline, node.children.map(printNode)));
+  if (isSymbol(node.children[0], "await")) {
+    return group(
+      concat(["await", indent(concat([line, printNode(node.children[1])]))])
+    );
+  } else {
+    return group(concat(node.children.map(printNode)));
+  }
 }
 
 function printParenthesisExpression(node) {
@@ -551,10 +561,14 @@ function printClassMemberDeclaration(node) {
     node,
     "All_member_modifiersContext"
   );
-  const memberDefinition = getAnyChildNode(node, [
-    "Common_member_declarationContext",
+  const commonMemberDefinition = getOptionalChildNode(
+    node,
+    "Common_member_declarationContext"
+  );
+  const destructorDefinition = getOptionalChildNode(
+    node,
     "Destructor_definitionContext"
-  ]);
+  );
 
   const docs = [];
 
@@ -568,7 +582,25 @@ function printClassMemberDeclaration(node) {
     memberWithModifiers.push(printNode(allMemberModifiers), " ");
   }
 
-  memberWithModifiers.push(printNode(memberDefinition));
+  if (commonMemberDefinition) {
+    const methodDeclaration = getOptionalChildNode(
+      commonMemberDefinition,
+      "Method_declarationContext"
+    );
+
+    if (methodDeclaration) {
+      const signature = printMethodDeclarationSignature(methodDeclaration);
+      const body = printMethodDeclarationBody(methodDeclaration);
+
+      // It's always void (otherwise it's a typed_member_declaration).
+      memberWithModifiers.push("void", " ", signature);
+      memberWithModifiers.push(group(body));
+    } else {
+      memberWithModifiers.push(printNode(commonMemberDefinition));
+    }
+  } else if (destructorDefinition) {
+    memberWithModifiers.push(printNode(destructorDefinition));
+  }
 
   docs.push(group(concat(memberWithModifiers)));
 
@@ -579,7 +611,7 @@ function printCommonMemberDeclaration(node) {
   return printList(line, node.children);
 }
 
-function printMethodDeclaration(node) {
+function printMethodDeclarationSignature(node) {
   const methodMemberName = getAnyChildNode(node, [
     "Method_member_nameContext",
     "IdentifierContext"
@@ -592,13 +624,6 @@ function printMethodDeclaration(node) {
     node,
     "Formal_parameter_listContext"
   );
-  const methodBody = getAnyChildNode(node, [
-    "Method_bodyContext",
-    "BodyContext"
-  ]);
-  const rightArrow = getOptionalChildNode(node, "Right_arrowContext");
-  const expression = getOptionalChildNode(node, "ExpressionContext");
-
   const constructorInitializer = getOptionalChildNode(
     node,
     "Constructor_initializerContext"
@@ -633,6 +658,19 @@ function printMethodDeclaration(node) {
     );
   }
 
+  return concat(docs);
+}
+
+function printMethodDeclarationBody(node) {
+  const methodBody = getAnyChildNode(node, [
+    "Method_bodyContext",
+    "BodyContext"
+  ]);
+  const rightArrow = getOptionalChildNode(node, "Right_arrowContext");
+  const expression = getOptionalChildNode(node, "ExpressionContext");
+
+  const docs = [];
+
   if (rightArrow && expression) {
     docs.push(
       line,
@@ -644,6 +682,16 @@ function printMethodDeclaration(node) {
   }
 
   return concat(docs);
+}
+
+function printMethodDeclaration(node) {
+  // FIXME: Kill this function as sub-functions are being split into
+  // printCommonMemberDeclaration and printTypedMemberDeclaration.
+
+  return concat([
+    printMethodDeclarationSignature(node),
+    printMethodDeclarationBody(node)
+  ]);
 }
 
 function printMethodInvocation(node) {
