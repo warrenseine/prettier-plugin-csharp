@@ -13,10 +13,8 @@
     "prettier": "1.11.1"
   },
   "scripts": {
-    "start":
-      "node node_modules/.bin/prettier node_modules/prettier/src/cli/index.js --plugin=. --parser=cs asset/csharp/examples/AllInOneNoPreprocessor.cs",
-    "start:debug":
-      "node --lazy --inspect-brk node_modules/.bin/prettier node_modules/prettier/src/cli/index.js --plugin=. --parser=cs asset/csharp/examples/AllInOneNoPreprocessor.cs",
+    "test:debug": "node --lazy --inspect-brk test",
+    "test": "node test && git diff -- test/AllInOneNoPreprocessor.Formatted.cs",
     "generate-parser": "antlr4 -Dlanguage=JavaScript asset/csharp/*.g4",
     "precommit": "pretty-quick --staged"
   },
