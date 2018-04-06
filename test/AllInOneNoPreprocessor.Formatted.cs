@@ -214,14 +214,16 @@ namespace My.Moy
                 break;
             }
             while (i < 10);
-            for ({For_initializerContext}; j < 100; {For_iteratorContext})
+            for (int j = 0; j < 100; ++j)
             {
-                for ()
+                for (; ; )
                 {
                     for (
-                        {For_initializerContext};
+                        int
+                            i = 0,
+                            j = 0;
                         i < length;
-                        {For_iteratorContext}
+                        i++  j++
                     )
                     {
                     }
@@ -229,9 +231,17 @@ namespace My.Moy
                     break;
                 }
             }
-            label: goto label;
+            label:
+            goto label;
             label2:
-            {ForeachStatementContext}
+
+            foreach (var i in Items())
+            {
+                if (i == 7)
+                    return;
+                else
+                    continue;
+            }
             {CheckedStatementContext}
             {UncheckedStatementContext}
             {LockStatementContext}
@@ -341,7 +351,10 @@ namespace My.Moy
 
             static void Main()
             {
-                {ForeachStatementContext}
+                foreach (int i in Power(2, 8))
+                {
+                    Console.Write("{0} ", i);
+                }
             }
 
             async void Wait()

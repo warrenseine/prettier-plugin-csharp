@@ -9,6 +9,7 @@ const softline = docBuilders.softline;
 const group = docBuilders.group;
 const indent = docBuilders.indent;
 const doublehardline = concat([hardline, hardline]);
+const empty = "";
 
 const alphanumerical = require("is-alphanumerical");
 const _ = require("lodash");
@@ -51,7 +52,7 @@ function printTerminalNode(node) {
   if (
     ["<EOF>", ";", ".", ",", "[", "]", "(", ")", ":"].includes(node.symbol.text)
   )
-    return "";
+    return empty;
 
   return node.symbol.text;
 }
@@ -92,9 +93,9 @@ function printUsingDirectives(node) {
     } else if (parts.type === "group" || parts.type === "indent") {
       return getUsingPath(parts.contents);
     } else if (parts.type === "concat") {
-      return parts.parts.map(getUsingPath).join("");
+      return parts.parts.map(getUsingPath).join(empty);
     } else {
-      return "";
+      return empty;
     }
   };
 
@@ -1113,7 +1114,11 @@ function printLabeledStatement(node) {
   ]);
 
   return group(
-    concat([printNode(identifier), ":", line, printNode(statement)])
+    concat([
+      printNode(identifier),
+      ":",
+      group(concat([hardline, printNode(statement)]))
+    ])
   );
 }
 
@@ -1132,7 +1137,7 @@ function printExpressionStatement(node) {
 function printEmptyStatement(node) {
   // FIXME: This will potentially push 2 successive hardlines.
   // return ";";
-  return "";
+  return empty;
 }
 
 function printStatement(node) {
@@ -1408,6 +1413,10 @@ function printIfStatement(node) {
   const ifBodies = getChildNodes(node, "If_bodyContext");
   const hasElse = ifBodies.length > 1;
   const hasBraces = !!getOptionalChildNode(ifBodies[0], "BlockContext");
+  const elseHasBraces =
+    hasElse && !!getOptionalChildNode(ifBodies[1], "BlockContext");
+  const hasElseIf =
+    hasElse && !!getOptionalChildNode(ifBodies[1], "IfStatementContext");
 
   let docs = [
     "if",
@@ -1419,21 +1428,27 @@ function printIfStatement(node) {
         softline
       ])
     ),
-    ")",
-    hasBraces ? hardline : line
+    ")"
   ];
 
-  docs.push(printNode(ifBodies[0]));
+  const separator = hasBraces || hasElse ? hardline : line;
+
+  if (hasBraces) {
+    docs.push(separator, printNode(ifBodies[0]));
+  } else {
+    docs.push(indent(group(concat([separator, printNode(ifBodies[0])]))));
+  }
 
   if (hasElse) {
-    const isElseIf = !!getOptionalChildNode(ifBodies[1], "IfStatementContext");
+    docs.push(hardline, "else");
 
-    docs.push(
-      hardline,
-      "else",
-      isElseIf ? " " : hardline,
-      printNode(ifBodies[1])
-    );
+    const elseSeparator = hasElseIf ? " " : hardline;
+
+    if (elseHasBraces || hasElseIf) {
+      docs.push(elseSeparator, printNode(ifBodies[1]));
+    } else {
+      docs.push(indent(group(concat([elseSeparator, printNode(ifBodies[1])]))));
+    }
   }
 
   return group(concat(docs));
@@ -1534,7 +1549,9 @@ function printForStatement(node) {
   const forIterator = getOptionalChildNode(node, "For_iteratorContext");
   const embeddedStatement = getChildNode(node, "Embedded_statementContext");
 
-  const forExpressions = [forInitializer, expression, forIterator];
+  const forExpressions = [forInitializer, expression, forIterator].map(
+    e => (e ? printExpression(e) : empty)
+  );
 
   return group(
     concat([
@@ -1544,7 +1561,63 @@ function printForStatement(node) {
           " ",
           "(",
           indent(
-            group(concat([softline, printSemiColumnList(forExpressions)]))
+            group(concat([softline, join(concat([";", line]), forExpressions)]))
+          ),
+          softline,
+          ")"
+        ])
+      ),
+      line,
+      printNode(embeddedStatement)
+    ])
+  );
+}
+
+function printForInitializer(node) {
+  const localVariableDeclaration = getOptionalChildNode(
+    node,
+    "Local_variable_declarationContext"
+  );
+  const expressions = getChildNodes(node, "ExpressionContext");
+
+  if (localVariableDeclaration) {
+    return group(printNode(localVariableDeclaration));
+  }
+
+  return group(join(concat([";", line]), expressions));
+}
+
+function printForIterator(node) {
+  const expressions = getChildNodes(node, "ExpressionContext");
+
+  return group(printCommaList(expressions));
+}
+
+function printForeachStatement(node) {
+  const localVariableType = getChildNode(node, "Local_variable_typeContext");
+  const identifier = getChildNode(node, "IdentifierContext");
+  const expression = getOptionalChildNode(node, "ExpressionContext");
+  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
+
+  return group(
+    concat([
+      group(
+        concat([
+          "foreach",
+          " ",
+          "(",
+          indent(
+            group(
+              concat([
+                printNode(localVariableType),
+                line,
+                printNode(identifier),
+                line,
+                "in",
+                line,
+                printNode(expression)
+              ])
+            )
           ),
           softline,
           ")"
@@ -2037,6 +2110,12 @@ function printNode(node) {
       return printWhileStatement(node);
     case "ForStatementContext":
       return printForStatement(node);
+    case "For_initializerContext":
+      return printForInitializer(node);
+    case "For_iteratorContext":
+      return printForIterator(node);
+    case "ForeachStatementContext":
+      return printForeachStatement(node);
     case "DoStatementContext":
       return printDoStatement(node);
     case "Object_or_collection_initializerContext":
