@@ -1412,7 +1412,7 @@ function printIfStatement(node) {
   const expression = getChildNode(node, "ExpressionContext");
   const ifBodies = getChildNodes(node, "If_bodyContext");
   const hasElse = ifBodies.length > 1;
-  const hasBraces = !!getOptionalChildNode(ifBodies[0], "BlockContext");
+  const ifHasBraces = !!getOptionalChildNode(ifBodies[0], "BlockContext");
   const elseHasBraces =
     hasElse && !!getOptionalChildNode(ifBodies[1], "BlockContext");
   const hasElseIf =
@@ -1431,37 +1431,25 @@ function printIfStatement(node) {
     ")"
   ];
 
-  const separator = hasBraces || hasElse ? hardline : line;
-
-  if (hasBraces) {
-    docs.push(separator, printNode(ifBodies[0]));
+  if (ifHasBraces) {
+    docs.push(hardline, printNode(ifBodies[0]));
   } else {
-    docs.push(indent(group(concat([separator, printNode(ifBodies[0])]))));
+    docs.push(
+      indent(group(concat([hasElse ? hardline : line, printNode(ifBodies[0])])))
+    );
   }
 
   if (hasElse) {
     docs.push(hardline, "else");
 
-    const elseSeparator = hasElseIf ? " " : hardline;
-
     if (elseHasBraces || hasElseIf) {
-      docs.push(elseSeparator, printNode(ifBodies[1]));
+      docs.push(hasElseIf ? " " : hardline, printNode(ifBodies[1]));
     } else {
-      docs.push(indent(group(concat([elseSeparator, printNode(ifBodies[1])]))));
+      docs.push(indent(group(concat([hardline, printNode(ifBodies[1])]))));
     }
   }
 
   return group(concat(docs));
-}
-
-function printIfBody(node) {
-  const block = getAnyChildNode(node, ["BlockContext", "IfStatementContext"]);
-
-  if (block) return printNode(block);
-
-  const statement = node.children[0];
-
-  return group(indent(printNode(statement)));
 }
 
 function printBreakingStatement(node) {
@@ -2105,6 +2093,7 @@ function printNode(node) {
     case "Labeled_statementContext":
       return printLabeledStatement(node);
     case "Embedded_statementContext":
+    case "If_bodyContext":
       return printEmbeddedStatement(node);
     case "Local_variable_declarationContext":
       return printLocalVariableDeclaration(node);
@@ -2154,8 +2143,6 @@ function printNode(node) {
       return printObjectCreationExpression(node);
     case "IfStatementContext":
       return printIfStatement(node);
-    case "If_bodyContext":
-      return printIfBody(node);
     case "ReturnStatementContext":
     case "ThrowStatementContext":
     case "BreakStatementContext":
