@@ -242,10 +242,25 @@ namespace My.Moy
                 else
                     continue;
             }
-            {CheckedStatementContext}
-            {UncheckedStatementContext}
-            {LockStatementContext}
-            {UsingStatementContext}
+            checked
+            {
+                checked(++i);
+            }
+            unchecked
+            {
+                unchecked(++i);
+            }
+            lock (sync)
+                process();
+            using (var v = BeginScope())
+                using (A a = new A())
+                    using (
+                        A
+                            a = new A(),
+                            b = new A()
+                    )
+                        using (BeginScope())
+                            return;
             {YieldStatementContext}
             {YieldStatementContext}
             {FixedStatementContext}

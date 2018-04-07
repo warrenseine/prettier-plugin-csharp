@@ -393,7 +393,7 @@ function printPrimaryExpression(node) {
       parts.push(currentPart);
     }
 
-    if (child.constructor.name === "Method_invocationContext") {
+    if (isNode(child, "Method_invocationContext")) {
       currentPart.push(printNode(child));
       currentPart = null;
     } else {
@@ -402,13 +402,13 @@ function printPrimaryExpression(node) {
   }
 
   const headPart = parts[0];
-  const tailPart = parts.slice(1);
+  const tailParts = parts.slice(1);
 
-  if (tailPart.length === 0) {
+  if (tailParts.length === 0) {
     return group(concat(headPart));
   }
 
-  const separator = tailPart.length >= 3 ? hardline : softline;
+  const separator = tailParts.length >= 3 ? hardline : softline;
 
   return group(
     concat([
@@ -417,7 +417,7 @@ function printPrimaryExpression(node) {
         group(
           concat([
             separator,
-            join(separator, tailPart.map(part => group(concat(part))))
+            join(separator, tailParts.map(part => group(concat(part))))
           ])
         )
       )
@@ -1055,7 +1055,7 @@ function printTypedMemberDeclaration(node) {
     "Field_declarationContext"
   ]);
 
-  if (declaration.constructor.name === "Namespace_or_type_nameContext") {
+  if (isNode(declaration, "Namespace_or_type_nameContext")) {
     const indexer = getChildNode(node, "Indexer_declarationContext");
 
     return group(
@@ -1248,9 +1248,9 @@ function printPrimaryObjectCreationExpression(node) {
 
   let expressionPart = [];
 
-  let context = node.children[1].constructor.name;
+  const child = node.children[1];
 
-  if (context === "TypeContext") {
+  if (isNode(child, "TypeContext")) {
     const type = getChildNode(node, "TypeContext");
     const objectCreationExpression = getOptionalChildNode(
       node,
@@ -1290,13 +1290,13 @@ function printPrimaryObjectCreationExpression(node) {
         expressionPart.push(line, printNode(arrayInitializer));
       }
     }
-  } else if (context === "Anonymous_object_initializerContext") {
+  } else if (isNode(child, "Anonymous_object_initializerContext")) {
     const anonymousObjectInitializer = getChildNode(
       node,
       "Anonymous_object_initializerContext"
     );
     expressionPart.push(printNode(anonymousObjectInitializer));
-  } else if (context === "Rank_specifierContext") {
+  } else if (isNode(child, "Rank_specifierContext")) {
     const rankSpecifier = getChildNode(node, "Rank_specifierContext");
     const arrayInitializer = getChildNode(node, "Array_initializerContext");
 
@@ -1673,6 +1673,69 @@ function printSwitchLabel(node) {
   }
 
   return group(concat(["default", ":"]));
+}
+
+function printCheckedStatement(node) {
+  const checkedOrUnchecked = node.children[0];
+  const block = getChildNode(node, "BlockContext");
+
+  return group(
+    concat([printNode(checkedOrUnchecked), hardline, printNode(block)])
+  );
+}
+
+function printCheckedExpression(node) {
+  const checkedOrUnchecked = node.children[0];
+  const expression = getChildNode(node, "ExpressionContext");
+
+  return group(
+    concat([
+      printNode(checkedOrUnchecked),
+      "(",
+      group(indent(concat([softline, printNode(expression)]))),
+      softline,
+      ")"
+    ])
+  );
+}
+
+function printUsingStatement(node) {
+  const keyword = node.children[0];
+  const expression = getAnyChildNode(node, [
+    "ExpressionContext",
+    "Resource_acquisitionContext"
+  ]);
+  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
+  const hasBraces = !!getOptionalChildNode(embeddedStatement, "BlockContext");
+
+  const docs = [
+    group(
+      concat([
+        printNode(keyword),
+        " ",
+        "(",
+        group(
+          concat([
+            indent(group(concat([softline, printNode(expression)]))),
+            softline
+          ])
+        ),
+        ")"
+      ])
+    )
+  ];
+
+  if (hasBraces) {
+    docs.push(hardline, printNode(embeddedStatement));
+  } else {
+    docs.push(indent(group(concat([hardline, printNode(embeddedStatement)]))));
+  }
+
+  return group(concat(docs));
+}
+
+function printResourceAcquisition(node) {
+  return printNode(node.children[0]);
 }
 
 function printObjectOrCollectionInitializer(node) {
@@ -2118,6 +2181,17 @@ function printNode(node) {
       return printForeachStatement(node);
     case "DoStatementContext":
       return printDoStatement(node);
+    case "CheckedStatementContext":
+    case "UncheckedStatementContext":
+      return printCheckedStatement(node);
+    case "CheckedExpressionContext":
+    case "UncheckedExpressionContext":
+      return printCheckedExpression(node);
+    case "LockStatementContext":
+    case "UsingStatementContext":
+      return printUsingStatement(node);
+    case "Resource_acquisitionContext":
+      return printResourceAcquisition(node);
     case "Object_or_collection_initializerContext":
       return printObjectOrCollectionInitializer(node);
     case "Object_initializerContext":
@@ -2184,6 +2258,10 @@ function getChildNode(node, type) {
 
 function isSymbol(node, symbol) {
   return node && node.symbol && node.symbol.text === symbol;
+}
+
+function isNode(node, type) {
+  return node && node.constructor.name === type;
 }
 
 function assertNodeStructure(node, expectedLength, atLeast = false) {
