@@ -1,5 +1,7 @@
 # Prettier C# Plugin
 
+[![Build Status](https://travis-ci.org/warrenseine/prettier-csharp.svg?branch=master)](https://travis-ci.org/warrenseine/prettier-csharp)
+
 ## Contribute
 
 Install ANTLR and generate the JavaScript parser.
