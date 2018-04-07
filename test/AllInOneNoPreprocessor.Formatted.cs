@@ -261,12 +261,25 @@ namespace My.Moy
                     )
                         using (BeginScope())
                             return;
-            {YieldStatementContext}
-            {YieldStatementContext}
-            {FixedStatementContext}
-            {FixedStatementContext}
-            {UnsafeStatementContext}
-            {TryStatementContext}
+            yield return this.items[3];
+            yield break;
+            fixed ({Pointer_typeContext} {Fixed_pointer_declaratorsContext})
+            {
+                *intref = 1;
+            }
+            fixed ({Pointer_typeContext} {Fixed_pointer_declaratorsContext})
+            {
+                *intref = 1;
+            }
+            unsafe
+            {
+                int* p = null;
+            }
+            try
+            {
+                throw null;
+            }
+            {Catch_clausesContext}
             var anonymous = { A = 1, B = 2, C = 3 };
             var query = {Query_expressionContext};
             query = {Query_expressionContext};
@@ -360,7 +373,7 @@ namespace My.Moy
                 while (++counter++ < --exponent--)
                 {
                     result = result * number + +number++++ + number;
-                    {YieldStatementContext}
+                    yield return result;
                 }
             }
 
@@ -465,8 +478,7 @@ namespace ConsoleApplication1
         void Bar2()
         {
             foo = 6;
-            {ThisReferenceExpressionContext}.Foo =
-            {LiteralAccessExpressionContext}();
+            this.Foo = {LiteralAccessExpressionContext}();
             Test t = "sss";
         }
 
@@ -595,7 +607,11 @@ namespace Comments.XmlComments.UndocumentedKeywords
             double d = .3;
 
             Point point;
-            {UnsafeStatementContext}
+            unsafe
+            {
+                Point* p = &point;
+                p->x = 10;
+            }
              br = null;
             x[i: 1] = 3;
             x[i: 1, j: 5] = "str";
@@ -639,7 +655,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             Customer first = customers?[0];
             int length = customers?.Length ?? 0;
             int? first = customers?[0]?.Orders?.Count();
-            PropertyChanged?.Invoke({ThisReferenceExpressionContext}, args);
+            PropertyChanged?.Invoke(this, args);
 
             s = {Interpolated_verbatium_stringContext};
 
@@ -653,10 +669,17 @@ namespace Comments.XmlComments.UndocumentedKeywords
                 [13] = "thirteen"
             };
 
-            {TryStatementContext}
+            try
+            {
+            }
+            {Catch_clausesContext}
 
             Resource res = null;
-            {TryStatementContext}
+            try
+            {
+                res = await Resource.OpenAsync();
+            }
+            {Catch_clausesContext}
         }
     }
 }

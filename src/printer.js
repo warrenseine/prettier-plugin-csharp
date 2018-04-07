@@ -1664,12 +1664,10 @@ function printSwitchLabel(node) {
 }
 
 function printCheckedStatement(node) {
-  const checkedOrUnchecked = node.children[0];
+  const keyword = node.children[0];
   const block = getChildNode(node, "BlockContext");
 
-  return group(
-    concat([printNode(checkedOrUnchecked), hardline, printNode(block)])
-  );
+  return group(concat([printNode(keyword), hardline, printNode(block)]));
 }
 
 function printCheckedExpression(node) {
@@ -1687,11 +1685,13 @@ function printCheckedExpression(node) {
   );
 }
 
-function printUsingStatement(node) {
+function printCapturingStatement(node) {
   const keyword = node.children[0];
-  const expression = getAnyChildNode(node, [
+  const capturedExpressions = getAllChildNodes(node, [
     "ExpressionContext",
-    "Resource_acquisitionContext"
+    "Resource_acquisitionContext",
+    "Pointer_typeContext",
+    "Fixed_pointer_declaratorsContext"
   ]);
   const embeddedStatement = getChildNode(node, "Embedded_statementContext");
   const hasBraces = !!getOptionalChildNode(embeddedStatement, "BlockContext");
@@ -1704,7 +1704,9 @@ function printUsingStatement(node) {
         "(",
         group(
           concat([
-            indent(group(concat([softline, printNode(expression)]))),
+            indent(
+              group(concat([softline, printList(" ", capturedExpressions)]))
+            ),
             softline
           ])
         ),
@@ -1722,8 +1724,40 @@ function printUsingStatement(node) {
   return group(concat(docs));
 }
 
+function printYieldStatement(node) {
+  const expression = getOptionalChildNode(node, "ExpressionContext");
+
+  const docs = ["yield"];
+
+  if (expression) {
+    docs.push(indent(concat([line, "return", " ", printNode(expression)])));
+  } else {
+    docs.push(line, "break");
+  }
+
+  docs.push(";");
+
+  return group(concat(docs));
+}
+
 function printResourceAcquisition(node) {
   return printNode(node.children[0]);
+}
+
+function printTryStatement(node) {
+  const block = getChildNode(node, "BlockContext");
+  const clauses = getAllChildNodes(node, [
+    "Catch_clausesContext",
+    "Finally_clause"
+  ]);
+
+  const docs = ["try", hardline, printNode(block)];
+
+  for (let clause of clauses) {
+    docs.push(hardline, printNode(clause));
+  }
+
+  return group(concat(docs));
 }
 
 function printObjectOrCollectionInitializer(node) {
@@ -1929,6 +1963,7 @@ function printNode(node) {
     case "IdentifierContext":
       return printIdentifier(node);
     case "KeywordContext":
+    case "ThisReferenceExpressionContext":
       return printKeyword(node);
     case "Using_directivesContext":
       return printUsingDirectives(node);
@@ -2170,15 +2205,21 @@ function printNode(node) {
       return printDoStatement(node);
     case "CheckedStatementContext":
     case "UncheckedStatementContext":
+    case "UnsafeStatementContext":
       return printCheckedStatement(node);
     case "CheckedExpressionContext":
     case "UncheckedExpressionContext":
       return printCheckedExpression(node);
     case "LockStatementContext":
     case "UsingStatementContext":
-      return printUsingStatement(node);
+    case "FixedStatementContext":
+      return printCapturingStatement(node);
+    case "YieldStatementContext":
+      return printYieldStatement(node);
     case "Resource_acquisitionContext":
       return printResourceAcquisition(node);
+    case "TryStatementContext":
+      return printTryStatement(node);
     case "Object_or_collection_initializerContext":
       return printObjectOrCollectionInitializer(node);
     case "Object_initializerContext":
@@ -2218,6 +2259,10 @@ function printNode(node) {
 
 function getChildNodes(node, type) {
   return node.children.filter(n => n.constructor.name === type);
+}
+
+function getAllChildNodes(node, types) {
+  return node.children.filter(n => types.includes(n.constructor.name));
 }
 
 function getOptionalChildNode(node, type) {
