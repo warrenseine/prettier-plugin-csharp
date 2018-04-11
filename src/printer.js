@@ -236,13 +236,16 @@ function printType(node) {
 }
 
 function printBaseType(node) {
-  const simpleType = getOptionalChildNode(node, "Simple_typeContext");
-  const classType = getOptionalChildNode(node, "Class_typeContext");
+  const type = getAnyChildNode(node, [
+    "Simple_typeContext",
+    "Class_typeContext"
+  ]);
 
-  if (simpleType) return printNode(simpleType);
-  if (classType) return printNode(classType);
+  if (!type) {
+    return concat(["void", "*"]);
+  }
 
-  return concat(["void", "*"]);
+  return printNode(type);
 }
 
 function printSimpleType(node) {
@@ -255,6 +258,21 @@ function printClassType(node) {
   if (namespace) return printNode(namespace);
 
   return printGenericSymbol(node);
+}
+
+function printPointerType(node) {
+  const type = getAnyChildNode(node, [
+    "Simple_typeContext",
+    "Class_typeContext"
+  ]);
+
+  if (!type) {
+    return concat(["void", "*"]);
+  }
+
+  return group(
+    concat([printNode(type), ...node.children.slice(1).map(printNode)])
+  );
 }
 
 function printList(separator, list) {
@@ -830,6 +848,24 @@ function printFixedParameter(node) {
 
   return group(
     printList(line, [attributes, parameterModifier, argDeclaration])
+  );
+}
+
+function printFixedPointerDeclarators(node) {
+  const fixedPointerParameters = getChildNodes(
+    node,
+    "Fixed_pointer_declaratorContext"
+  );
+
+  return printCommaList(fixedPointerParameters);
+}
+
+function printFixedPointerDeclarator(node) {
+  const identifier = getChildNode(node, "IdentifierContext");
+  const initializer = getChildNode(node, "Fixed_pointer_initializerContext");
+
+  return group(
+    concat([printNode(identifier), line, "=", line, printNode(initializer)])
   );
 }
 
@@ -1760,6 +1796,68 @@ function printTryStatement(node) {
   return group(concat(docs));
 }
 
+function printCatchClauses(node) {
+  const catchClauses = getAllChildNodes(node, [
+    "Specific_catch_clauseContext",
+    "General_catch_clauseContext"
+  ]);
+
+  return printList(hardline, catchClauses);
+}
+
+function printCatchClause(node) {
+  const classType = getOptionalChildNode(node, "Class_typeContext");
+  const identifier = getOptionalChildNode(node, "IdentifierContext");
+  const exceptionFilter = getOptionalChildNode(node, "Exception_filterContext");
+  const block = getChildNode(node, "BlockContext");
+
+  const docs = ["catch"];
+
+  if (classType) {
+    docs.push(" ");
+
+    const exceptionPart = [printNode(classType)];
+
+    if (identifier) {
+      exceptionPart.push(" ", printNode(identifier));
+    }
+
+    docs.push(
+      group(
+        concat([
+          "(",
+          indent(concat([softline, group(concat(exceptionPart))])),
+          softline,
+          ")"
+        ])
+      )
+    );
+  }
+
+  if (exceptionFilter) {
+    docs.push(line, printNode(exceptionFilter));
+  }
+
+  docs.push(line, printNode(block));
+
+  return group(concat(docs));
+}
+
+function printExceptionFilter(node) {
+  const expression = getChildNode(node, "ExpressionContext");
+
+  return group(
+    concat([
+      "when",
+      " ",
+      "(",
+      group(concat([softline, printNode(expression)])),
+      softline,
+      ")"
+    ])
+  );
+}
+
 function printObjectOrCollectionInitializer(node) {
   const initializer = getAnyChildNode(node, [
     "Object_initializerContext",
@@ -1990,6 +2088,8 @@ function printNode(node) {
     case "Numeric_typeContext":
     case "Integral_typeContext":
       return printSimpleType(node);
+    case "Pointer_typeContext":
+      return printPointerType(node);
     case "UsingStaticDirectiveContext":
       return printUsingStaticDirective(node);
     case "Global_attribute_sectionContext":
@@ -2016,6 +2116,10 @@ function printNode(node) {
       return printFixedParameters(node);
     case "Fixed_parameterContext":
       return printFixedParameter(node);
+    case "Fixed_pointer_declaratorsContext":
+      return printFixedPointerDeclarators(node);
+    case "Fixed_pointer_declaratorContext":
+      return printFixedPointerDeclarator(node);
     case "Method_bodyContext":
     case "BodyContext":
       return printMethodBody(node);
@@ -2220,6 +2324,13 @@ function printNode(node) {
       return printResourceAcquisition(node);
     case "TryStatementContext":
       return printTryStatement(node);
+    case "Catch_clausesContext":
+      return printCatchClauses(node);
+    case "Specific_catch_clauseContext":
+    case "General_catch_clauseContext":
+      return printCatchClause(node);
+    case "Exception_filterContext":
+      return printExceptionFilter(node);
     case "Object_or_collection_initializerContext":
       return printObjectOrCollectionInitializer(node);
     case "Object_initializerContext":

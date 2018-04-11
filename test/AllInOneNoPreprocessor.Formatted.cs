@@ -263,11 +263,14 @@ namespace My.Moy
                             return;
             yield return this.items[3];
             yield break;
-            fixed ({Pointer_typeContext} {Fixed_pointer_declaratorsContext})
+            fixed (
+                int* p = {Fixed_pointer_initializerContext},
+                q = {Fixed_pointer_initializerContext}
+            )
             {
                 *intref = 1;
             }
-            fixed ({Pointer_typeContext} {Fixed_pointer_declaratorsContext})
+            fixed (int* p = {Fixed_pointer_initializerContext})
             {
                 *intref = 1;
             }
@@ -279,7 +282,14 @@ namespace My.Moy
             {
                 throw null;
             }
-            {Catch_clausesContext}
+            catch (System.AccessViolationException av)
+            {
+                throw av;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
             var anonymous = { A = 1, B = 2, C = 3 };
             var query = {Query_expressionContext};
             query = {Query_expressionContext};
@@ -672,14 +682,17 @@ namespace Comments.XmlComments.UndocumentedKeywords
             try
             {
             }
-            {Catch_clausesContext}
+            catch (MyException e) when (myfilter(e)) { }
 
             Resource res = null;
             try
             {
                 res = await Resource.OpenAsync();
             }
-            {Catch_clausesContext}
+            catch (ResourceException e)
+            {
+                await Resource.LogAsync(res, e);
+            }
         }
     }
 }
