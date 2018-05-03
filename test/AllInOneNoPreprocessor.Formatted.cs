@@ -48,6 +48,24 @@ namespace My.Moy
                 .e()
                 .a->c.a++.b()
                 .a;
+
+            var x =
+                1 * 1 +
+                1 * 1 +
+                (1 + (1 + 1)) +
+                1 +
+                1 +
+                1 +
+                1 +
+                1 +
+                1 +
+                1 +
+                1 +
+                1 +
+                1 +
+                1 +
+                1 +
+                1;
         }
 
         [method: Obsolete]
@@ -612,7 +630,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i--;
             b = true && false || true;
             i << 5;
-            i {Right_shiftContext} 5;
+            i >> 5;
             b = i == i && i != i && i <= i && i >= i;
             i += 5.0;
             i -= i;

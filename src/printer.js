@@ -460,7 +460,32 @@ function printBinaryishExpression(node) {
     return printNode(node.children[0]);
   }
 
-  return group(join(line, node.children.map(printNode)));
+  let operations = _.chunk(node.children, 2);
+
+  return indent(
+    group(
+      concat([
+        softline,
+        group(
+          join(
+            line,
+            operations.map(
+              ([operand, operator]) =>
+                operator
+                  ? group(
+                      concat([
+                        printNode(operand),
+                        " ",
+                        printGenericSymbol(operator)
+                      ])
+                    )
+                  : printNode(operand)
+            )
+          )
+        )
+      ])
+    )
+  );
 }
 
 function printExpression(node) {
@@ -469,10 +494,6 @@ function printExpression(node) {
   }
 
   return group(join(line, node.children.map(printNode)));
-
-  // return indent(
-  //   group(concat([softline, group(join(line, node.children.map(printNode)))]))
-  // );
 }
 
 function printPrimaryExpression(node) {

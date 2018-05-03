@@ -43,6 +43,8 @@ namespace My.Moy
         static A() 
         { 
             a.a.d().e().a->c.a++.b().a;
+
+            var x = 1 * 1 + 1 * 1 + (1+(1+1)) + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1  + 1 + 1 + 1;
         }
 
         [method: Obsolete]
