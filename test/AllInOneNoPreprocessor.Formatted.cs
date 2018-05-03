@@ -263,14 +263,11 @@ namespace My.Moy
                             return;
             yield return this.items[3];
             yield break;
-            fixed (
-                int* p = {Fixed_pointer_initializerContext},
-                q = {Fixed_pointer_initializerContext}
-            )
+            fixed (int* p = stackalloc int[100], q = &y)
             {
                 *intref = 1;
             }
-            fixed (int* p = {Fixed_pointer_initializerContext})
+            fixed (int* p = stackalloc int[100])
             {
                 *intref = 1;
             }
@@ -291,8 +288,22 @@ namespace My.Moy
                 throw;
             }
             var anonymous = { A = 1, B = 2, C = 3 };
-            var query = {Query_expressionContext};
-            query = {Query_expressionContext};
+            var query = from c in customers
+            let d = c
+            where d != null
+            join c1 in customers on c1.GetHashCode() equals c.GetHashCode()
+            join c1
+            in customers
+            on c1.GetHashCode()
+            equals c.GetHashCode()
+            into e
+            group c by c.Country
+            into
+            g
+            orderby g.Count() ascending
+            orderby g.Key descending
+            select new { Country = g.Key, CustCount = g.Count() };
+            query = from c in customers  select c into d  select d;
         }
 
         A() { }
@@ -468,7 +479,7 @@ namespace ConsoleApplication1
             var x = new Boo.Bar.Foo<int>();
             x.Method<string, string>(" ", 5, new object());
 
-            var q = {Query_expressionContext};
+            var q = from i in new int[] { 1, 2, 3, 4 } where i > 5 select i;
         }
 
         public static {Conversion_operator_declaratorContext}
@@ -596,7 +607,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i = ~i;
             b = i < i && i > i;
             int? ii = 5;
-            int f = true ? 1  0;
+            int f = true ? 1 : 0;
             i++;
             i--;
             b = true && false || true;
