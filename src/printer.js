@@ -131,19 +131,12 @@ function printUsingDirectives(node) {
 }
 
 function printNamespaceOrTypeName(node) {
-  const identifiers = getChildNodes(node, "IdentifierContext");
-  const typeArgumentList = getOptionalChildNode(
-    node,
-    "Type_argument_listContext"
+  // FIXME: Group long identifiers.
+  return group(
+    concat(
+      node.children.map(node => (isSymbol(node, ".") ? "." : printNode(node)))
+    )
   );
-
-  const docs = [printDotList(identifiers)];
-
-  if (typeArgumentList) {
-    docs.push(printNode(typeArgumentList));
-  }
-
-  return group(concat(docs));
 }
 
 function printUsingNamespaceDirective(node) {
@@ -826,6 +819,22 @@ function printQualifiedIdentifier(node) {
   return printDotList(node.children);
 }
 
+function printQualifiedAliasMember(node) {
+  const identifiers = getChildNodes(node, "IdentifierContext");
+  const typeArgumentList = getOptionalChildNode(
+    node,
+    "Type_argument_listContext"
+  );
+
+  const docs = [printNode(identifiers[0]), "::", printNode(identifiers[1])];
+
+  if (typeArgumentList) {
+    docs.push(printNode(typeArgumentList));
+  }
+
+  return group(concat(docs));
+}
+
 function printConstructorInitializer(node) {
   assertNodeStructure(node, 2, true);
 
@@ -1064,18 +1073,18 @@ function printInterfaceDefinition(node) {
   );
 }
 
-function printVariantTypeParameterList(node) {
-  const variantTypeParameters = getChildNodes(
-    node,
+function printTypeParameterList(node) {
+  const typeParameters = getAllChildNodes(node, [
+    "Type_parameterContext",
     "Variant_type_parameterContext"
-  );
+  ]);
 
   return group(
-    concat(["<", indent(group(printCommaList(variantTypeParameters))), ">"])
+    concat(["<", indent(group(printCommaList(typeParameters))), ">"])
   );
 }
 
-function printVariantTypeParameter(node) {
+function printTypeParameter(node) {
   const identifier = getChildNode(node, "IdentifierContext");
   const attributes = getOptionalChildNode(node, "AttributesContext");
   const varianceAnnotation = getOptionalChildNode(
@@ -1246,6 +1255,12 @@ function printTypedMemberDeclaration(node) {
   return group(concat([printNode(type), line, printNode(declaration)]));
 }
 
+function printFieldDeclaration(node) {
+  const variableDeclarators = getChildNode(node, "Variable_declaratorsContext");
+
+  return group(concat([printNode(variableDeclarators), ";"]));
+}
+
 function printStatementList(node) {
   let docs = [];
 
@@ -1327,6 +1342,29 @@ function printStatement(node) {
   return concat([printNode(declaration), ";"]);
 }
 
+function printVariableDeclarators(node) {
+  const variableDeclarators = getChildNodes(node, "Variable_declaratorContext");
+
+  return printCommaList(variableDeclarators);
+}
+
+function printVariableDeclarator(node) {
+  const identifier = getChildNode(node, "IdentifierContext");
+
+  const initializer = getAnyChildNode(node, [
+    "Local_variable_initializerContext",
+    "Variable_initializerContext"
+  ]);
+
+  const docs = [printNode(identifier)];
+
+  if (initializer) {
+    docs.push(" ", "=", " ", printNode(initializer));
+  }
+
+  return group(concat(docs));
+}
+
 function printLocalVariableDeclaration(node) {
   const localVariableType = getChildNode(node, "Local_variable_typeContext");
   const localVariableDeclarators = getChildNodes(
@@ -1372,23 +1410,6 @@ function printLocalVariableType(node) {
   }
 
   return "var";
-}
-
-function printLocalVariableDeclarator(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-
-  const initializer = getOptionalChildNode(
-    node,
-    "Local_variable_initializerContext"
-  );
-
-  const docs = [printNode(identifier)];
-
-  if (initializer) {
-    docs.push(" ", "=", " ", printNode(initializer));
-  }
-
-  return group(concat(docs));
 }
 
 function printLocalVariableInitializer(node) {
@@ -2495,6 +2516,8 @@ function printNode(node) {
       return printClassBase(node);
     case "Qualified_identifierContext":
       return printQualifiedIdentifier(node);
+    case "Qualified_alias_memberContext":
+      return printQualifiedAliasMember(node);
     case "All_member_modifiersContext":
       return printAllMemberModifiers(node);
     case "All_member_modifierContext":
@@ -2523,10 +2546,12 @@ function printNode(node) {
       return printBlock(node);
     case "Interface_definitionContext":
       return printInterfaceDefinition(node);
+    case "Type_parameter_listContext":
     case "Variant_type_parameter_listContext":
-      return printVariantTypeParameterList(node);
+      return printTypeParameterList(node);
+    case "Type_parameterContext":
     case "Variant_type_parameterContext":
-      return printVariantTypeParameter(node);
+      return printTypeParameter(node);
     case "Variance_annotationContext":
       return printVarianceAnnotation(node);
     case "Delegate_definitionContext":
@@ -2547,6 +2572,8 @@ function printNode(node) {
       return printAssignmentOperator(node);
     case "Typed_member_declarationContext":
       return printTypedMemberDeclaration(node);
+    case "Field_declarationContext":
+      return printFieldDeclaration(node);
     case "Member_accessContext":
       return printMemberAccess(node);
     case "Statement_listContext":
@@ -2570,8 +2597,11 @@ function printNode(node) {
       return printEmptyStatement(node);
     case "Local_variable_typeContext":
       return printLocalVariableType(node);
+    case "Variable_declaratorsContext":
+      return printVariableDeclarators(node);
+    case "Variable_declaratorContext":
     case "Local_variable_declaratorContext":
-      return printLocalVariableDeclarator(node);
+      return printVariableDeclarator(node);
     case "Local_variable_initializerContext":
       return printLocalVariableInitializer(node);
     // case "LiteralExpressionContext":

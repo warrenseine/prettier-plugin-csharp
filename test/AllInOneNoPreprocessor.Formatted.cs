@@ -326,11 +326,11 @@ namespace My.Moy
 
         A() { }
 
-        private readonly int {Field_declarationContext}
+        private readonly int f1;
 
         [Obsolete]
         [NonExisting]
-        [(var, 5)]
+        [Foo::NonExisting(var, 5)]
         [CLSCompliant(false)]
         [
             Obsolete,
@@ -338,14 +338,14 @@ namespace My.Moy
             NonSerialized,
             CLSCompliant(true || false & true)
         ]
-        private volatile int {Field_declarationContext}
+        private volatile int f2;
 
         [return: Obsolete]
         [method: Obsolete]
         public void Handler(object value) { }
 
         public int
-        m{Type_parameter_listContext}(T t)
+        m<T>(T t)
         where
         T
         :
@@ -468,11 +468,11 @@ namespace ConsoleApplication1
     {
         public class Bar
         {
-            public T {Field_declarationContext}
+            public T f;
 
             public class Foo : IEnumerable<T>
             {
-                public void Method{Type_parameter_listContext}(K k, T t, U u)
+                public void Method<K, V>(K k, T t, U u)
                 where
                 K
                 :
@@ -494,7 +494,7 @@ namespace ConsoleApplication1
     {
         void Bar3()
         {
-            var x = new Boo.Bar.Foo<int>();
+            var x = new Boo.Bar<int>.Foo<object>();
             x.Method<string, string>(" ", 5, new object());
 
             var q = from i in new int[] { 1, 2, 3, 4 } where i > 5 select i;
@@ -512,7 +512,7 @@ namespace ConsoleApplication1
             return new Test();
         }
 
-        public int {Field_declarationContext}
+        public int foo = 5;
 
         void Bar2()
         {
@@ -547,7 +547,8 @@ namespace ConsoleApplication1
         public void Constants()
         {
             int i = 1 + 2 + 3 + 5;
-            String s = "a" + (System.String) "a" + "a" + "a" + "a" + "A";
+            global::System.String s =
+                "a" + (System.String) "a" + "a" + "a" + "a" + "A";
         }
 
         public void ConstructedType()
@@ -563,7 +564,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
 {
     class C
     {
-        void M{Type_parameter_listContext}(T t, U u)
+        void M<U>(T t, U u)
         {
             int intValue = 0;
             intValue = intValue + 1;
@@ -583,7 +584,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
     class yield
     {
-        void Foo{Type_parameter_listContext}()
+        void Foo<U>()
         {
             C<U> c = null;
             c.M<int>(5, {DefaultValueExpressionContext});
@@ -651,7 +652,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
                 Point* p = &point;
                 p->x = 10;
             }
-             br = null;
+            IO::BinaryReader br = null;
             x[i: 1] = 3;
             x[i: 1, j: 5] = "str";
         }
