@@ -2749,7 +2749,7 @@ function assertNodeStructure(node, expectedLength, atLeast = false) {
   }
 }
 
-function breakDebug(node, line) {
+function debugAtLine(node, line) {
   if (node && node.start && node.start.line === line) debugger;
 }
 
