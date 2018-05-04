@@ -887,6 +887,15 @@ function printMethodMemberName(node) {
   return printDotList(node.children);
 }
 
+function printMemberName(node) {
+  const namespaceOrTypeName = getChildNode(
+    node,
+    "Namespace_or_type_nameContext"
+  );
+
+  return printNode(namespaceOrTypeName);
+}
+
 function printMemberAccess(node) {
   const identifier = getChildNode(node, "IdentifierContext");
   const typeArgumentList = getOptionalChildNode(
@@ -910,7 +919,7 @@ function printMemberAccess(node) {
   return group(concat(docs));
 }
 
-function printMethodBody(node) {
+function printBody(node) {
   const block = getOptionalChildNode(node, "BlockContext");
 
   if (!block) return ";";
@@ -1246,29 +1255,109 @@ function printTypedMemberDeclaration(node) {
     "Field_declarationContext"
   ]);
 
+  const docs = [printNode(type), line, printNode(declaration)];
+
   if (isNode(declaration, "Namespace_or_type_nameContext")) {
     const indexer = getChildNode(node, "Indexer_declarationContext");
 
-    return group(
-      concat([
-        printNode(type),
-        line,
-        printNode(declaration),
-        softline,
-        ".",
-        softline,
-        printNode(indexer)
-      ])
-    );
+    docs.push(".", printNode(indexer));
   }
 
-  return group(concat([printNode(type), line, printNode(declaration)]));
+  return group(concat(docs));
 }
 
 function printFieldDeclaration(node) {
   const variableDeclarators = getChildNode(node, "Variable_declaratorsContext");
 
   return group(concat([printNode(variableDeclarators), ";"]));
+}
+
+function printPropertyDeclaration(node) {
+  const memberName = getChildNode(node, "Member_nameContext");
+  const accessorDeclarations = getOptionalChildNode(
+    node,
+    "Accessor_declarationsContext"
+  );
+
+  const docs = [printNode(memberName)];
+
+  if (accessorDeclarations) {
+    const variableInitializer = getOptionalChildNode(
+      node,
+      "Variable_initializerContext"
+    );
+
+    docs.push(
+      line,
+      "{",
+      indent(group(concat([line, printNode(accessorDeclarations)]))),
+      line,
+      "}"
+    );
+
+    if (variableInitializer) {
+      docs.push(" ", "=");
+      docs.push(
+        indent(group(concat([line, printNode(variableInitializer), ";"])))
+      );
+    }
+  } else {
+    const expression = getChildNode(node, "ExpressionContext");
+
+    docs.push(
+      " ",
+      "=>",
+      indent(group(concat([line, printNode(expression), ";"])))
+    );
+  }
+
+  return group(concat(docs));
+}
+
+function printAccessorDeclarations(node) {
+  const attributes = getOptionalChildNode(node, "AttributesContext");
+  const accessorModifier = getOptionalChildNode(
+    node,
+    "Accessor_modifierContext"
+  );
+
+  const docs = [];
+
+  if (attributes) {
+    docs.push(printNode(attributes), line);
+  }
+
+  if (accessorModifier) {
+    docs.push(printNode(accessorModifier), line);
+  }
+
+  const accessorType = getChildNode(node, "TerminalNodeImpl");
+  const accessorBody = getChildNode(node, "Accessor_bodyContext");
+
+  docs.push(printGenericSymbol(accessorType));
+  docs.push(printNode(accessorBody));
+
+  if (isSymbol(accessorType, "get")) {
+    const setAccessorDeclaration = getOptionalChildNode(
+      node,
+      "Set_accessor_declarationContext"
+    );
+
+    if (setAccessorDeclaration) {
+      docs.push(line, printNode(setAccessorDeclaration));
+    }
+  } else if (isSymbol(accessorType, "set")) {
+    const getAccessorDeclaration = getOptionalChildNode(
+      node,
+      "Get_accessor_declarationContext"
+    );
+
+    if (getAccessorDeclaration) {
+      docs.push(line, printNode(setAccessorDeclaration));
+    }
+  }
+
+  return group(concat(docs));
 }
 
 function printStatementList(node) {
@@ -2456,6 +2545,8 @@ function printNode(node) {
       return printAttributeTarget(node);
     case "Method_member_nameContext":
       return printMethodMemberName(node);
+    case "Member_nameContext":
+      return printMemberName(node);
     case "Formal_parameter_listContext":
       return printFormalParameterList(node);
     case "Fixed_parametersContext":
@@ -2470,9 +2561,10 @@ function printNode(node) {
       return printFixedPointerInitializer(node);
     case "Local_variable_initializer_unsafeContext":
       return printLocalVariableInitializerUnsafe(node);
+    case "Accessor_bodyContext":
     case "Method_bodyContext":
     case "BodyContext":
-      return printMethodBody(node);
+      return printBody(node);
     case "ExpressionContext":
       return printExpression(node);
     case "Non_assignment_expressionContext":
@@ -2584,6 +2676,8 @@ function printNode(node) {
       return printTypedMemberDeclaration(node);
     case "Field_declarationContext":
       return printFieldDeclaration(node);
+    case "Property_declarationContext":
+      return printPropertyDeclaration(node);
     case "Member_accessContext":
       return printMemberAccess(node);
     case "Statement_listContext":
@@ -2750,6 +2844,10 @@ function printNode(node) {
       return printSelectOrGroupClause(node);
     case "Query_continuationContext":
       return printQueryContinuation(node);
+    case "Accessor_declarationsContext":
+    case "Set_accessor_declarationContext":
+    case "Get_accessor_declarationContext":
+      return printAccessorDeclarations(node);
     default:
       console.error("Unknown C# node:", node.constructor.name);
       return `{${node.constructor.name}}`;

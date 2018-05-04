@@ -351,9 +351,17 @@ namespace My.Moy
             return 1;
         }
 
-        public string {Property_declarationContext}
+        public string
+        P
+        {
+            get
+            {
+                return "A";
+            }
+            set;
+        }
 
-        public abstract string {Property_declarationContext}
+        public abstract string P { get; }
 
         public abstract int {Indexer_declarationContext}
 
@@ -532,7 +540,24 @@ namespace ConsoleApplication1
 
         delegate Recursive Recursive<A, R>(Recursive<A, R> r);
 
-        public Type {Property_declarationContext}
+        public Type
+        Foo
+        {
+            [Obsolete("Name", error = false)]
+            get
+            {
+                var result = {TypeofExpressionContext};
+                var t = {TypeofExpressionContext} == {TypeofExpressionContext};
+                t = {TypeofExpressionContext};
+                return {TypeofExpressionContext};
+            }
+            set
+            {
+                var t = {TypeofExpressionContext};
+                t.ToString();
+                t = value;
+            }
+        }
 
         public void Constants()
         {
@@ -652,13 +677,13 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
     class CSharp6Features
     {
-        public string {Property_declarationContext}
+        public string First { get; set; } = "Jane";
 
-        public string {Property_declarationContext}
+        public string Last { get; set; } = "Doe";
 
-        public string {Property_declarationContext}
+        public string Third { get; } = "Jane";
 
-        public string {Property_declarationContext}
+        public string Fourth { get; } = "Doe";
 
         public Point Move(int dx, int dy) => new Point(x + dx, y + dy);
 
@@ -670,7 +695,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
         public void Print() => Console.WriteLine(First + " " + Last);
 
-        public string {Property_declarationContext}
+        public string Name => First + " " + Last;
 
         public int {Indexer_declarationContext}
 
