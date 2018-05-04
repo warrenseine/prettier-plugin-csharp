@@ -761,7 +761,9 @@ function printMethodDeclarationSignature(node) {
   docs.push(")");
 
   if (typeParameterConstraintsClauses) {
-    docs.push(line, printNode(typeParameterConstraintsClauses));
+    docs.push(
+      indent(group(concat([line, printNode(typeParameterConstraintsClauses)])))
+    );
   }
 
   if (constructorInitializer) {
@@ -1139,9 +1141,15 @@ function printDelegateDefinition(node) {
                     ")"
                   ])
                 ),
-                line,
                 typeParameterConstraintsClauses
-                  ? indent(group(printNode(typeParameterConstraintsClauses)))
+                  ? indent(
+                      group(
+                        concat([
+                          line,
+                          printNode(typeParameterConstraintsClauses)
+                        ])
+                      )
+                    )
                   : softline
               ])
             )
@@ -1173,15 +1181,17 @@ function printTypeParameterConstraintsClause(node) {
     "Type_parameter_constraintsContext"
   );
 
-  return concat([
-    "where",
-    line,
-    printNode(identifier),
-    line,
-    ":",
-    line,
-    printNode(typeParameterConstraints)
-  ]);
+  return group(
+    concat([
+      "where",
+      line,
+      printNode(identifier),
+      line,
+      ":",
+      line,
+      printNode(typeParameterConstraints)
+    ])
+  );
 }
 
 function printTypeParameterConstraints(node) {

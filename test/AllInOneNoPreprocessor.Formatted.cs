@@ -345,11 +345,7 @@ namespace My.Moy
         public void Handler(object value) { }
 
         public int
-        m<T>(T t)
-        where
-        T
-        :
-        class
+        m<T>(T t) where T : class
         {
             base.m(t);
             return 1;
@@ -393,7 +389,7 @@ namespace My.Moy
 
     [type: Flags] public {Enum_definitionContext}
 
-    public delegate void Delegate(object P) ;
+    public delegate void Delegate(object P);
 
     namespace Test
     {
@@ -473,14 +469,8 @@ namespace ConsoleApplication1
             public class Foo : IEnumerable<T>
             {
                 public void Method<K, V>(K k, T t, U u)
-                where
-                K
-                :
-                IList<V>,
-                where
-                V
-                :
-                IList<K>
+                    where K : IList<V>,
+                    where V : IList<K>
                 {
                     A<int> a;
                     M(A<B, C>(5));
@@ -538,9 +528,9 @@ namespace ConsoleApplication1
             f2 = {Lambda_expressionContext};
         }
 
-        delegate Recursive Recursive(Recursive r) ;
+        delegate Recursive Recursive(Recursive r);
 
-        delegate Recursive Recursive<A, R>(Recursive<A, R> r) ;
+        delegate Recursive Recursive<A, R>(Recursive<A, R> r);
 
         public Type {Property_declarationContext}
 
