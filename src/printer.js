@@ -674,7 +674,7 @@ function printClassMemberDeclaration(node) {
     node,
     "All_member_modifiersContext"
   );
-  const commonMemberDefinition = getOptionalChildNode(
+  const commonMemberDeclaration = getOptionalChildNode(
     node,
     "Common_member_declarationContext"
   );
@@ -695,21 +695,26 @@ function printClassMemberDeclaration(node) {
     memberWithModifiers.push(printNode(allMemberModifiers), " ");
   }
 
-  if (commonMemberDefinition) {
-    const methodDeclaration = getOptionalChildNode(
-      commonMemberDefinition,
-      "Method_declarationContext"
-    );
+  if (commonMemberDeclaration) {
+    const declaration = getAnyChildNode(commonMemberDeclaration, [
+      "Method_declarationContext",
+      "Typed_member_declarationContext"
+    ]);
 
-    if (methodDeclaration) {
-      const signature = printMethodDeclarationSignature(methodDeclaration);
-      const body = printMethodDeclarationBody(methodDeclaration);
+    if (isNode(declaration, "Method_declarationContext")) {
+      const signature = printMethodDeclarationSignature(declaration);
+      const body = printMethodDeclarationBody(declaration);
 
       // It's always void (otherwise it's a typed_member_declaration).
       memberWithModifiers.push("void", " ", signature);
       memberWithModifiers.push(group(body));
+    } else if (isNode(declaration, "Typed_member_declarationContext")) {
+      const signature = printTypedMemberDeclarationSignature(declaration);
+      const body = printTypedMemberDeclarationBody(declaration);
+
+      memberWithModifiers.push(signature, group(body));
     } else {
-      memberWithModifiers.push(printNode(commonMemberDefinition));
+      memberWithModifiers.push(printNode(commonMemberDeclaration));
     }
   } else if (destructorDefinition) {
     memberWithModifiers.push(printNode(destructorDefinition));
@@ -762,7 +767,9 @@ function printMethodDeclarationSignature(node) {
 
   if (typeParameterConstraintsClauses) {
     docs.push(
-      indent(group(concat([line, printNode(typeParameterConstraintsClauses)])))
+      indent(
+        group(concat([hardline, printNode(typeParameterConstraintsClauses)]))
+      )
     );
   }
 
@@ -797,6 +804,93 @@ function printMethodDeclarationBody(node) {
   }
 
   return concat(docs);
+}
+
+function printTypedMemberDeclarationSignature(node) {
+  const type = getChildNode(node, "TypeContext");
+  const declaration = getAnyChildNode(node, [
+    "Namespace_or_type_nameContext",
+    "Method_declarationContext",
+    "Property_declarationContext",
+    "Indexer_declarationContext",
+    "Operator_declarationContext",
+    "Field_declarationContext"
+  ]);
+
+  const docs = [printNode(type)];
+
+  if (isNode(declaration, "Property_declarationContext")) {
+    const memberName = getChildNode(declaration, "Member_nameContext");
+
+    docs.push(line, printNode(memberName));
+  } else if (isNode(declaration, "Method_declarationContext")) {
+    const signature = printMethodDeclarationSignature(declaration);
+
+    docs.push(line, signature);
+  }
+
+  return group(concat(docs));
+}
+
+function printTypedMemberDeclarationBody(node) {
+  const declaration = getAnyChildNode(node, [
+    "Namespace_or_type_nameContext",
+    "Method_declarationContext",
+    "Property_declarationContext",
+    "Indexer_declarationContext",
+    "Operator_declarationContext",
+    "Field_declarationContext"
+  ]);
+
+  const docs = [];
+
+  if (isNode(declaration, "Property_declarationContext")) {
+    const accessorDeclarations = getOptionalChildNode(
+      declaration,
+      "Accessor_declarationsContext"
+    );
+
+    if (accessorDeclarations) {
+      const variableInitializer = getOptionalChildNode(
+        declaration,
+        "Variable_initializerContext"
+      );
+
+      docs.push(
+        line,
+        "{",
+        indent(group(concat([line, printNode(accessorDeclarations)]))),
+        line,
+        "}"
+      );
+
+      if (variableInitializer) {
+        docs.push(
+          " ",
+          "=",
+          indent(group(concat([line, printNode(variableInitializer), ";"])))
+        );
+      }
+    } else {
+      const expression = getChildNode(declaration, "ExpressionContext");
+
+      docs.push(
+        " ",
+        "=>",
+        indent(group(concat([line, printNode(expression), ";"])))
+      );
+    }
+  } else if (isNode(declaration, "Method_declarationContext")) {
+    docs.push(printMethodDeclarationBody(declaration));
+  } else if (isNode(declaration, "Namespace_or_type_nameContext")) {
+    const indexer = getChildNode(node, "Indexer_declarationContext");
+
+    docs.push(printNode(declaration), ".", printNode(indexer));
+  } else {
+    docs.push(indent(group(concat([line, printNode(declaration)]))));
+  }
+
+  return group(concat(docs));
 }
 
 function printMethodDeclaration(node) {
@@ -1245,6 +1339,7 @@ function printAssignmentOperator(node) {
 }
 
 function printTypedMemberDeclaration(node) {
+  // FIXME: Kill because split.
   const type = getChildNode(node, "TypeContext");
   const declaration = getAnyChildNode(node, [
     "Namespace_or_type_nameContext",
@@ -1273,6 +1368,7 @@ function printFieldDeclaration(node) {
 }
 
 function printPropertyDeclaration(node) {
+  // FIXME: Kill because split.
   const memberName = getChildNode(node, "Member_nameContext");
   const accessorDeclarations = getOptionalChildNode(
     node,

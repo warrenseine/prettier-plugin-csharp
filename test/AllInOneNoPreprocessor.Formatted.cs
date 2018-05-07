@@ -345,14 +345,14 @@ namespace My.Moy
         public void Handler(object value) { }
 
         public int
-        m<T>(T t) where T : class
+        m<T>(T t)
+            where T : class
         {
             base.m(t);
             return 1;
         }
 
-        public string
-        P
+        public string P
         {
             get
             {
@@ -406,8 +406,7 @@ namespace My.Moy
 
         public class Список
         {
-            public static IEnumerable
-            Power(int number, int exponent)
+            public static IEnumerable Power(int number, int exponent)
             {
                 Список Список = new Список();
                 Список.Main();
@@ -540,8 +539,7 @@ namespace ConsoleApplication1
 
         delegate Recursive Recursive<A, R>(Recursive<A, R> r);
 
-        public Type
-        Foo
+        public Type Foo
         {
             [Obsolete("Name", error = false)]
             get
@@ -620,8 +618,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             {Parameter_modifierContext} dynamic c
         ) { }
 
-        public override string
-        ToString()
+        public override string ToString()
         {
             return base.ToString();
         }
