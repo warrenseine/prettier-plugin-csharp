@@ -824,9 +824,9 @@ function printTypedMemberDeclarationSignature(node) {
 
     docs.push(line, printNode(memberName));
   } else if (isNode(declaration, "Method_declarationContext")) {
-    const signature = printMethodDeclarationSignature(declaration);
-
-    docs.push(line, signature);
+    docs.push(line, printMethodDeclarationSignature(declaration));
+  } else if (isNode(declaration, "Indexer_declarationContext")) {
+    docs.push(line, printIndexerDeclarationSignature(declaration));
   }
 
   return group(concat(docs));
@@ -886,6 +886,8 @@ function printTypedMemberDeclarationBody(node) {
     const indexer = getChildNode(node, "Indexer_declarationContext");
 
     docs.push(printNode(declaration), ".", printNode(indexer));
+  } else if (isNode(declaration, "Indexer_declarationContext")) {
+    docs.push(printIndexerDeclarationBody(declaration));
   } else {
     docs.push(indent(group(concat([line, printNode(declaration)]))));
   }
@@ -1451,6 +1453,52 @@ function printAccessorDeclarations(node) {
     if (getAccessorDeclaration) {
       docs.push(line, printNode(setAccessorDeclaration));
     }
+  }
+
+  return group(concat(docs));
+}
+
+function printIndexerDeclarationSignature(node) {
+  const formalParameterList = getChildNode(
+    node,
+    "Formal_parameter_listContext"
+  );
+
+  return group(
+    concat([
+      "this",
+      softline,
+      "[",
+      indent(group(concat([softline, printNode(formalParameterList)]))),
+      softline,
+      "]"
+    ])
+  );
+}
+
+function printIndexerDeclarationBody(node) {
+  const docs = [];
+
+  const accessorDeclarations = getOptionalChildNode(
+    node,
+    "Accessor_declarationsContext"
+  );
+  const expression = getOptionalChildNode(node, "ExpressionContext");
+
+  if (accessorDeclarations) {
+    docs.push(
+      group(
+        concat([
+          line,
+          "{",
+          indent(group(concat([hardline, printNode(accessorDeclarations)]))),
+          hardline,
+          "}"
+        ])
+      )
+    );
+  } else if (expression) {
+    docs.push(" ", "=>", indent(group(concat([line, printNode(expression)]))));
   }
 
   return group(concat(docs));
@@ -2100,6 +2148,20 @@ function printCheckedExpression(node) {
   );
 }
 
+function printDefaultValueExpression(node) {
+  const type = getChildNode(node, "TypeContext");
+
+  return group(
+    concat([
+      "default",
+      "(",
+      indent(group(concat([softline, printNode(type)]))),
+      softline,
+      ")"
+    ])
+  );
+}
+
 function printCapturingStatement(node) {
   const keyword = node.children[0];
   const capturedExpressions = getAllChildNodes(node, [
@@ -2591,6 +2653,7 @@ function printNode(node) {
       return printIdentifier(node);
     case "KeywordContext":
     case "ThisReferenceExpressionContext":
+    case "Parameter_modifierContext":
       return printKeyword(node);
     case "Using_directivesContext":
       return printUsingDirectives(node);
@@ -2868,6 +2931,8 @@ function printNode(node) {
     case "CheckedExpressionContext":
     case "UncheckedExpressionContext":
       return printCheckedExpression(node);
+    case "DefaultValueExpressionContext":
+      return printDefaultValueExpression(node);
     case "LockStatementContext":
     case "UsingStatementContext":
     case "FixedStatementContext":
@@ -2938,6 +3003,8 @@ function printNode(node) {
       return printSelectOrGroupClause(node);
     case "Query_continuationContext":
       return printQueryContinuation(node);
+    case "Indexer_declarationContext":
+      return printIndexerDeclaration(node);
     case "Accessor_declarationsContext":
     case "Set_accessor_declarationContext":
     case "Get_accessor_declarationContext":

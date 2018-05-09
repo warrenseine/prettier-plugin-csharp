@@ -369,7 +369,10 @@ namespace My.Moy
 
         public abstract string P { get; }
 
-        public abstract int {Indexer_declarationContext}
+        public abstract int this[int index]
+        {
+            {Accessor_modifierContext} get; {Accessor_modifierContext} set;
+        }
 
         [method: Obsolete]
         [field: Obsolete]
@@ -618,7 +621,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
         void Foo<U>()
         {
             C<U> c = null;
-            c.M<int>(5, {DefaultValueExpressionContext});
+            c.M<int>(5, default(U));
             TypedReference tr = __makeref(c);
             Type t = __reftype(tr);
             int j = __refvalue(tr, int);
@@ -626,17 +629,11 @@ namespace Comments.XmlComments.UndocumentedKeywords
             Params(ref c, out c);
         }
 
-        void Params(
-            {Parameter_modifierContext} dynamic a,
-            {Parameter_modifierContext} dynamic b
-        )
+        void Params(ref dynamic a, out dynamic b)
         {
         }
 
-        void Params(
-            {Parameter_modifierContext} dynamic a,
-            {Parameter_modifierContext} dynamic c
-        )
+        void Params(out dynamic a, ref dynamic c)
         {
         }
 
@@ -716,7 +713,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
         public string Name => First + " " + Last;
 
-        public int {Indexer_declarationContext}
+        public int this[long id] => id
 
         async void Test()
         {
