@@ -2570,6 +2570,97 @@ function printQueryContinuation(node) {
   );
 }
 
+function printLambdaExpression(node) {
+  const anonymousFunctionSignature = getChildNode(
+    node,
+    "Anonymous_function_signatureContext"
+  );
+  const anonymousFunctionBody = getChildNode(
+    node,
+    "Anonymous_function_bodyContext"
+  );
+
+  const isAsync = isSymbol(node.children[0], "async");
+  const isExpression = getOptionalChildNode(
+    anonymousFunctionBody,
+    "ExpressionContext"
+  );
+
+  const docs = [];
+
+  if (isAsync) {
+    docs.push("async", " ");
+  }
+
+  docs.push(printNode(anonymousFunctionSignature));
+  docs.push(" ", "=>");
+
+  const bodyPart = group(concat([line, printNode(anonymousFunctionBody)]));
+
+  docs.push(isExpression ? indent(bodyPart) : bodyPart);
+
+  return group(concat(docs));
+}
+
+function printAnonymousFunctionSignature(node) {
+  const identifier = getOptionalChildNode(node, "IdentifierContext");
+  const params = getAnyChildNode(node, [
+    "Explicit_anonymous_function_parameter_listContext",
+    "Implicit_anonymous_function_parameter_listContext"
+  ]);
+
+  if (identifier) {
+    return printNode(identifier);
+  }
+
+  const docs = [];
+
+  docs.push("(");
+
+  if (params) {
+    docs.push(indent(group(concat([softline, printNode(params)]))), softline);
+  }
+
+  docs.push(")");
+
+  return group(concat(docs));
+}
+
+function printAnonymousFunctionBody(node) {
+  return printNode(node.children[0]);
+}
+
+function printExplicitFunctionParameterList(node) {
+  const parameters = getChildNodes(
+    node,
+    "Explicit_anonymous_function_parameter"
+  );
+
+  return printCommaList(parameters);
+}
+
+function printExplicitAnonymousFunctionParameter(node) {
+  const refout = node.refout;
+  const type = getChildNode(node, "TypeContext");
+  const identifier = getChildNode(node, "IdentifierContext");
+
+  const docs = [];
+
+  if (refout) {
+    docs.push(refout.text, line);
+  }
+
+  docs.push(printNode(type), line, printNode(identifier));
+
+  return group(concat(docs));
+}
+
+function printImplicitAnonymousFunctionParameterList(node) {
+  const identifiers = getChildNodes(node, "IdentifierContext");
+
+  return printCommaList(identifiers);
+}
+
 function printNode(node) {
   if (!node || node.parentCtx === undefined) {
     debugger;
@@ -2927,6 +3018,18 @@ function printNode(node) {
     case "Set_accessor_declarationContext":
     case "Get_accessor_declarationContext":
       return printAccessorDeclarations(node);
+    case "Lambda_expressionContext":
+      return printLambdaExpression(node);
+    case "Anonymous_function_signatureContext":
+      return printAnonymousFunctionSignature(node);
+    case "Anonymous_function_bodyContext":
+      return printAnonymousFunctionBody(node);
+    case "Explicit_function_parameter_listContext":
+      return printExplicitFunctionParameterList(node);
+    case "Explicit_anonymous_function_parameterContext":
+      return printExplicitAnonymousFunctionParameter(node);
+    case "Implicit_anonymous_function_parameterContext":
+      return printImplicitAnonymousFunctionParameterList(node);
     default:
       console.error("Unknown C# node:", node.constructor.name);
       return `{${node.constructor.name}}`;

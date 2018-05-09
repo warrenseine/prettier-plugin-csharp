@@ -444,7 +444,17 @@ namespace My.Moy
 
             void AsyncAnonymous()
             {
-                var task = Task.Factory.StartNew({Lambda_expressionContext});
+                var task =
+                Task
+                .Factory
+                .StartNew(async () =>
+                {
+                    return
+                        await
+
+                            new WebClient()
+                            .DownloadStringTaskAsync("http://example.com");
+                });
             }
         }
     }
@@ -546,14 +556,27 @@ namespace ConsoleApplication1
             int i = 5;
             int? j = 6;
 
-            Expression<Func<int>> e = {Lambda_expressionContext};
-            Expression<Func<bool, Action>> e2 = {Lambda_expressionContext};
+            Expression<Func<int>> e = () => i;
+            Expression<Func<bool, Action>> e2 = b =>
+                () =>
+                {
+                    return;
+                };
             Func<bool, bool> f = {AnonymousMethodExpressionContext};
-            Func<int, int, int> f2 = {Lambda_expressionContext};
-            f2 = {Lambda_expressionContext};
+            Func<int, int, int> f2 = (
+                {Implicit_anonymous_function_parameter_listContext}
+            ) => 0;
+            f2 = ({Explicit_anonymous_function_parameter_listContext}) => 1;
             Action a = Blah;
-            f2 = {Lambda_expressionContext};
-            f2 = {Lambda_expressionContext};
+            f2 =
+            () =>
+            {
+            };
+            f2 =
+            () =>
+            {
+
+            };
         }
 
         delegate Recursive Recursive(Recursive r);
@@ -674,7 +697,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i ^= i;
             i <<= i;
             i >>= i;
-            object s = {Lambda_expressionContext};
+            object s = x => x + 1;
             double d = .3;
 
             Point point;
@@ -720,7 +743,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             WriteLine(Sqrt(3 * 3 + 4 * 4));
             WriteLine(Friday - Monday);
             var range = Range(5, 17);
-            var even = range.Where({Lambda_expressionContext});
+            var even = range.Where(i => i % 2 == 0);
 
             int? length = customers?.Length;
             Customer first = customers?[0];
