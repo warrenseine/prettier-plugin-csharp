@@ -23,7 +23,9 @@ using static System.Math;
 
 class TopLevelType : IDisposable, Foo
 {
-    void IDisposable.Dispose(int x, int y) { }
+    void IDisposable.Dispose(int x, int y)
+    {
+    }
 }
 
 namespace My.Moy
@@ -324,7 +326,9 @@ namespace My.Moy
             query = from c in customers  select c into d  select d;
         }
 
-        A() { }
+        A()
+        {
+        }
 
         private readonly int f1;
 
@@ -342,7 +346,9 @@ namespace My.Moy
 
         [return: Obsolete]
         [method: Obsolete]
-        public void Handler(object value) { }
+        public void Handler(object value)
+        {
+        }
 
         public int
         m<T>(T t)
@@ -449,20 +455,32 @@ namespace ConsoleApplication1
     {
         class A : B<A<T>, A<T>>
         {
-            protected virtual A<T> M() { }
+            protected virtual A<T> M()
+            {
+            }
 
-            protected abstract B<A<T>, A<T>> N() { }
+            protected abstract B<A<T>, A<T>> N()
+            {
+            }
 
-            static B<A<T>, A<T>> O() { }
+            static B<A<T>, A<T>> O()
+            {
+            }
         }
 
         sealed class B : A<B<T1, T2>>
         {
-            protected override A<T> M() { }
+            protected override A<T> M()
+            {
+            }
 
-            protected override sealed B<A<T>, A<T>> N() { }
+            protected override sealed B<A<T>, A<T>> N()
+            {
+            }
 
-            new static A<T> O() { }
+            new static A<T> O()
+            {
+            }
         }
     }
 
@@ -611,12 +629,16 @@ namespace Comments.XmlComments.UndocumentedKeywords
         void Params(
             {Parameter_modifierContext} dynamic a,
             {Parameter_modifierContext} dynamic b
-        ) { }
+        )
+        {
+        }
 
         void Params(
             {Parameter_modifierContext} dynamic a,
             {Parameter_modifierContext} dynamic c
-        ) { }
+        )
+        {
+        }
 
         public override string ToString()
         {
@@ -724,7 +746,9 @@ namespace Comments.XmlComments.UndocumentedKeywords
             try
             {
             }
-            catch (MyException e) when (myfilter(e)) { }
+            catch (MyException e) when (myfilter(e))
+            {
+            }
 
             Resource res = null;
             try

@@ -707,12 +707,12 @@ function printClassMemberDeclaration(node) {
 
       // It's always void (otherwise it's a typed_member_declaration).
       memberWithModifiers.push("void", " ", signature);
-      memberWithModifiers.push(group(body));
+      memberWithModifiers.push(body);
     } else if (isNode(declaration, "Typed_member_declarationContext")) {
       const signature = printTypedMemberDeclarationSignature(declaration);
       const body = printTypedMemberDeclarationBody(declaration);
 
-      memberWithModifiers.push(signature, group(body));
+      memberWithModifiers.push(signature, body);
     } else {
       memberWithModifiers.push(printNode(commonMemberDeclaration));
     }
@@ -780,7 +780,7 @@ function printMethodDeclarationSignature(node) {
     );
   }
 
-  return concat(docs);
+  return group(concat(docs));
 }
 
 function printMethodDeclarationBody(node) {
@@ -795,7 +795,7 @@ function printMethodDeclarationBody(node) {
 
   if (rightArrow && expression) {
     docs.push(
-      line,
+      " ",
       "=>",
       indent(group(concat([line, printNode(expression), ";"])))
     );
@@ -803,7 +803,7 @@ function printMethodDeclarationBody(node) {
     docs.push(printNode(methodBody));
   }
 
-  return concat(docs);
+  return group(concat(docs));
 }
 
 function printTypedMemberDeclarationSignature(node) {
@@ -1032,7 +1032,7 @@ function printBlock(node) {
     docs.push(indent(concat([hardline, printNode(statementList)])));
   }
 
-  docs.push(line, "}");
+  docs.push(hardline, "}");
 
   return concat(docs);
 }
@@ -2190,10 +2190,10 @@ function printCatchClause(node) {
   const exceptionFilter = getOptionalChildNode(node, "Exception_filterContext");
   const block = getChildNode(node, "BlockContext");
 
-  const docs = ["catch"];
+  const catchPart = ["catch"];
 
   if (classType) {
-    docs.push(" ");
+    catchPart.push(" ");
 
     const exceptionPart = [printNode(classType)];
 
@@ -2201,7 +2201,7 @@ function printCatchClause(node) {
       exceptionPart.push(" ", printNode(identifier));
     }
 
-    docs.push(
+    catchPart.push(
       group(
         concat([
           "(",
@@ -2214,12 +2214,10 @@ function printCatchClause(node) {
   }
 
   if (exceptionFilter) {
-    docs.push(line, printNode(exceptionFilter));
+    catchPart.push(line, printNode(exceptionFilter));
   }
 
-  docs.push(line, printNode(block));
-
-  return group(concat(docs));
+  return group(concat([group(concat(catchPart)), hardline, printNode(block)]));
 }
 
 function printExceptionFilter(node) {
