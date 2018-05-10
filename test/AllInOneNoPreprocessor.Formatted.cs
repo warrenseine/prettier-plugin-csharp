@@ -192,12 +192,13 @@ namespace My.Moy
             var o4 = new MyObject(@dynamic) { A = 0, B = 0, C = 0 };
             var o5 = new { A = 0 };
             var dictionaryInitializer =
-            new Dictionary<int, string> { { 1, "" }, { 2, "a" } };
+                new Dictionary<int, string> { { 1, "" }, { 2, "a" } };
             float[] a = new float[] { 0f, 1.1f };
-            int[,,] cube = {
-                { { 111, 112 }, { 121, 122 } },
-                { { 211, 212 }, { 221, 222 } }
-            };
+            int[,,] cube =
+                {
+                    { { 111, 112 }, { 121, 122 } },
+                    { { 211, 212 }, { 221, 222 } }
+                };
             int[][] jagged = { { 111 }, { 121, 122 } };
             int[][,] arr = new int[5][,];
             arr[0] = new int[5, 5];
@@ -308,21 +309,22 @@ namespace My.Moy
                 throw;
             }
             var anonymous = { A = 1, B = 2, C = 3 };
-            var query = from c in customers
-            let d = c
-            where d != null
-            join c1 in customers on c1.GetHashCode() equals c.GetHashCode()
-            join c1
-            in customers
-            on c1.GetHashCode()
-            equals c.GetHashCode()
-            into e
-            group c by c.Country
-            into
-            g
-            orderby g.Count() ascending
-            orderby g.Key descending
-            select new { Country = g.Key, CustCount = g.Count() };
+            var query =
+                from c in customers
+                let d = c
+                where d != null
+                join c1 in customers on c1.GetHashCode() equals c.GetHashCode()
+                join c1
+                in customers
+                on c1.GetHashCode()
+                equals c.GetHashCode()
+                into e
+                group c by c.Country
+                into
+                g
+                orderby g.Count() ascending
+                orderby g.Key descending
+                select new { Country = g.Key, CustCount = g.Count() };
             query = from c in customers  select c into d  select d;
         }
 
@@ -445,16 +447,17 @@ namespace My.Moy
             void AsyncAnonymous()
             {
                 var task =
-                Task
-                .Factory
-                .StartNew(async () =>
-                {
-                    return
-                        await
 
-                            new WebClient()
-                            .DownloadStringTaskAsync("http://example.com");
-                });
+                    Task
+                    .Factory
+                    .StartNew(async () =>
+                    {
+                        return
+                            await
+
+                                new WebClient()
+                                .DownloadStringTaskAsync("http://example.com");
+                    });
             }
         }
     }
@@ -557,15 +560,15 @@ namespace ConsoleApplication1
             int? j = 6;
 
             Expression<Func<int>> e = () => i;
-            Expression<Func<bool, Action>> e2 = b =>
-                () =>
-                {
-                    return;
-                };
+            Expression<Func<bool, Action>> e2 =
+                b =>
+                    () =>
+                    {
+                        return;
+                    };
             Func<bool, bool> f = {AnonymousMethodExpressionContext};
-            Func<int, int, int> f2 = (
-                {Implicit_anonymous_function_parameter_listContext}
-            ) => 0;
+            Func<int, int, int> f2 =
+                ({Implicit_anonymous_function_parameter_listContext}) => 0;
             f2 = ({Explicit_anonymous_function_parameter_listContext}) => 1;
             Action a = Blah;
             f2 =
@@ -757,11 +760,12 @@ namespace Comments.XmlComments.UndocumentedKeywords
             WriteLine(nameof(person.Address.ZipCode));
 
             var numbers =
-            new Dictionary<int, string> {
-                [7] = "seven",
-                [9] = "nine",
-                [13] = "thirteen"
-            };
+
+                new Dictionary<int, string> {
+                    [7] = "seven",
+                    [9] = "nine",
+                    [13] = "thirteen"
+                };
 
             try
             {

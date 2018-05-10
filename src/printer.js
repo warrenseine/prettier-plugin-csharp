@@ -455,28 +455,17 @@ function printBinaryishExpression(node) {
 
   let operations = _.chunk(node.children, 2);
 
-  return indent(
-    group(
-      concat([
-        softline,
-        group(
-          join(
-            line,
-            operations.map(
-              ([operand, operator]) =>
-                operator
-                  ? group(
-                      concat([
-                        printNode(operand),
-                        " ",
-                        printGenericSymbol(operator)
-                      ])
-                    )
-                  : printNode(operand)
-            )
-          )
-        )
-      ])
+  return group(
+    join(
+      line,
+      operations.map(
+        ([operand, operator]) =>
+          operator
+            ? group(
+                concat([printNode(operand), " ", printGenericSymbol(operator)])
+              )
+            : printNode(operand)
+      )
     )
   );
 }
@@ -1538,7 +1527,7 @@ function printVariableDeclarator(node) {
   const docs = [printNode(identifier)];
 
   if (initializer) {
-    docs.push(" ", "=", " ", printNode(initializer));
+    docs.push(" ", "=", indent(group(concat([line, printNode(initializer)]))));
   }
 
   return group(concat(docs));
@@ -1551,19 +1540,50 @@ function printLocalVariableDeclaration(node) {
     "Local_variable_declaratorContext"
   );
 
-  let docs = [printNode(localVariableType)];
-
-  if (localVariableDeclarators.length > 1) {
-    docs.push(
-      indent(
-        concat([hardline, printCommaList(localVariableDeclarators, hardline)])
-      )
+  if (localVariableDeclarators.length == 1) {
+    let identifier = getChildNode(
+      localVariableDeclarators[0],
+      "IdentifierContext"
     );
-  } else {
-    docs.push(" ", printNode(localVariableDeclarators[0]));
+    let initializer = getOptionalChildNode(
+      localVariableDeclarators[0],
+      "Local_variable_initializerContext"
+    );
+
+    if (initializer) {
+      let identifierPart = [
+        printNode(localVariableType),
+        line,
+        printNode(identifier),
+        line,
+        "="
+      ];
+      let initializerPart = [line, printNode(initializer)];
+
+      return group(
+        concat([
+          group(concat(identifierPart)),
+          indent(group(concat(initializerPart)))
+        ])
+      );
+    }
+
+    return group(
+      concat([
+        printNode(localVariableType),
+        indent(group(concat([line, printNode(identifier)])))
+      ])
+    );
   }
 
-  return group(concat(docs));
+  return group(
+    concat([
+      printNode(localVariableType),
+      indent(
+        group(concat([hardline, printCommaList(localVariableDeclarators)]))
+      )
+    ])
+  );
 }
 
 function printLocalConstantDeclaration(node) {
@@ -1591,7 +1611,7 @@ function printLocalVariableType(node) {
   return "var";
 }
 
-function printLocalVariableInitializer(node) {
+function printVariableInitializer(node) {
   const initializer = getAnyChildNode(node, [
     "ExpressionContext",
     "Array_initializerContext",
@@ -2382,12 +2402,6 @@ function printArrayInitializer(node) {
   );
 }
 
-function printVariableInitializer(node) {
-  assertNodeStructure(node, 1);
-
-  return printNode(node.children[0]);
-}
-
 function printBracketExpression(node) {
   const isNullCoalescent = isSymbol(node.children[0], "?");
   const indexerArguments = getChildNodes(node, "Indexer_argumentContext");
@@ -2887,8 +2901,6 @@ function printNode(node) {
     case "Variable_declaratorContext":
     case "Local_variable_declaratorContext":
       return printVariableDeclarator(node);
-    case "Local_variable_initializerContext":
-      return printLocalVariableInitializer(node);
     case "SizeofExpressionContext":
       return printSizeofExpression(node);
     case "ObjectCreationExpressionContext":
@@ -2986,6 +2998,7 @@ function printNode(node) {
       return printRankSpecifier(node);
     case "Array_initializerContext":
       return printArrayInitializer(node);
+    case "Local_variable_initializerContext":
     case "Variable_initializerContext":
       return printVariableInitializer(node);
     case "Bracket_expressionContext":
