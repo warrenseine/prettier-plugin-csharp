@@ -632,32 +632,71 @@ function printTypeDeclaration(node) {
   return group(printList(" ", node.children));
 }
 
-function printClassDefinition(node) {
+function printClassOrStructDefinition(node) {
   const identifier = getChildNode(node, "IdentifierContext");
-  const classBase = getOptionalChildNode(node, "Class_baseContext");
-  const classBody = getChildNode(node, "Class_bodyContext");
+  const base = getAnyChildNode(node, [
+    "Class_baseContext",
+    "Struct_interfacesContext"
+  ]);
+  const body = getAnyChildNode(node, [
+    "Class_bodyContext",
+    "Struct_bodyContext"
+  ]);
+  const clauses = getOptionalChildNode(
+    node,
+    "Type_parameter_constraints_clausesContext"
+  );
 
-  let classHead = ["class", line, printNode(identifier)];
+  let head = [
+    printGenericSymbol(node.children[0]),
+    line,
+    printNode(identifier)
+  ];
 
-  if (classBase) {
-    classHead.push(line, printNode(classBase));
+  if (base) {
+    head.push(line, printNode(base));
   }
 
-  return group(concat([group(concat(classHead)), line, printNode(classBody)]));
+  if (clauses) {
+    head.push(indent(concat([line, printNode(clauses)])));
+  }
+
+  return group(concat([group(concat(head)), line, printNode(body)]));
 }
 
 function printClassBase(node) {
-  assertNodeStructure(node, 2, true);
+  const classType = getChildNode(node, "Class_typeContext");
+  const namespaceOrTypeNames = getChildNodes(
+    node,
+    "Namespace_or_type_nameContext"
+  );
 
-  return group(concat([":", line, printCommaList(node.children.slice(1))]));
+  return group(
+    concat([":", line, printCommaList([classType, ...namespaceOrTypeNames])])
+  );
 }
 
-function printClassMemberDeclarations(node) {
+function printStructInterfaces(node) {
+  const interfaceTypeList = getChildNode(node, "Interface_type_listContext");
+
+  return group(concat([":", line, printNode(interfaceTypeList)]));
+}
+
+function printInterfaceTypeList(node) {
+  const namespaceOrTypeNames = getChildNodes(
+    node,
+    "Namespace_or_type_nameContext"
+  );
+
+  return printCommaList(namespaceOrTypeNames);
+}
+
+function printClassOrStructMemberDeclarations(node) {
   // FIXME: Maybe group by type.
   return join(doublehardline, node.children.map(printNode));
 }
 
-function printClassMemberDeclaration(node) {
+function printClassOrStructMemberDeclaration(node) {
   const attributes = getOptionalChildNode(node, "AttributesContext");
   const allMemberModifiers = getOptionalChildNode(
     node,
@@ -671,6 +710,7 @@ function printClassMemberDeclaration(node) {
     node,
     "Destructor_definitionContext"
   );
+  const type = getOptionalChildNode(node, "TypeContext");
 
   const docs = [];
 
@@ -707,6 +747,14 @@ function printClassMemberDeclaration(node) {
     }
   } else if (destructorDefinition) {
     memberWithModifiers.push(printNode(destructorDefinition));
+  } else if (type) {
+    const fixedSizeBufferDeclarators = getChildNodes(
+      node,
+      "Fixed_size_buffer_declarator"
+    );
+
+    memberWithModifiers.push("fixed", line, printNode(type), line);
+    memberWithModifiers.push(join(line, fixedSizeBufferDeclarators), ";");
   }
 
   docs.push(group(concat(memberWithModifiers)));
@@ -851,6 +899,8 @@ function printTypedMemberDeclarationSignature(node) {
     docs.push(line, printMethodDeclarationSignature(declaration));
   } else if (isNode(declaration, "Indexer_declarationContext")) {
     docs.push(line, printIndexerDeclarationSignature(declaration));
+  } else if (isNode(declaration, "Operator_declarationContext")) {
+    docs.push(line, printOperatorDeclarationSignature(declaration));
   }
 
   return group(concat(docs));
@@ -882,6 +932,8 @@ function printTypedMemberDeclarationBody(node) {
     );
   } else if (isNode(declaration, "Indexer_declarationContext")) {
     docs.push(printIndexerDeclarationBody(declaration));
+  } else if (isNode(declaration, "Operator_declarationContext")) {
+    docs.push(printOperatorDeclarationBody(declaration));
   } else {
     docs.push(indent(group(concat([line, printNode(declaration)]))));
   }
@@ -1327,7 +1379,7 @@ function printAssignment(node) {
   );
 }
 
-function printAssignmentOperator(node) {
+function printOperator(node) {
   return printGenericSymbol(node);
 }
 
@@ -1335,6 +1387,41 @@ function printFieldDeclaration(node) {
   const variableDeclarators = getChildNode(node, "Variable_declaratorsContext");
 
   return group(concat([printNode(variableDeclarators), ";"]));
+}
+
+function printEventDeclaration(node) {
+  const type = getChildNode(node, "TypeContext");
+  const variableDeclarators = getOptionalChildNode(
+    node,
+    "Variable_declaratorsContext"
+  );
+
+  const docs = ["event", " ", printNode(type)];
+
+  if (variableDeclarators) {
+    docs.push(indent(concat([line, printNode(variableDeclarators), ";"])));
+  } else {
+    const memberName = getChildNode(node, "Member_nameContext");
+    const eventAccessorDeclarations = getChildNode(
+      node,
+      "Event_accessor_declarationsContext"
+    );
+
+    docs.push(line, printNode(memberName), line);
+
+    docs.push(
+      group(
+        concat([
+          "{",
+          indent(concat([line, printNode(eventAccessorDeclarations)])),
+          line,
+          "}"
+        ])
+      )
+    );
+  }
+
+  return group(concat(docs));
 }
 
 function printAccessorDeclarations(node) {
@@ -1355,9 +1442,17 @@ function printAccessorDeclarations(node) {
   }
 
   const accessorType = getChildNode(node, "TerminalNodeImpl");
-  const accessorBody = getChildNode(node, "Accessor_bodyContext");
+  const accessorBody = getAnyChildNode(node, [
+    "Accessor_bodyContext",
+    "BlockContext"
+  ]);
 
   docs.push(printGenericSymbol(accessorType));
+
+  if (isNode(accessorBody, "BlockContext")) {
+    docs.push(line);
+  }
+
   docs.push(printNode(accessorBody));
 
   if (isSymbol(accessorType, "get")) {
@@ -1376,7 +1471,25 @@ function printAccessorDeclarations(node) {
     );
 
     if (getAccessorDeclaration) {
-      docs.push(line, printNode(setAccessorDeclaration));
+      docs.push(line, printNode(getAccessorDeclaration));
+    }
+  } else if (isSymbol(accessorType, "add")) {
+    const removeAccessorDeclaration = getOptionalChildNode(
+      node,
+      "Remove_accessor_declarationContext"
+    );
+
+    if (removeAccessorDeclaration) {
+      docs.push(line, printNode(removeAccessorDeclaration));
+    }
+  } else if (isSymbol(accessorType, "remove")) {
+    const addAccessorDeclaration = getOptionalChildNode(
+      node,
+      "Add_accessor_declarationContext"
+    );
+
+    if (addAccessorDeclaration) {
+      docs.push(line, printNode(addAccessorDeclaration));
     }
   }
 
@@ -1427,6 +1540,40 @@ function printIndexerDeclarationBody(node) {
   }
 
   return group(concat(docs));
+}
+
+function printOperatorDeclarationSignature(node) {
+  const argDeclarations = getChildNodes(node, "Arg_declarationContext");
+  const overloadableOperator = getChildNode(
+    node,
+    "Overloadable_operatorContext"
+  );
+
+  return group(
+    concat([
+      "operator",
+      line,
+      printNode(overloadableOperator),
+      "(",
+      indent(group(concat([softline, printCommaList(argDeclarations)]))),
+      softline,
+      ")"
+    ])
+  );
+}
+
+function printOperatorDeclarationBody(node) {
+  const body = getOptionalChildNode(node, "BodyContext");
+
+  if (body) {
+    return printNode(body);
+  }
+
+  const expression = getChildNode(node, "ExpressionContext");
+
+  return group(
+    concat([" ", "=>", indent(group(concat([line, printNode(expression)])))])
+  );
 }
 
 function printStatementList(node) {
@@ -1780,6 +1927,15 @@ function printStringLiteral(node) {
   }
 
   return printGenericSymbol(node.children[0]);
+}
+
+function printInterpolatedVerbatiumString(node) {
+  const parts = getChildNodes(
+    node,
+    "Interpolated_verbatium_string_partContext"
+  );
+
+  return group(concat(['$@"', concat(parts.map(printNode)), '"']));
 }
 
 function printInterpolatedRegularString(node) {
@@ -2808,24 +2964,33 @@ function printNode(node) {
       return printNamespaceDeclaration(node);
     case "Namespace_bodyContext":
     case "Class_bodyContext":
+    case "Struct_bodyContext":
     case "Interface_bodyContext":
       return printBraceBody(node);
+    case "Interface_type_listContext":
+      return printInterfaceTypeList(node);
     case "Class_definitionContext":
-      return printClassDefinition(node);
+    case "Struct_definitionContext":
+      return printClassOrStructDefinition(node);
     case "Class_baseContext":
       return printClassBase(node);
+    case "Struct_interfacesContext":
+      return printStructInterfaces(node);
     case "Qualified_identifierContext":
       return printQualifiedIdentifier(node);
     case "Qualified_alias_memberContext":
       return printQualifiedAliasMember(node);
     case "All_member_modifiersContext":
+    case "Accessor_modifierContext":
       return printAllMemberModifiers(node);
     case "All_member_modifierContext":
       return printAllMemberModifier(node);
     case "Class_member_declarationsContext":
-      return printClassMemberDeclarations(node);
+    case "Struct_member_declarationsContext":
+      return printClassOrStructMemberDeclarations(node);
     case "Class_member_declarationContext":
-      return printClassMemberDeclaration(node);
+    case "Struct_member_declarationContext":
+      return printClassOrStructMemberDeclaration(node);
     case "Common_member_declarationContext":
       return printCommonMemberDeclaration(node);
     case "Constructor_declarationContext":
@@ -2868,11 +3033,14 @@ function printNode(node) {
     case "AssignmentContext":
       return printAssignment(node);
     case "Assignment_operatorContext":
-      return printAssignmentOperator(node);
+    case "Overloadable_operatorContext":
+      return printOperator(node);
     case "Typed_member_declarationContext":
       return printTypedMemberDeclaration(node);
     case "Field_declarationContext":
       return printFieldDeclaration(node);
+    case "Event_declarationContext":
+      return printEventDeclaration(node);
     case "Member_accessContext":
       return printMemberAccess(node);
     case "Statement_listContext":
@@ -2909,6 +3077,8 @@ function printNode(node) {
       return printBaseAccessExpression(node);
     case "Method_invocationContext":
       return printMethodInvocation(node);
+    case "Interpolated_verbatium_stringContext":
+      return printInterpolatedVerbatiumString(node);
     case "Interpolated_regular_stringContext":
       return printInterpolatedRegularString(node);
     case "Interpolated_regular_string_partContext":
@@ -3030,6 +3200,9 @@ function printNode(node) {
     case "Accessor_declarationsContext":
     case "Set_accessor_declarationContext":
     case "Get_accessor_declarationContext":
+    case "Event_accessor_declarationsContext":
+    case "Add_accessor_declarationContext":
+    case "Remove_accessor_declarationContext":
       return printAccessorDeclarations(node);
     case "Lambda_expressionContext":
       return printLambdaExpression(node);

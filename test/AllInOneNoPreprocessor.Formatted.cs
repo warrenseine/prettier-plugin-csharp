@@ -373,29 +373,99 @@ namespace My.Moy
 
         public abstract int this[int index]
         {
-            {Accessor_modifierContext} get; {Accessor_modifierContext} set;
+            protected internal get; protected internal set;
         }
 
         [method: Obsolete]
         [field: Obsolete]
         [event: Obsolete]
-        public readonly {Event_declarationContext}
+        public readonly event Event E;
 
         [event: Test]
-        public {Event_declarationContext}
+        public event Action
+        E1
+        {
+            [Obsolete]
+            add
+            {
+                value = value;
+            }
+            [Obsolete]
+            [return: Obsolete]
+            remove
+            {
+                E += Handler;
+                E -= Handler;
+            }
+        }
 
-        public static A {Operator_declarationContext}
+        public static A operator +(A first, A second)
+        {
+            Delegate handler = new Delegate(Handler);
+            return first.Add(second);
+        }
 
         [method: Obsolete]
         [return: Obsolete]
-        public static bool {Operator_declarationContext}
+        public static bool operator true(A a)
+        {
+            return true;
+        }
 
-        public static bool {Operator_declarationContext}
+        public static bool operator false(A a)
+        {
+            return false;
+        }
 
         class C { }
     }
 
-    public {Struct_definitionContext}
+    public struct S : I
+    {
+        public S()
+        {
+        }
+
+        private int f1;
+
+        [Obsolete("Use Script instead", error:false)]
+        private volatile int f2;
+
+        public abstract int
+        m<T>(T t)
+            where T : struct
+        {
+            return 1;
+        }
+
+        public string P
+        {
+            get
+            {
+                int value = 0;
+                return "A";
+            }
+            set;
+        }
+
+        public abstract string P { get; }
+
+        public abstract int this[int index]
+        {
+            get; protected internal set;
+        }
+
+        public event Event E;
+
+        public static A operator +(A first, A second)
+        {
+            return first.Add(second);
+        }
+
+        fixed int ;
+
+        class C { }
+    }
 
     public interface I
     {
@@ -465,7 +535,7 @@ namespace ConsoleApplication1
 {
     namespace RecursiveGenericBaseType
     {
-        class A : B<A<T>, A<T>>
+        class A : B<A<T>, A<T>> where T : A<T>
         {
             protected virtual A<T> M()
             {
@@ -499,7 +569,7 @@ namespace ConsoleApplication1
 
     namespace Boo
     {
-        public class Bar
+        public class Bar where T : IComparable
         {
             public T f;
 
@@ -548,7 +618,7 @@ namespace ConsoleApplication1
             Test t = "sss";
         }
 
-        public {Event_declarationContext}
+        public event EventHandler MyEvent = {AnonymousMethodExpressionContext};
 
         void Blah()
         {
@@ -710,7 +780,17 @@ namespace Comments.XmlComments.UndocumentedKeywords
             x[i: 1, j: 5] = "str";
         }
 
-        {Struct_definitionContext}
+        struct Point
+        {
+            public int X;
+
+            public int Y;
+
+            public void ThisAccess()
+            {
+                this = this;
+            }
+        }
     }
 
     class CSharp6Features
@@ -725,7 +805,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
         public Point Move(int dx, int dy) => new Point(x + dx, y + dy);
 
-        public static Complex {Operator_declarationContext}
+        public static Complex operator +(Complex a, Complex b) => a.Add(b)
 
         public static {Conversion_operator_declaratorContext}
         {Right_arrowContext}
@@ -750,7 +830,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
             int? first = customers?[0]?.Orders?.Count();
             PropertyChanged?.Invoke(this, args);
 
-            s = {Interpolated_verbatium_stringContext};
+            s = $@"\{p.Name}
+                                   ""\";
 
             if (x == null) throw new ArgumentNullException(nameof(x));
             WriteLine(nameof(person.Address.ZipCode));
