@@ -447,14 +447,10 @@ namespace My.Moy
             void AsyncAnonymous()
             {
                 var task =
-
-                    Task
-                    .Factory
-                    .StartNew(async () =>
+                    Task.Factory.StartNew(async () =>
                     {
                         return
                             await
-
                                 new WebClient()
                                 .DownloadStringTaskAsync("http://example.com");
                     });
@@ -760,7 +756,6 @@ namespace Comments.XmlComments.UndocumentedKeywords
             WriteLine(nameof(person.Address.ZipCode));
 
             var numbers =
-
                 new Dictionary<int, string> {
                     [7] = "seven",
                     [9] = "nine",

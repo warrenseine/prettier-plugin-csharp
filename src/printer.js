@@ -493,7 +493,7 @@ function printPrimaryExpression(node) {
       currentPart.push(printNode(child));
       currentPart = null;
     } else {
-      currentPart.push(softline, printNode(child));
+      currentPart.push(printNode(child));
     }
   }
 
