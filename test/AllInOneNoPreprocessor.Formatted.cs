@@ -428,7 +428,7 @@ namespace My.Moy
 
         private int f1;
 
-        [Obsolete("Use Script instead", error:false)]
+        [Obsolete("Use Script instead", error: false)]
         private volatile int f2;
 
         public abstract int

@@ -352,7 +352,7 @@ function printAttributeArgument(node) {
   const docs = [];
 
   if (identifier) {
-    docs.push(printNode(identifier), ":");
+    docs.push(printNode(identifier), ":", line);
   }
 
   docs.push(printNode(expression));
