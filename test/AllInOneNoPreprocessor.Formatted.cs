@@ -352,8 +352,7 @@ namespace My.Moy
         {
         }
 
-        public int
-        m<T>(T t)
+        public int m<T>(T t)
             where T : class
         {
             base.m(t);
@@ -431,8 +430,7 @@ namespace My.Moy
         [Obsolete("Use Script instead", error: false)]
         private volatile int f2;
 
-        public abstract int
-        m<T>(T t)
+        public abstract int m<T>(T t)
             where T : struct
         {
             return 1;

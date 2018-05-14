@@ -712,16 +712,16 @@ function printClassOrStructMemberDeclaration(node) {
   );
   const type = getOptionalChildNode(node, "TypeContext");
 
-  const docs = [];
+  const attributesPart = [];
+  const signaturePart = [];
+  const bodyPart = [];
 
   if (attributes) {
-    docs.push(group(concat([printNode(attributes), hardline])));
+    attributesPart.push(group(concat([printNode(attributes), hardline])));
   }
 
-  const memberWithModifiers = [];
-
   if (allMemberModifiers) {
-    memberWithModifiers.push(printNode(allMemberModifiers), " ");
+    signaturePart.push(printNode(allMemberModifiers), " ");
   }
 
   if (commonMemberDeclaration) {
@@ -731,42 +731,46 @@ function printClassOrStructMemberDeclaration(node) {
     ]);
 
     if (isNode(declaration, "Method_declarationContext")) {
-      const signature = printMethodDeclarationSignature(declaration);
-      const body = printMethodDeclarationBody(declaration);
-
       // It's always void (otherwise it's a typed_member_declaration).
-      memberWithModifiers.push("void", " ", signature);
-      memberWithModifiers.push(body);
+      signaturePart.push(
+        "void",
+        " ",
+        printMethodDeclarationSignatureBase(declaration),
+        printMethodDeclarationSignatureConstraints(declaration)
+      );
+      bodyPart.push(printMethodDeclarationBody(declaration));
     } else if (isNode(declaration, "Typed_member_declarationContext")) {
-      const signature = printTypedMemberDeclarationSignature(declaration);
-      const body = printTypedMemberDeclarationBody(declaration);
-
-      memberWithModifiers.push(signature, body);
+      signaturePart.push(printTypedMemberDeclarationSignature(declaration));
+      bodyPart.push(printTypedMemberDeclarationBody(declaration));
     } else {
-      memberWithModifiers.push(printNode(commonMemberDeclaration));
+      signaturePart.push(printNode(commonMemberDeclaration));
     }
   } else if (destructorDefinition) {
-    memberWithModifiers.push(printNode(destructorDefinition));
+    signaturePart.push(printNode(destructorDefinition));
   } else if (type) {
     const fixedSizeBufferDeclarators = getChildNodes(
       node,
       "Fixed_size_buffer_declarator"
     );
 
-    memberWithModifiers.push("fixed", line, printNode(type), line);
-    memberWithModifiers.push(join(line, fixedSizeBufferDeclarators), ";");
+    signaturePart.push("fixed", line, printNode(type));
+    bodyPart.push(line, join(line, fixedSizeBufferDeclarators), ";");
   }
 
-  docs.push(group(concat(memberWithModifiers)));
-
-  return group(concat(docs));
+  return group(
+    concat([
+      group(concat(attributesPart)),
+      group(concat(signaturePart)),
+      group(concat(bodyPart))
+    ])
+  );
 }
 
 function printCommonMemberDeclaration(node) {
   return printList(line, node.children);
 }
 
-function printMethodDeclarationSignature(node) {
+function printMethodDeclarationSignatureBase(node) {
   const methodMemberName = getAnyChildNode(node, [
     "Method_member_nameContext",
     "IdentifierContext"
@@ -779,6 +783,25 @@ function printMethodDeclarationSignature(node) {
     node,
     "Formal_parameter_listContext"
   );
+
+  const signatureBasePart = [printNode(methodMemberName)];
+
+  if (typeParameterList) {
+    signatureBasePart.push(printNode(typeParameterList));
+  }
+
+  signatureBasePart.push("(");
+
+  if (formalParameterList) {
+    signatureBasePart.push(printNode(formalParameterList));
+  }
+
+  signatureBasePart.push(")");
+
+  return group(concat(signatureBasePart));
+}
+
+function printMethodDeclarationSignatureConstraints(node) {
   const constructorInitializer = getOptionalChildNode(
     node,
     "Constructor_initializerContext"
@@ -788,19 +811,7 @@ function printMethodDeclarationSignature(node) {
     "Type_parameter_constraints_clausesContext"
   );
 
-  const docs = [printNode(methodMemberName)];
-
-  if (typeParameterList) {
-    docs.push(printNode(typeParameterList));
-  }
-
-  docs.push("(");
-
-  if (formalParameterList) {
-    docs.push(printNode(formalParameterList));
-  }
-
-  docs.push(")");
+  const docs = [];
 
   if (typeParameterConstraintsClauses) {
     docs.push(
@@ -889,18 +900,37 @@ function printTypedMemberDeclarationSignature(node) {
     "Field_declarationContext"
   ]);
 
-  const docs = [printNode(type)];
+  const docs = [];
 
   if (isNode(declaration, "Property_declarationContext")) {
     const memberName = getChildNode(declaration, "Member_nameContext");
 
-    docs.push(line, printNode(memberName));
+    docs.push(printNode(type), line, printNode(memberName));
   } else if (isNode(declaration, "Method_declarationContext")) {
-    docs.push(line, printMethodDeclarationSignature(declaration));
+    docs.push(
+      group(
+        concat([
+          printNode(type),
+          line,
+          printMethodDeclarationSignatureBase(declaration)
+        ])
+      ),
+      printMethodDeclarationSignatureConstraints(declaration)
+    );
   } else if (isNode(declaration, "Indexer_declarationContext")) {
-    docs.push(line, printIndexerDeclarationSignature(declaration));
+    docs.push(
+      printNode(type),
+      line,
+      printIndexerDeclarationSignature(declaration)
+    );
   } else if (isNode(declaration, "Operator_declarationContext")) {
-    docs.push(line, printOperatorDeclarationSignature(declaration));
+    docs.push(
+      printNode(type),
+      line,
+      printOperatorDeclarationSignature(declaration)
+    );
+  } else {
+    docs.push(printNode(type));
   }
 
   return group(concat(docs));
@@ -943,7 +973,8 @@ function printTypedMemberDeclarationBody(node) {
 
 function printMethodDeclaration(node) {
   return concat([
-    printMethodDeclarationSignature(node),
+    printMethodDeclarationSignatureBase(node),
+    printMethodDeclarationSignatureConstraints(node),
     printMethodDeclarationBody(node)
   ]);
 }
