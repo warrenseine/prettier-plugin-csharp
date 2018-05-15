@@ -555,6 +555,10 @@ function printMemberAccessExpression(node) {
   return group(join(line, node.children.map(printNode)));
 }
 
+function printLiteralAccessExpression(node) {
+  return printGenericSymbol(node.children[0]);
+}
+
 function printParenthesisExpression(node) {
   const expression = getChildNode(node, "ExpressionContext");
 
@@ -605,42 +609,117 @@ function printNamespaceDeclaration(node) {
     concat([
       group(concat(["namespace", line, printNode(qualifiedIdentifier)])),
       hardline,
-      printNode(namespaceBody),
-      hardline
+      printNode(namespaceBody)
     ])
   );
 }
 
 function printBraceBody(node) {
-  assertNodeStructure(node, 2, true);
+  const groupedDeclarations = getAnyChildNode(node, [
+    "Class_member_declarationsContext",
+    "Namespace_member_declarationsContext"
+  ]);
 
-  const children = node.children.slice(1, -1);
+  const lineSeparatedDeclarations = getAllChildNodes(node, [
+    "Interface_member_declarationContext",
+    "Struct_member_declarationContext"
+  ]);
 
-  const body = children.length
-    ? concat([
-        indent(
-          concat([hardline, join(doublehardline, children.map(printNode))])
-        ),
-        hardline
-      ])
-    : line;
+  const commaSeparatedDeclarations = getAllChildNodes(node, [
+    "Enum_member_declarationContext"
+  ]);
 
-  return group(concat(["{", body, "}"]));
+  const externAliasDirectives = getOptionalChildNode(
+    node,
+    "Extern_alias_directivesContext"
+  );
+  const usingDirectives = getOptionalChildNode(node, "Using_directivesContext");
+
+  const hasDeclarations =
+    lineSeparatedDeclarations.length ||
+    commaSeparatedDeclarations.length ||
+    groupedDeclarations ||
+    externAliasDirectives ||
+    usingDirectives;
+
+  if (!hasDeclarations) {
+    return group(concat(["{", line, "}"]));
+  }
+
+  const declarationParts = [];
+
+  if (externAliasDirectives) {
+    declarationParts.push(printNode(externAliasDirectives));
+  }
+
+  if (usingDirectives) {
+    declarationParts.push(printNode(usingDirectives));
+  }
+
+  if (groupedDeclarations) {
+    declarationParts.push(printNode(groupedDeclarations));
+  }
+
+  if (lineSeparatedDeclarations.length) {
+    declarationParts.push(...lineSeparatedDeclarations.map(printNode));
+  }
+
+  if (commaSeparatedDeclarations.length) {
+    declarationParts.push(printCommaList(commaSeparatedDeclarations));
+  }
+
+  return group(
+    concat([
+      "{",
+      indent(concat([hardline, join(doublehardline, declarationParts)])),
+      hardline,
+      "}"
+    ])
+  );
 }
 
 function printTypeDeclaration(node) {
-  return group(printList(" ", node.children));
+  const attributes = getOptionalChildNode(node, "AttributesContext");
+  const allMemberModifiers = getOptionalChildNode(
+    node,
+    "All_member_modifiersContext"
+  );
+  const definition = getAnyChildNode(node, [
+    "Class_definitionContext",
+    "Struct_definitionContext",
+    "Interface_definitionContext",
+    "Enum_definitionContext",
+    "Delegate_definitionContext"
+  ]);
+
+  const docs = [];
+
+  if (attributes) {
+    docs.push(printNode(attributes), hardline);
+  }
+
+  if (allMemberModifiers) {
+    docs.push(
+      group(concat([printNode(allMemberModifiers), " ", printNode(definition)]))
+    );
+  } else {
+    docs.push(printNode(definition));
+  }
+
+  return group(concat(docs));
 }
 
-function printClassOrStructDefinition(node) {
+function printStructDefinition(node) {
   const identifier = getChildNode(node, "IdentifierContext");
   const base = getAnyChildNode(node, [
     "Class_baseContext",
-    "Struct_interfacesContext"
+    "Struct_interfacesContext",
+    "Enum_baseContext"
   ]);
   const body = getAnyChildNode(node, [
     "Class_bodyContext",
-    "Struct_bodyContext"
+    "Struct_bodyContext",
+    "Enum_bodyContext"
   ]);
   const clauses = getOptionalChildNode(
     node,
@@ -664,22 +743,21 @@ function printClassOrStructDefinition(node) {
   return group(concat([group(concat(head)), line, printNode(body)]));
 }
 
-function printClassBase(node) {
-  const classType = getChildNode(node, "Class_typeContext");
+function printStructBase(node) {
+  const type = getAnyChildNode(node, [
+    "Interface_type_listContext",
+    "TypeContext",
+    "Class_typeContext"
+  ]);
+
   const namespaceOrTypeNames = getChildNodes(
     node,
     "Namespace_or_type_nameContext"
   );
 
   return group(
-    concat([":", line, printCommaList([classType, ...namespaceOrTypeNames])])
+    concat([":", line, printCommaList([type, ...namespaceOrTypeNames])])
   );
-}
-
-function printStructInterfaces(node) {
-  const interfaceTypeList = getChildNode(node, "Interface_type_listContext");
-
-  return group(concat([":", line, printNode(interfaceTypeList)]));
 }
 
 function printInterfaceTypeList(node) {
@@ -766,8 +844,60 @@ function printClassOrStructMemberDeclaration(node) {
   );
 }
 
+function printEnumMemberDeclaration(node) {
+  const attributes = getOptionalChildNode(node, "AttributesContext");
+  const identifier = getChildNode(node, "IdentifierContext");
+  const expression = getOptionalChildNode(node, "ExpressionContext");
+
+  const docs = [];
+
+  if (attributes) {
+    docs.push(printNode(attributes), hardline);
+  }
+
+  const declarationPart = [printNode(identifier)];
+
+  if (expression) {
+    declarationPart.push(
+      indent(group(concat([line, "=", " ", printNode(expression)])))
+    );
+  }
+
+  docs.push(group(concat(declarationPart)));
+
+  return group(concat(docs));
+}
+
 function printCommonMemberDeclaration(node) {
-  return printList(line, node.children);
+  const conversionOperator = getOptionalChildNode(
+    node,
+    "Conversion_operator_declaratorContext"
+  );
+  const methodDeclaration = getOptionalChildNode(
+    node,
+    "Method_declarationContext"
+  );
+
+  if (conversionOperator) {
+    const body = getOptionalChildNode(node, "BodyContext");
+    const expression = getOptionalChildNode(node, "ExpressionContext");
+
+    const docs = [printNode(conversionOperator)];
+
+    if (body) {
+      docs.push(line, printNode(body));
+    } else {
+      docs.push(
+        indent(group(concat([line, "=>", " ", printNode(expression), ";"])))
+      );
+    }
+
+    return group(concat(docs));
+  } else if (methodDeclaration) {
+    return group(concat(["void", " ", printNode(methodDeclaration)]));
+  } else {
+    return printList(line, node.children);
+  }
 }
 
 function printMethodDeclarationSignatureBase(node) {
@@ -1005,6 +1135,25 @@ function printQualifiedAliasMember(node) {
   }
 
   return group(concat(docs));
+}
+
+function printConversionOperatorDeclarator(node) {
+  const type = getChildNode(node, "TypeContext");
+  const argDeclaration = getChildNode(node, "Arg_declarationContext");
+
+  return group(
+    concat([
+      printGenericSymbol(node.children[0]),
+      " ",
+      "operator",
+      " ",
+      printNode(type),
+      "(",
+      indent(group(concat([softline, printNode(argDeclaration)]))),
+      softline,
+      ")"
+    ])
+  );
 }
 
 function printConstructorInitializer(node) {
@@ -1252,6 +1401,109 @@ function printInterfaceDefinition(node) {
   return group(
     concat([group(concat(interfaceHead)), line, printNode(interfaceBody)])
   );
+}
+
+function printInterfaceMemberDeclaration(node) {
+  const docs = [];
+
+  const attributes = getOptionalChildNode(node, "AttributesContext");
+  const isNew = node.children.find(node => isSymbol(node, "new"));
+  const isEvent = node.children.find(node => isSymbol(node, "event"));
+  const isUnsafe = node.children.find(node => isSymbol(node, "unsafe"));
+  const type = getOptionalChildNode(node, "TypeContext");
+  const identifier = getChildNode(node, "IdentifierContext");
+  const interfaceAccessors = getOptionalChildNode(
+    node,
+    "Interface_accessorsContext"
+  );
+  const formalParameterList = getOptionalChildNode(
+    node,
+    "Formal_parameter_listContext"
+  );
+
+  if (attributes) {
+    docs.push(printNode(attributes), hardline);
+  }
+
+  const declarationPart = [];
+
+  if (isNew) {
+    declarationPart.push("new", " ");
+  }
+
+  if (isEvent) {
+    declarationPart.push("event", " ");
+    declarationPart.push(printNode(type), line, printNode(identifier), ";");
+  } else {
+    if (isUnsafe) {
+      declarationPart.push("unsafe", " ");
+    }
+
+    if (interfaceAccessors) {
+      declarationPart.push(printNode(type), line);
+
+      if (identifier) {
+        declarationPart.push(printNode(identifier), line);
+      } else {
+        declarationPart.push("this", "[");
+        declarationPart.push(
+          indent(concat([softline, printNode(formalParameterList)]))
+        );
+        declarationPart.push("]", line);
+      }
+
+      declarationPart.push(
+        group(
+          concat([
+            "{",
+            indent(concat([line, printNode(interfaceAccessors)])),
+            line,
+            "}"
+          ])
+        )
+      );
+    } else {
+      const typeParameterList = getOptionalChildNode(
+        node,
+        "Type_parameter_listContext"
+      );
+      const typeParameterConstraintsClauses = getOptionalChildNode(
+        node,
+        "Type_parameter_constraints_clausesContext"
+      );
+
+      declarationPart.push(type ? printNode(type) : "void", line);
+
+      declarationPart.push(printNode(identifier));
+
+      if (typeParameterList) {
+        declarationPart.push(printNode(typeParameterList));
+      }
+
+      declarationPart.push("(");
+
+      if (formalParameterList) {
+        declarationPart.push(
+          indent(concat([softline, printNode(formalParameterList)])),
+          softline
+        );
+      }
+
+      declarationPart.push(")");
+
+      if (typeParameterConstraintsClauses) {
+        declarationPart.push(
+          indent(concat([line, printNode(typeParameterConstraintsClauses)]))
+        );
+      }
+
+      declarationPart.push(";");
+    }
+  }
+
+  docs.push(group(concat(declarationPart)));
+
+  return group(concat(docs));
 }
 
 function printTypeParameterList(node) {
@@ -1522,6 +1774,46 @@ function printAccessorDeclarations(node) {
     if (addAccessorDeclaration) {
       docs.push(line, printNode(addAccessorDeclaration));
     }
+  }
+
+  return group(concat(docs));
+}
+
+function printInterfaceAccessors(node) {
+  const attributes = getChildNodes(node, "AttributesContext");
+  const firstAccessorAttributes =
+    attributes.length >= 1 && isNode(node.children[0], "AttributesContext");
+  const secondAccessorAttributes =
+    (attributes.length == 1 && !firstAccessorAttributes) ||
+    attributes.length == 2;
+  const accessors = node.children.filter(
+    node => isSymbol(node, "get") || isSymbol(node, "set")
+  );
+  const firstAccessor = accessors[0];
+  const secondAccessor = accessors[1];
+
+  const docs = [];
+
+  const firstAccessorPart = [];
+
+  if (firstAccessorAttributes) {
+    firstAccessorPart.push(printNode(firstAccessorAttributes), hardline);
+  }
+
+  firstAccessorPart.push(printGenericSymbol(firstAccessor), ";");
+
+  docs.push(group(concat(firstAccessorPart)));
+
+  if (secondAccessor) {
+    const secondAccessorPart = [];
+
+    if (secondAccessorAttributes) {
+      secondAccessorPart.push(printNode(secondAccessorAttributes), hardline);
+    }
+
+    secondAccessorPart.push(printGenericSymbol(secondAccessor), ";");
+
+    docs.push(line, group(concat(secondAccessorPart)));
   }
 
   return group(concat(docs));
@@ -2305,6 +2597,39 @@ function printDefaultValueExpression(node) {
   );
 }
 
+function printAnonymousMethodExpression(node) {
+  const block = getChildNode(node, "BlockContext");
+  const parameterList = getOptionalChildNode(
+    node,
+    "Explicit_anonymous_function_parameter_listContext"
+  );
+  const isAsync = isSymbol(node.children[0], "async");
+
+  const docs = [];
+
+  const signaturePart = [];
+
+  if (isAsync) {
+    signaturePart.push("async", " ");
+  }
+
+  signaturePart.push("delegate", " ");
+
+  const paramsPart = [];
+
+  paramsPart.push("(");
+  if (parameterList) {
+    paramsPart.push(indent(concat([softline, printNode(parameterList)])));
+  }
+  paramsPart.push(")");
+
+  signaturePart.push(group(concat(paramsPart)));
+
+  return group(
+    concat([group(concat(signaturePart)), hardline, printNode(block)])
+  );
+}
+
 function printCapturingStatement(node) {
   const keyword = node.children[0];
   const capturedExpressions = getAllChildNodes(node, [
@@ -2977,6 +3302,8 @@ function printNode(node) {
       return printStringLiteral(node);
     case "MemberAccessExpressionContext":
       return printMemberAccessExpression(node);
+    case "LiteralAccessExpressionContext":
+      return printLiteralAccessExpression(node);
     case "Primary_expressionContext":
       return printPrimaryExpression(node);
     case "Unary_expressionContext":
@@ -2997,16 +3324,18 @@ function printNode(node) {
     case "Class_bodyContext":
     case "Struct_bodyContext":
     case "Interface_bodyContext":
+    case "Enum_bodyContext":
       return printBraceBody(node);
     case "Interface_type_listContext":
       return printInterfaceTypeList(node);
     case "Class_definitionContext":
     case "Struct_definitionContext":
-      return printClassOrStructDefinition(node);
+    case "Enum_definitionContext":
+      return printStructDefinition(node);
     case "Class_baseContext":
-      return printClassBase(node);
+    case "Enum_baseContext":
     case "Struct_interfacesContext":
-      return printStructInterfaces(node);
+      return printStructBase(node);
     case "Qualified_identifierContext":
       return printQualifiedIdentifier(node);
     case "Qualified_alias_memberContext":
@@ -3019,6 +3348,8 @@ function printNode(node) {
     case "Class_member_declarationsContext":
     case "Struct_member_declarationsContext":
       return printClassOrStructMemberDeclarations(node);
+    case "Enum_member_declarationContext":
+      return printEnumMemberDeclaration(node);
     case "Class_member_declarationContext":
     case "Struct_member_declarationContext":
       return printClassOrStructMemberDeclaration(node);
@@ -3041,6 +3372,8 @@ function printNode(node) {
       return printBlock(node);
     case "Interface_definitionContext":
       return printInterfaceDefinition(node);
+    case "Interface_member_declarationContext":
+      return printInterfaceMemberDeclaration(node);
     case "Type_parameter_listContext":
     case "Variant_type_parameter_listContext":
       return printTypeParameterList(node);
@@ -3157,6 +3490,8 @@ function printNode(node) {
       return printCheckedExpression(node);
     case "DefaultValueExpressionContext":
       return printDefaultValueExpression(node);
+    case "AnonymousMethodExpressionContext":
+      return printAnonymousMethodExpression(node);
     case "LockStatementContext":
     case "UsingStatementContext":
     case "FixedStatementContext":
@@ -3235,6 +3570,8 @@ function printNode(node) {
     case "Add_accessor_declarationContext":
     case "Remove_accessor_declarationContext":
       return printAccessorDeclarations(node);
+    case "Interface_accessorsContext":
+      return printInterfaceAccessors(node);
     case "Lambda_expressionContext":
       return printLambdaExpression(node);
     case "Anonymous_function_signatureContext":
@@ -3247,6 +3584,8 @@ function printNode(node) {
       return printExplicitAnonymousFunctionParameter(node);
     case "Implicit_anonymous_function_parameterContext":
       return printImplicitAnonymousFunctionParameterList(node);
+    case "Conversion_operator_declaratorContext":
+      return printConversionOperatorDeclarator(node);
     default:
       console.error("Unknown C# node:", node.constructor.name);
       return `{${node.constructor.name}}`;

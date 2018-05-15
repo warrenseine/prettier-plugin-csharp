@@ -467,14 +467,24 @@ namespace My.Moy
 
     public interface I
     {
-        {Interface_member_declarationContext}
+        void A(int value);
 
-        {Interface_member_declarationContext}
+        string Value { get; set; }
 
-        {Interface_member_declarationContext}
+        unsafe void
+        UpdateSignatureByHashingContent(
+            [In] byte* buffer, int size
+        );
     }
 
-    [type: Flags] public {Enum_definitionContext}
+    [type: Flags]
+    public enum E
+    {
+        A,
+        B = A,
+        C = 2 + A,
+        D
+    }
 
     public delegate void Delegate(object P);
 
@@ -525,9 +535,7 @@ namespace My.Moy
             }
         }
     }
-
 }
-
 
 namespace ConsoleApplication1
 {
@@ -564,7 +572,6 @@ namespace ConsoleApplication1
         }
     }
 
-
     namespace Boo
     {
         public class Bar where T : IComparable
@@ -584,7 +591,6 @@ namespace ConsoleApplication1
         }
     }
 
-
     class Test
     {
         void Bar3()
@@ -595,13 +601,13 @@ namespace ConsoleApplication1
             var q = from i in new int[] { 1, 2, 3, 4 } where i > 5 select i;
         }
 
-        public static {Conversion_operator_declaratorContext}
+        public static implicit operator Test(string s)
 
         {
             return new ConsoleApplication1.Test();
         }
 
-        public static {Conversion_operator_declaratorContext}
+        public static explicit operator Test(string s)
 
         {
             return new Test();
@@ -612,11 +618,15 @@ namespace ConsoleApplication1
         void Bar2()
         {
             foo = 6;
-            this.Foo = {LiteralAccessExpressionContext}();
+            this.Foo = 5.GetType();
             Test t = "sss";
         }
 
-        public event EventHandler MyEvent = {AnonymousMethodExpressionContext};
+        public event EventHandler
+            MyEvent =
+                delegate ()
+                {
+                };
 
         void Blah()
         {
@@ -630,7 +640,12 @@ namespace ConsoleApplication1
                     {
                         return;
                     };
-            Func<bool, bool> f = {AnonymousMethodExpressionContext};
+            Func<bool, bool> f =
+                async delegate (
+                    {Explicit_anonymous_function_parameter_listContext})
+                {
+                    return await !a;
+                };
             Func<int, int, int> f2 =
                 ({Implicit_anonymous_function_parameter_listContext}) => 0;
             f2 = ({Explicit_anonymous_function_parameter_listContext}) => 1;
@@ -682,7 +697,6 @@ namespace ConsoleApplication1
         }
     }
 }
-
 
 namespace Comments.XmlComments.UndocumentedKeywords
 {
@@ -805,9 +819,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
         public static Complex operator +(Complex a, Complex b) => a.Add(b)
 
-        public static {Conversion_operator_declaratorContext}
-        {Right_arrowContext}
-        p.First + " " + p.Last
+        public static implicit operator string(Person p)
+            => p.First + " " + p.Last;
 
         public void Print() => Console.WriteLine(First + " " + Last);
 
@@ -860,5 +873,4 @@ namespace Comments.XmlComments.UndocumentedKeywords
         }
     }
 }
-
 
