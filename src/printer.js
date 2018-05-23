@@ -1980,12 +1980,6 @@ function printStatement(node) {
   return concat([printNode(declaration), ";"]);
 }
 
-function printVariableDeclarators(node) {
-  const variableDeclarators = getChildNodes(node, "Variable_declaratorContext");
-
-  return printCommaList(variableDeclarators);
-}
-
 function printVariableDeclarator(node) {
   const identifier = getChildNode(node, "IdentifierContext");
 
@@ -2003,55 +1997,45 @@ function printVariableDeclarator(node) {
   return group(concat(docs));
 }
 
-function printLocalVariableDeclaration(node) {
-  const localVariableType = getChildNode(node, "Local_variable_typeContext");
-  const localVariableDeclarators = getChildNodes(
-    node,
-    "Local_variable_declaratorContext"
-  );
+function printVariableDeclaration(node) {
+  const variableType = getOptionalChildNode(node, "Local_variable_typeContext");
+  const variableDeclarators = getAllChildNodes(node, [
+    "Local_variable_declaratorContext",
+    "Variable_declaratorContext"
+  ]);
 
-  if (localVariableDeclarators.length == 1) {
-    let identifier = getChildNode(
-      localVariableDeclarators[0],
-      "IdentifierContext"
-    );
-    let initializer = getOptionalChildNode(
-      localVariableDeclarators[0],
-      "Local_variable_initializerContext"
-    );
+  let firstLinePart = [];
+  let secondLinePart = [];
 
-    if (initializer) {
-      let identifierPart = [
-        printNode(localVariableType),
-        line,
-        printNode(identifier),
-        line,
-        "="
-      ];
-      let initializerPart = [line, printNode(initializer)];
+  if (variableType) {
+    firstLinePart.push(printNode(variableType));
+  }
 
-      return group(
-        concat([
-          group(concat(identifierPart)),
-          indent(group(concat(initializerPart)))
-        ])
-      );
+  if (variableDeclarators.length == 1) {
+    let identifier = getChildNode(variableDeclarators[0], "IdentifierContext");
+    let initializer = getAnyChildNode(variableDeclarators[0], [
+      "Local_variable_initializerContext",
+      "Variable_initializerContext"
+    ]);
+
+    if (variableType) {
+      (initializer ? firstLinePart : secondLinePart).push(line);
     }
 
-    return group(
-      concat([
-        printNode(localVariableType),
-        indent(group(concat([line, printNode(identifier)])))
-      ])
-    );
+    if (initializer) {
+      firstLinePart.push(printNode(identifier), line, "=");
+      secondLinePart.push(line, printNode(initializer));
+    } else {
+      secondLinePart.push(printNode(identifier));
+    }
+  } else {
+    secondLinePart.push(hardline, printCommaList(variableDeclarators));
   }
 
   return group(
     concat([
-      printNode(localVariableType),
-      indent(
-        group(concat([hardline, printCommaList(localVariableDeclarators)]))
-      )
+      group(concat(firstLinePart)),
+      indent(group(concat(secondLinePart)))
     ])
   );
 }
@@ -3419,7 +3403,8 @@ function printNode(node) {
     case "If_bodyContext":
       return printEmbeddedStatement(node);
     case "Local_variable_declarationContext":
-      return printLocalVariableDeclaration(node);
+    case "Variable_declaratorsContext":
+      return printVariableDeclaration(node);
     case "Local_constant_declarationContext":
       return printLocalConstantDeclaration(node);
     case "ExpressionStatementContext":
@@ -3428,8 +3413,6 @@ function printNode(node) {
       return printEmptyStatement(node);
     case "Local_variable_typeContext":
       return printLocalVariableType(node);
-    case "Variable_declaratorsContext":
-      return printVariableDeclarators(node);
     case "Variable_declaratorContext":
     case "Local_variable_declaratorContext":
       return printVariableDeclarator(node);
