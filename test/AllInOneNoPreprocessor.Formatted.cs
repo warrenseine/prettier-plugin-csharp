@@ -641,14 +641,12 @@ namespace ConsoleApplication1
                         return;
                     };
             Func<bool, bool> f =
-                async delegate (
-                    {Explicit_anonymous_function_parameter_listContext})
+                async delegate ()
                 {
                     return await !a;
                 };
-            Func<int, int, int> f2 =
-                ({Implicit_anonymous_function_parameter_listContext}) => 0;
-            f2 = ({Explicit_anonymous_function_parameter_listContext}) => 1;
+            Func<int, int, int> f2 = (a, b) => 0;
+            f2 = () => 1;
             Action a = Blah;
             f2 =
             () =>
@@ -670,14 +668,14 @@ namespace ConsoleApplication1
             [Obsolete("Name", error = false)]
             get
             {
-                var result = {TypeofExpressionContext};
-                var t = {TypeofExpressionContext} == {TypeofExpressionContext};
-                t = {TypeofExpressionContext};
-                return {TypeofExpressionContext};
+                var result = typeof (IEnumerable<int>);
+                var t = typeof (int?) == typeof (Nullable<int>);
+                t = typeof (IEnumerable<int?[][][]>);
+                return typeof (IEnumerable<>);
             }
             set
             {
-                var t = {TypeofExpressionContext};
+                var t = typeof (System.Int32);
                 t.ToString();
                 t = value;
             }

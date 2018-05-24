@@ -2614,6 +2614,85 @@ function printAnonymousMethodExpression(node) {
   );
 }
 
+function printTypeofExpression(node) {
+  const type = getAnyChildNode(node, [
+    "Unbound_type_nameContext",
+    "TypeContext"
+  ]);
+
+  return group(
+    concat([
+      "typeof",
+      " ",
+      "(",
+      indent(concat([softline, type ? printNode(type) : "void"])),
+      softline,
+      ")"
+    ])
+  );
+}
+
+function printUnboundTypeName(node) {
+  // unbound_type_name
+  // : identifier ( generic_dimension_specifier? | '::' identifier generic_dimension_specifier?)
+  //   ('.' identifier generic_dimension_specifier?)*
+  // ;
+
+  const splitArray = (array, condition) => {
+    const result = [];
+
+    let currentPart = [];
+
+    for (let currentItem of array) {
+      if (condition(currentItem)) {
+        result.push(currentPart);
+        currentPart = [];
+      } else {
+        currentPart.push(currentItem);
+      }
+    }
+
+    result.push(currentPart);
+
+    return result;
+  };
+
+  const getTypeName = part => {
+    const identifier = part.find(child => isNode(child, "IdentifierContext"));
+    const specifier = part.find(child =>
+      isNode(child, "Generic_dimension_specifierContext")
+    );
+
+    const typePart = [printNode(identifier)];
+
+    if (specifier) {
+      typePart.push(printNode(specifier));
+    }
+
+    return group(concat(typePart));
+  };
+
+  const parts = splitArray(node.children, child => isSymbol(child, "."));
+  _.partit;
+
+  const headParts = splitArray(parts[0], child => isSymbol(child, "::"));
+  const tailParts = parts.slice(1);
+
+  const docs = [join("::", headParts.map(getTypeName))];
+
+  if (tailParts.length) {
+    docs.push(".", join(".", tailParts.map(getTypeName)));
+  }
+
+  return group(concat(docs));
+}
+
+function printGenericDimensionSpecifier(node) {
+  const commas = node.children.length - 2;
+
+  return concat(["<", ..._.repeat(",", commas), ">"]);
+}
+
 function printCapturingStatement(node) {
   const keyword = node.children[0];
   const capturedExpressions = getAllChildNodes(node, [
@@ -3140,11 +3219,11 @@ function printAnonymousFunctionBody(node) {
   return printNode(node.children[0]);
 }
 
-function printExplicitFunctionParameterList(node) {
-  const parameters = getChildNodes(
-    node,
-    "Explicit_anonymous_function_parameter"
-  );
+function printAnonymousFunctionParameterList(node) {
+  const parameters = getAllChildNodes(node, [
+    "Explicit_anonymous_function_parameter",
+    "IdentifierContext"
+  ]);
 
   return printCommaList(parameters);
 }
@@ -3198,6 +3277,8 @@ function printNode(node) {
       return printUsingNamespaceDirective(node);
     case "Namespace_or_type_nameContext":
       return printNamespaceOrTypeName(node);
+    case "Unbound_type_nameContext":
+      return printUnboundTypeName(node);
     case "UsingAliasDirectiveContext":
       return printUsingAliasDirective(node);
     case "Type_argument_listContext":
@@ -3475,6 +3556,8 @@ function printNode(node) {
       return printDefaultValueExpression(node);
     case "AnonymousMethodExpressionContext":
       return printAnonymousMethodExpression(node);
+    case "TypeofExpressionContext":
+      return printTypeofExpression(node);
     case "LockStatementContext":
     case "UsingStatementContext":
     case "FixedStatementContext":
@@ -3515,6 +3598,8 @@ function printNode(node) {
       return printExpressionList(node);
     case "Rank_specifierContext":
       return printRankSpecifier(node);
+    case "Generic_dimension_specifierContext":
+      return printGenericDimensionSpecifier(node);
     case "Array_initializerContext":
       return printArrayInitializer(node);
     case "Local_variable_initializerContext":
@@ -3561,8 +3646,9 @@ function printNode(node) {
       return printAnonymousFunctionSignature(node);
     case "Anonymous_function_bodyContext":
       return printAnonymousFunctionBody(node);
-    case "Explicit_function_parameter_listContext":
-      return printExplicitFunctionParameterList(node);
+    case "Implicit_anonymous_function_parameter_listContext":
+    case "Explicit_anonymous_function_parameter_listContext":
+      return printAnonymousFunctionParameterList(node);
     case "Explicit_anonymous_function_parameterContext":
       return printExplicitAnonymousFunctionParameter(node);
     case "Implicit_anonymous_function_parameterContext":
