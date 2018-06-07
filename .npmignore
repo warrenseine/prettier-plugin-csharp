@@ -1,0 +1,12 @@
+.vscode
+*.java
+*.interp
+*.tokens
+*.g4
+*.cs
+.eslintrc.json
+.gitignore
+.npmignore
+.travis.yml
+yarn-error.log
+yarn.lock
