@@ -35,6 +35,8 @@
 
 Please note that this plugin is under active development, and might not be ready to run on production code yet. **It will break your code.**
 
+Preview the result with this [diff example](https://github.com/warrenseine/prettier-csharp-demo/pull/1/commits/8652271a499740b726e6342346e97447abd23162).
+
 ## Install
 
 ```bash
