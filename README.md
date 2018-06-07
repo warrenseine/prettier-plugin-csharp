@@ -44,7 +44,7 @@ yarn add --dev --exact prettier prettier-csharp
 ## Use
 
 ```bash
-prettier --write "**/*.cs"
+prettier --plugin=prettier-csharp --parser=cs --write "**/*.cs"
 ```
 
 ## How it works
