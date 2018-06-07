@@ -14,72 +14,66 @@ const empty = "";
 const alphanumerical = require("is-alphanumerical");
 const _ = require("lodash");
 
-function printCompilationUnit(node) {
-  const docs = [];
+function printCompilationUnit(path, options, print) {
+  const parts = [];
 
-  for (let child of node.children) {
-    let r = group(printNode(child));
-    docs.push(r);
-  }
-
-  return group(join(doublehardline, docs));
-}
-
-function printExternAliasDirectives(node) {
-  const externAliasDirectives = getChildNodes(
-    node,
-    "Extern_alias_directiveContext"
+  const externAliasDirectives = path.call(print, "extern_alias_directives", 0);
+  const usingDirectives = path.call(print, "using_directives", 0);
+  const globalAttributeSections = path.map(print, "global_attribute_section");
+  const namespaceMemberDeclarations = path.call(
+    print,
+    "namespace_member_declarations",
+    0
   );
 
-  return group(join(hardline, externAliasDirectives.map(printNode)));
+  if (externAliasDirectives) {
+    parts.push(externAliasDirectives);
+  }
+
+  if (usingDirectives) {
+    parts.push(usingDirectives);
+  }
+
+  if (globalAttributeSections.length) {
+    parts.push(join(hardline, globalAttributeSections));
+  }
+
+  if (namespaceMemberDeclarations) {
+    parts.push(namespaceMemberDeclarations);
+  }
+
+  return group(join(doublehardline, parts));
 }
 
-function printExternAliasDirective(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
+function printExternAliasDirectives(path, options, print) {
+  const externAliasDirectives = path.map(print, "extern_alias_directive");
+
+  return group(join(hardline, externAliasDirectives));
+}
+
+function printExternAliasDirective(path, options, print) {
+  const identifier = path.call(print, "identifier", 0);
 
   return group(
-    concat([
-      "extern",
-      " ",
-      "alias",
-      indent(concat([line, printNode(identifier)])),
-      ";"
-    ])
+    concat(["extern", " ", "alias", indent(concat([line, identifier])), ";"])
   );
 }
 
-function printTerminalNode(node) {
-  if (
-    ["<EOF>", ";", ".", ",", "[", "]", "(", ")", ":"].includes(node.symbol.text)
-  )
-    return empty;
-
-  return node.symbol.text;
+function printTerminal(path) {
+  const node = path.getValue();
+  return node.value;
 }
 
-function printGenericSymbol(node) {
-  if (node.symbol !== undefined) {
-    return printNode(node);
-  }
-
-  if (node.children.length === 1) return printGenericSymbol(node.children[0]);
-
-  // Certain symbols are parsed as 2 symbols, eg. "<<".
-  return concat(node.children.map(printGenericSymbol));
+function printIdentifier(path, options, print) {
+  return path.call(print, "terminal", 0);
 }
 
-function printIdentifier(node) {
-  return printGenericSymbol(node);
+function printKeyword(path, options, print) {
+  return path.call(print, "terminal", 0);
 }
 
-function printKeyword(node) {
-  return printGenericSymbol(node);
-}
-
-function printUsingDirectives(node) {
-  const groupUsingDirectives = (node, directiveName) => {
-    return getChildNodes(node, directiveName).map(printNode);
-  };
+function printUsingDirectives(path, options, print) {
+  const node = path.getValue();
 
   const getUsingPath = parts => {
     if (
@@ -88,7 +82,6 @@ function printUsingDirectives(node) {
       parts != "static" &&
       alphanumerical(parts)
     ) {
-      // If already string, just return
       return parts;
     } else if (parts.type === "group" || parts.type === "indent") {
       return getUsingPath(parts.contents);
@@ -99,7 +92,6 @@ function printUsingDirectives(node) {
     }
   };
 
-  // Sort usings.
   const sortUsingDirectives = docs => {
     for (let doc of docs) {
       doc.usingPath = getUsingPath(doc);
@@ -113,43 +105,52 @@ function printUsingDirectives(node) {
     return systems.concat(others);
   };
 
-  let namespaces = sortUsingDirectives(
-    groupUsingDirectives(node, "UsingNamespaceDirectiveContext")
-  );
-  let aliases = sortUsingDirectives(
-    groupUsingDirectives(node, "UsingAliasDirectiveContext")
-  );
-  let statics = sortUsingDirectives(
-    groupUsingDirectives(node, "UsingStaticDirectiveContext")
-  );
+  const namespaces = getAny(node, "using_namespace_directive");
+  const aliases = getAny(node, "using_alias_directive");
+  const statics = getAny(node, "using_static_directive");
 
   const docs = [namespaces, aliases, statics]
-    .filter(usings => usings.length)
-    .map(usings => join(hardline, usings));
+    .filter(usings => usings)
+    .map(usings =>
+      join(hardline, sortUsingDirectives(path.map(print, usings)))
+    );
 
   return join(doublehardline, docs);
 }
 
-function printNamespaceOrTypeName(node) {
-  // FIXME: Group long identifiers.
+function printNamespaceOrTypeName(path, options, print) {
+  const pathParts = [];
+
+  let currentPathPart = [];
+
+  path.each(path => {
+    const node = path.getValue();
+    if (isSymbol(node, ".")) {
+      pathParts.push(currentPathPart);
+      currentPathPart = [];
+    } else {
+      currentPathPart.push(print(path, options, print));
+    }
+  }, "children");
+
+  pathParts.push(currentPathPart);
+
+  return group(join(".", pathParts.map(concat)));
+}
+
+function printUsingNamespaceDirective(path, options, print) {
   return group(
-    concat(
-      node.children.map(node => (isSymbol(node, ".") ? "." : printNode(node)))
-    )
+    concat([
+      "using",
+      indent(concat([line, path.call(print, "namespace_or_type_name", 0)])),
+      ";"
+    ])
   );
 }
 
-function printUsingNamespaceDirective(node) {
-  const namespace = getChildNode(node, "Namespace_or_type_nameContext");
-
-  return group(
-    concat(["using", indent(concat([line, printNode(namespace)])), ";"])
-  );
-}
-
-function printUsingAliasDirective(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const namespace = getChildNode(node, "Namespace_or_type_nameContext");
+function printUsingAliasDirective(path, options, print) {
+  const identifier = path.call(print, "identifier", 0);
+  const namespace = path.call(print, "namespace_or_type_name", 0);
 
   return group(
     concat([
@@ -157,185 +158,164 @@ function printUsingAliasDirective(node) {
       indent(
         concat([
           line,
-          printNode(identifier),
+          identifier,
           line,
           "=",
-          indent(concat([line, printNode(namespace), ";"]))
+          indent(concat([line, namespace, ";"]))
         ])
       )
     ])
   );
 }
 
-function printUsingStaticDirective(node) {
-  const namespace = getChildNode(node, "Namespace_or_type_nameContext");
+function printUsingStaticDirective(path, options, print) {
+  const namespace = path.call(print, "namespace_or_type_name", 0);
 
   return group(
-    concat([
-      "using",
-      " ",
-      "static",
-      indent(concat([line, printNode(namespace)])),
-      ";"
-    ])
+    concat(["using", " ", "static", indent(concat([line, namespace])), ";"])
   );
 }
 
-function printTypeArgumentList(node) {
+function printTypeArgumentList(path, options, print) {
   return group(
     concat([
       "<",
-      indent(group(printCommaList(node.children.slice(1, -1)))),
+      indent(group(printCommaList(path.map(print, "type")))),
       softline,
       ">"
     ])
   );
 }
 
-function printArgumentList(node) {
-  return printCommaList(node.children);
+function printArgumentList(path, options, print) {
+  return printCommaList(path.map(print, "argument"));
 }
 
-function printArgument(node) {
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-  const expression = getChildNode(node, "ExpressionContext");
-  const refout = node.refout;
+function printArgument(path, options, print) {
+  const node = path.getValue();
+  const identifier = getAny(node, "identifier");
+  const refoutIndex = node.children.findIndex(
+    child => isSymbol(child, "ref") || isSymbol(child, "out")
+  );
 
   const docs = [];
 
   if (identifier) {
-    docs.push(printNode(identifier), softline, ":", line);
+    docs.push(path.call(print, "identifier", 0), softline, ":", line);
   }
 
-  if (refout) {
-    docs.push(refout.text, line);
+  if (refoutIndex >= 0) {
+    docs.push(path.call(print, "children", refoutIndex), line);
   }
 
-  docs.push(printNode(expression));
+  docs.push(path.call(print, "expression", 0));
 
   return group(concat(docs));
 }
 
-function printType(node) {
-  const baseType = getChildNode(node, "Base_typeContext");
+function printType(path, options, print) {
+  return concat(path.map(print, "children"));
+}
 
-  let docs = [printNode(baseType)];
+function printBaseType(path, options, print) {
+  const node = path.getValue();
+  const simpleType = getAny(node, "simple_type");
+  const classType = getAny(node, "class_type");
 
-  for (let specifier of node.children.slice(1)) {
-    docs.push(printNode(specifier));
+  if (simpleType) {
+    return path.call(print, simpleType, 0);
   }
 
-  return concat(docs);
-}
-
-function printBaseType(node) {
-  const type = getAnyChildNode(node, [
-    "Simple_typeContext",
-    "Class_typeContext"
-  ]);
-
-  if (!type) {
-    return concat(["void", "*"]);
+  if (classType) {
+    return path.call(print, classType, 0);
   }
 
-  return printNode(type);
+  return concat(["void", "*"]);
 }
 
-function printSimpleType(node) {
-  return printGenericSymbol(node);
-}
+function printSimpleType(path, options, print) {
+  const node = path.getValue();
 
-function printClassType(node) {
-  const namespace = getOptionalChildNode(node, "Namespace_or_type_nameContext");
-
-  if (namespace) return printNode(namespace);
-
-  return printGenericSymbol(node);
-}
-
-function printPointerType(node) {
-  const type = getAnyChildNode(node, [
-    "Simple_typeContext",
-    "Class_typeContext"
-  ]);
-
-  if (!type) {
-    return concat(["void", "*"]);
+  for (let typeType of [
+    "predefined_type",
+    "simple_type",
+    "numeric_type",
+    "integral_type",
+    "floating_point_type",
+    "terminal"
+  ]) {
+    if (node[typeType]) {
+      return path.call(print, typeType, 0);
+    }
   }
 
-  return group(
-    concat([printNode(type), ...node.children.slice(1).map(printNode)])
-  );
+  return "bool";
 }
 
-function printList(separator, list) {
-  if (!Array.isArray(list)) {
-    throw new Error(`Not an array: ${list}`);
-  }
+function printClassType(path, options, print) {
+  return path.call(print, "children", 0);
+}
 
-  let docs = _.filter(_.filter(list).map(printNode));
+function printPointerType(path, options, print) {
+  return group(concat(path.map(print, "children")));
+}
 
-  return join(separator, docs);
+function printArrayType(path, options, print) {
+  return group(concat(path.map(print, "children")));
 }
 
 function printDotList(list) {
-  return printList(concat([".", softline]), list);
+  return join(concat([".", softline]), list);
 }
 
-function printCommaList(list, separator = line) {
-  return printList(concat([",", separator]), list);
+function printCommaList(list) {
+  return join(concat([",", line]), list);
 }
 
-function printSemiColumnList(list) {
-  return printList(concat([";", line]), list);
-}
+function printGlobalAttributeSection(path, options, print) {
+  const globalAttributeTarget = path.call(print, "global_attribute_target", 0);
+  const attributeList = path.call(print, "attribute_list", 0);
 
-function printGlobalAttributeSection(node) {
-  const globalAttributeTarget = getChildNode(
-    node,
-    "Global_attribute_targetContext"
+  return group(
+    concat([
+      "[",
+      indent(
+        concat([softline, globalAttributeTarget, ":", line, attributeList])
+      ),
+      softline,
+      "]"
+    ])
   );
-  const attributeList = getChildNode(node, "Attribute_listContext");
-
-  const attributePart = [softline];
-
-  if (globalAttributeTarget) {
-    attributePart.push(printNode(globalAttributeTarget), ":", line);
-  }
-
-  attributePart.push(printNode(attributeList));
-
-  return group(concat(["[", indent(concat(attributePart)), softline, "]"]));
 }
 
-function printGlobalAttributeTarget(node) {
-  return printGenericSymbol(node);
+function printGlobalAttributeTarget(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printAttributeList(node) {
-  const attributes = getChildNodes(node, "AttributeContext");
+function printAttributeList(path, options, print) {
+  const attributes = path.map(print, "attribute");
 
   return printCommaList(attributes);
 }
 
-function printAttribute(node) {
-  const namespaceOrTypeName = getChildNode(
-    node,
-    "Namespace_or_type_nameContext"
-  );
-  const attributeArguments = getChildNodes(node, "Attribute_argumentContext");
-
+function printAttribute(path, options, print) {
+  const node = path.getValue();
+  const attributeArguments = getAll(node, "attribute_argument");
   const hasParenthesis =
-    attributeArguments.length || isSymbol(node.children[1], "(");
+    node.children.findIndex(child => isSymbol(child, "(")) >= 0;
 
-  const docs = [printNode(namespaceOrTypeName)];
+  const docs = [path.call(print, "namespace_or_type_name", 0)];
 
   if (hasParenthesis) {
     docs.push("(");
   }
 
   if (attributeArguments.length) {
-    docs.push(indent(concat([softline, printCommaList(attributeArguments)])));
+    docs.push(
+      indent(
+        concat([softline, printCommaList(path.map(print, attributeArguments))])
+      )
+    );
   }
 
   if (hasParenthesis) {
@@ -345,73 +325,69 @@ function printAttribute(node) {
   return group(concat(docs));
 }
 
-function printAttributeArgument(node) {
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-  const expression = getChildNode(node, "ExpressionContext");
+function printAttributeArgument(path, options, print) {
+  const node = path.getValue();
+  const identifier = getAny(node, "identifier");
 
   const docs = [];
 
   if (identifier) {
-    docs.push(printNode(identifier), ":", line);
+    docs.push(path.call(print, identifier, 0), ":", line);
   }
 
-  docs.push(printNode(expression));
+  docs.push(path.call(print, "expression", 0));
 
   return group(concat(docs));
 }
 
-function printAttributes(node) {
-  return join(hardline, node.children.map(printNode));
+function printAttributes(path, options, print) {
+  return join(hardline, path.map(print, "children"));
 }
 
-function printAttributeSection(node) {
-  const attributeTarget = getOptionalChildNode(node, "Attribute_targetContext");
-  const attributeList = getChildNode(node, "Attribute_listContext");
+function printAttributeSection(path, options, print) {
+  const node = path.getValue();
+  const attributeTarget = getAny(node, "attribute_target");
 
   const attributePart = [softline];
 
   if (attributeTarget) {
-    attributePart.push(printNode(attributeTarget), ":", line);
+    attributePart.push(path.call(print, attributeTarget, 0), ":", line);
   }
 
-  attributePart.push(printNode(attributeList));
+  attributePart.push(path.call(print, "attribute_list", 0));
 
   return group(concat(["[", indent(concat(attributePart)), softline, "]"]));
 }
 
-function printAttributeTarget(node) {
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-
-  if (!identifier) return printGenericSymbol(node);
-
-  return printNode(identifier);
+function printAttributeTarget(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printNonAssignmentExpression(node) {
-  return printNode(node.children[0]);
+function printNonAssignmentExpression(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printConditionalExpression(node) {
-  const nullCoalescingExpression = getChildNode(
-    node,
-    "Null_coalescing_expressionContext"
-  );
-  const expressions = getChildNodes(node, "ExpressionContext");
+function printConditionalExpression(path, options, print) {
+  const node = path.getValue();
+  const nullCoalescingExpression = getAny(node, "null_coalescing_expression");
+  const expression = getAny(node, "expression");
 
-  if (expressions.length === 0) {
-    return printNode(nullCoalescingExpression);
+  if (!expression) {
+    return path.call(print, nullCoalescingExpression, 0);
   }
+
+  const expressions = path.map(print, "expression");
 
   return group(
     concat([
-      printNode(nullCoalescingExpression),
+      path.call(print, nullCoalescingExpression, 0),
       group(
         indent(
           concat([
             line,
-            group(concat(["?", " ", printNode(expressions[0])])),
+            group(concat(["?", " ", expressions[0]])),
             line,
-            group(concat([":", " ", printNode(expressions[1])]))
+            group(concat([":", " ", expressions[1]]))
           ])
         )
       )
@@ -419,28 +395,25 @@ function printConditionalExpression(node) {
   );
 }
 
-function printNullCoalescingExpression(node) {
-  const conditionalOrExpression = getChildNode(
-    node,
-    "Conditional_or_expressionContext"
-  );
-  const nullCoalescingExpression = getOptionalChildNode(
-    node,
-    "Null_coalescing_expressionContext"
-  );
+function printNullCoalescingExpression(path, options, print) {
+  const node = path.getValue();
+  const conditionalOrExpression = getAny(node, "conditional_or_expression");
+  const nullCoalescingExpression = getAny(node, "null_coalescing_expression");
 
   if (!nullCoalescingExpression) {
-    return printNode(conditionalOrExpression);
+    return path.call(print, conditionalOrExpression, 0);
   }
 
   return group(
     concat([
-      printNode(conditionalOrExpression),
+      path.call(print, conditionalOrExpression, 0),
       group(
         indent(
           concat([
             line,
-            group(concat(["??", " ", printNode(nullCoalescingExpression)]))
+            group(
+              concat(["??", " ", path.call(print, nullCoalescingExpression, 0)])
+            )
           ])
         )
       )
@@ -448,57 +421,50 @@ function printNullCoalescingExpression(node) {
   );
 }
 
-function printBinaryishExpression(node) {
+function printBinaryishExpression(path, options, print) {
+  const node = path.getValue();
   if (node.children.length === 1) {
-    return printNode(node.children[0]);
+    return path.call(print, "children", 0);
   }
 
-  let operations = _.chunk(node.children, 2);
+  let operations = _.chunk(path.map(print, "children"), 2);
 
   return group(
     join(
       line,
       operations.map(
         ([operand, operator]) =>
-          operator
-            ? group(
-                concat([printNode(operand), " ", printGenericSymbol(operator)])
-              )
-            : printNode(operand)
+          operator ? group(concat([operand, " ", operator])) : operand
       )
     )
   );
 }
 
-function printExpression(node) {
-  if (node.children.length === 1) {
-    return printNode(node.children[0]);
-  }
-
-  return group(join(line, node.children.map(printNode)));
+function printExpression(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printPrimaryExpression(node) {
+function printPrimaryExpression(path, options, print) {
   const parts = [];
 
   let currentPart = null;
 
-  for (let child of node.children) {
+  path.each(path => {
+    const child = path.getValue();
+
     if (currentPart === null) {
       currentPart = [];
       parts.push(currentPart);
     }
 
-    if (isNode(child, "Method_invocationContext")) {
-      currentPart.push(printNode(child));
-      currentPart = null;
-    } else {
-      currentPart.push(printNode(child));
-    }
-  }
+    currentPart.push(print(path, options, print));
 
-  const headPart = parts[0];
-  const tailParts = parts.slice(1);
+    if (isType(child, "method_invocation")) {
+      currentPart = null;
+    }
+  }, "children");
+
+  const [headPart, ...tailParts] = parts;
 
   if (tailParts.length === 0) {
     return group(concat(headPart));
@@ -521,119 +487,108 @@ function printPrimaryExpression(node) {
   );
 }
 
-function printUnaryExpression(node) {
-  const primaryExpression = getOptionalChildNode(
-    node,
-    "Primary_expressionContext"
-  );
+function printUnaryExpression(path, options, print) {
+  const node = path.getValue();
+  const primaryExpression = getAny(node, "primary_expression");
 
   if (primaryExpression) {
-    return printNode(primaryExpression);
+    return path.call(print, primaryExpression, 0);
   }
 
-  const unaryExpression = getChildNode(node, "Unary_expressionContext");
-
-  const type = getOptionalChildNode(node, "TypeContext");
+  const type = getAny(node, "type");
 
   if (type) {
     return group(
-      concat(["(", printNode(type), ")", line, printNode(unaryExpression)])
+      concat([
+        "(",
+        path.call(print, type, 0),
+        ")",
+        line,
+        path.call(print, "unary_expression", 0)
+      ])
     );
   }
 
   if (isSymbol(node.children[0], "await")) {
     return group(
-      concat(["await", indent(concat([line, printNode(node.children[1])]))])
+      concat(["await", indent(concat([line, path.call(print, "children", 1)]))])
     );
-  } else {
-    return group(concat(node.children.map(printNode)));
   }
+
+  return group(concat(path.map(print, "children")));
 }
 
-function printMemberAccessExpression(node) {
-  // FIXME: '?'? '.' identifier type_argument_list?
-  return group(join(line, node.children.map(printNode)));
+function printMemberAccessExpression(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printLiteralAccessExpression(node) {
-  return printGenericSymbol(node.children[0]);
+function printLiteralAccessExpression(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printParenthesisExpression(node) {
-  const expression = getChildNode(node, "ExpressionContext");
-
-  return group(concat(["(", softline, printNode(expression), softline, ")"]));
-}
-
-function printSimpleNameExpression(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const typeArgumentList = getOptionalChildNode(
-    node,
-    "Type_argument_listContext"
+function printParenthesisExpression(path, options, print) {
+  return group(
+    concat(["(", softline, path.call(print, "expression", 0), softline, ")"])
   );
+}
 
-  const docs = [printNode(identifier)];
+function printSimpleNameExpression(path, options, print) {
+  const node = path.getValue();
+  const typeArgumentList = getAny(node, "type_argument_list");
+
+  const docs = [path.call(print, "identifier", 0)];
 
   if (typeArgumentList) {
-    docs.push(softline, printNode(typeArgumentList));
+    docs.push(softline, path.call(print, typeArgumentList, 0));
   }
 
   return group(concat(docs));
 }
 
-function printNamespaceMemberDeclarations(node) {
-  const namespaceMemberDeclarations = getChildNodes(
-    node,
-    "Namespace_member_declarationContext"
+function printNamespaceMemberDeclarations(path, options, print) {
+  const namespaceMemberDeclarations = path.map(
+    print,
+    "namespace_member_declaration"
   );
 
-  return group(
-    join(doublehardline, namespaceMemberDeclarations.map(printNode))
-  );
+  return group(join(doublehardline, namespaceMemberDeclarations));
 }
 
-function printNamespaceMemberDeclaration(node) {
-  const namespace = getAnyChildNode(node, [
-    "Namespace_declarationContext",
-    "Type_declarationContext"
-  ]);
+function printNamespaceMemberDeclaration(path, options, print) {
+  const node = path.getValue();
+  const namespace = getAny(node, ["namespace_declaration", "type_declaration"]);
 
-  return group(printNode(namespace));
+  return group(path.call(print, namespace, 0));
 }
 
-function printNamespaceDeclaration(node) {
-  const qualifiedIdentifier = getChildNode(node, "Qualified_identifierContext");
-  const namespaceBody = getChildNode(node, "Namespace_bodyContext");
+function printNamespaceDeclaration(path, options, print) {
+  const qualifiedIdentifier = path.call(print, "qualified_identifier", 0);
+  const namespaceBody = path.call(print, "namespace_body", 0);
 
   return group(
     concat([
-      group(concat(["namespace", line, printNode(qualifiedIdentifier)])),
+      group(concat(["namespace", line, qualifiedIdentifier])),
       hardline,
-      printNode(namespaceBody)
+      namespaceBody
     ])
   );
 }
 
-function printBraceBody(node) {
-  const groupedDeclarations = getAnyChildNode(node, [
-    "Class_member_declarationsContext",
-    "Namespace_member_declarationsContext"
+function printBraceBody(path, options, print) {
+  const node = path.getValue();
+  const groupedDeclarations = getAny(node, [
+    "class_member_declarations",
+    "namespace_member_declarations"
   ]);
 
-  const lineSeparatedDeclarations = getAllChildNodes(node, [
-    "Interface_member_declarationContext",
-    "Struct_member_declarationContext"
+  const lineSeparatedDeclarations = getAll(node, [
+    "interface_member_declaration",
+    "struct_member_declaration"
   ]);
 
-  const commaSeparatedDeclarations = getAllChildNodes(node, [
-    "Enum_member_declarationContext"
-  ]);
-
-  const externAliasDirectives = getOptionalChildNode(
-    node,
-    "Extern_alias_directivesContext"
-  );
-  const usingDirectives = getOptionalChildNode(node, "Using_directivesContext");
+  const commaSeparatedDeclarations = getAll(node, "enum_member_declaration");
+  const externAliasDirectives = getAny(node, "extern_alias_directives");
+  const usingDirectives = getAny(node, "using_directives");
 
   const hasDeclarations =
     lineSeparatedDeclarations.length ||
@@ -649,23 +604,25 @@ function printBraceBody(node) {
   const declarationParts = [];
 
   if (externAliasDirectives) {
-    declarationParts.push(printNode(externAliasDirectives));
+    declarationParts.push(path.call(print, externAliasDirectives, 0));
   }
 
   if (usingDirectives) {
-    declarationParts.push(printNode(usingDirectives));
+    declarationParts.push(path.call(print, usingDirectives, 0));
   }
 
   if (groupedDeclarations) {
-    declarationParts.push(printNode(groupedDeclarations));
+    declarationParts.push(path.call(print, groupedDeclarations, 0));
   }
 
   if (lineSeparatedDeclarations.length) {
-    declarationParts.push(...lineSeparatedDeclarations.map(printNode));
+    declarationParts.push(...path.map(print, lineSeparatedDeclarations));
   }
 
   if (commaSeparatedDeclarations.length) {
-    declarationParts.push(printCommaList(commaSeparatedDeclarations));
+    declarationParts.push(
+      printCommaList(path.map(print, commaSeparatedDeclarations))
+    );
   }
 
   return group(
@@ -678,161 +635,178 @@ function printBraceBody(node) {
   );
 }
 
-function printTypeDeclaration(node) {
-  const attributes = getOptionalChildNode(node, "AttributesContext");
-  const allMemberModifiers = getOptionalChildNode(
-    node,
-    "All_member_modifiersContext"
-  );
-  const definition = getAnyChildNode(node, [
-    "Class_definitionContext",
-    "Struct_definitionContext",
-    "Interface_definitionContext",
-    "Enum_definitionContext",
-    "Delegate_definitionContext"
+function printTypeDeclaration(path, options, print) {
+  const node = path.getValue();
+  const attributes = getAny(node, "attributes");
+  const allMemberModifiers = getAny(node, "all_member_modifiers");
+  const definition = getAny(node, [
+    "class_definition",
+    "struct_definition",
+    "interface_definition",
+    "enum_definition",
+    "delegate_definition"
   ]);
 
   const docs = [];
 
   if (attributes) {
-    docs.push(printNode(attributes), hardline);
+    docs.push(path.call(print, attributes, 0), hardline);
   }
 
   if (allMemberModifiers) {
     docs.push(
-      group(concat([printNode(allMemberModifiers), " ", printNode(definition)]))
+      group(
+        concat([
+          path.call(print, allMemberModifiers, 0),
+          " ",
+          path.call(print, definition, 0)
+        ])
+      )
     );
   } else {
-    docs.push(printNode(definition));
+    docs.push(path.call(print, definition, 0));
   }
 
   return group(concat(docs));
 }
 
-function printStructDefinition(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const base = getAnyChildNode(node, [
-    "Class_baseContext",
-    "Struct_interfacesContext",
-    "Enum_baseContext"
-  ]);
-  const body = getAnyChildNode(node, [
-    "Class_bodyContext",
-    "Struct_bodyContext",
-    "Enum_bodyContext"
-  ]);
-  const clauses = getOptionalChildNode(
-    node,
-    "Type_parameter_constraints_clausesContext"
-  );
-
-  let head = [
-    printGenericSymbol(node.children[0]),
-    line,
-    printNode(identifier)
-  ];
+function printStructDefinition(path, options, print) {
+  const node = path.getValue();
+  const identifier = path.call(print, "identifier", 0);
+  const base = getAny(node, ["class_base", "struct_interfaces", "enum_base"]);
+  const body = getAny(node, ["class_body", "struct_body", "enum_body"]);
+  const clauses = getAny(node, "type_parameter_constraints_clauses");
+  let head = [path.call(print, "children", 0), line, identifier];
 
   if (base) {
-    head.push(line, printNode(base));
+    head.push(line, path.call(print, base, 0));
   }
 
   if (clauses) {
-    head.push(indent(concat([line, printNode(clauses)])));
+    head.push(
+      indent(
+        concat([
+          line,
+          path.call(print, "type_parameter_constraints_clauses", 0)
+        ])
+      )
+    );
   }
 
-  return group(concat([group(concat(head)), line, printNode(body)]));
+  return group(concat([group(concat(head)), line, path.call(print, body, 0)]));
 }
 
-function printStructBase(node) {
-  const type = getAnyChildNode(node, [
-    "Interface_type_listContext",
-    "TypeContext",
-    "Class_typeContext"
-  ]);
+function printStructBase(path, options, print) {
+  const node = path.getValue();
+  const type = getAny(node, ["interface_type_list", "type", "class_type"]);
+  const namespaceOrTypeNames = getAny(node, "namespace_or_type_name");
 
-  const namespaceOrTypeNames = getChildNodes(
-    node,
-    "Namespace_or_type_nameContext"
-  );
+  const docs = [path.call(print, type, 0)];
 
-  return group(
-    concat([":", line, printCommaList([type, ...namespaceOrTypeNames])])
-  );
+  if (namespaceOrTypeNames) {
+    docs.push(...path.map(print, namespaceOrTypeNames));
+  }
+
+  return group(concat([":", line, printCommaList(docs)]));
 }
 
-function printInterfaceTypeList(node) {
-  const namespaceOrTypeNames = getChildNodes(
-    node,
-    "Namespace_or_type_nameContext"
-  );
-
-  return printCommaList(namespaceOrTypeNames);
+function printInterfaceTypeList(path, options, print) {
+  return printCommaList(path.map(print, "namespace_or_type_name"));
 }
 
-function printClassOrStructMemberDeclarations(node) {
-  // FIXME: Maybe group by type.
-  return join(doublehardline, node.children.map(printNode));
+function printClassOrStructMemberDeclarations(path, options, print) {
+  return join(doublehardline, path.map(print, "children"));
 }
 
-function printClassOrStructMemberDeclaration(node) {
-  const attributes = getOptionalChildNode(node, "AttributesContext");
-  const allMemberModifiers = getOptionalChildNode(
-    node,
-    "All_member_modifiersContext"
-  );
-  const commonMemberDeclaration = getOptionalChildNode(
-    node,
-    "Common_member_declarationContext"
-  );
-  const destructorDefinition = getOptionalChildNode(
-    node,
-    "Destructor_definitionContext"
-  );
-  const type = getOptionalChildNode(node, "TypeContext");
+function printClassOrStructMemberDeclaration(path, options, print) {
+  const node = path.getValue();
+  const attributes = getAny(node, "attributes");
+  const allMemberModifiers = getAny(node, "all_member_modifiers");
+  const commonMemberDeclaration = getAny(node, "common_member_declaration");
+  const destructorDefinition = getAny(node, "destructor_definition");
+  const type = getAny(node, "type");
 
   const attributesPart = [];
   const signaturePart = [];
   const bodyPart = [];
 
   if (attributes) {
-    attributesPart.push(group(concat([printNode(attributes), hardline])));
+    attributesPart.push(
+      group(concat([path.call(print, "attributes", 0), hardline]))
+    );
   }
 
   if (allMemberModifiers) {
-    signaturePart.push(printNode(allMemberModifiers), " ");
+    signaturePart.push(path.call(print, allMemberModifiers, 0), " ");
   }
 
   if (commonMemberDeclaration) {
-    const declaration = getAnyChildNode(commonMemberDeclaration, [
-      "Method_declarationContext",
-      "Typed_member_declarationContext"
+    const declaration = getAny(node[commonMemberDeclaration][0], [
+      "method_declaration",
+      "typed_member_declaration"
     ]);
 
-    if (isNode(declaration, "Method_declarationContext")) {
+    if (declaration === "method_declaration") {
       // It's always void (otherwise it's a typed_member_declaration).
       signaturePart.push(
         "void",
         " ",
-        printMethodDeclarationSignatureBase(declaration),
-        printMethodDeclarationSignatureConstraints(declaration)
+        path.call(
+          () => printMethodDeclarationSignatureBase(path, options, print),
+          commonMemberDeclaration,
+          0,
+          declaration,
+          0
+        ),
+        path.call(
+          () =>
+            printMethodDeclarationSignatureConstraints(path, options, print),
+          commonMemberDeclaration,
+          0,
+          declaration,
+          0
+        )
       );
-      bodyPart.push(printMethodDeclarationBody(declaration));
-    } else if (isNode(declaration, "Typed_member_declarationContext")) {
-      signaturePart.push(printTypedMemberDeclarationSignature(declaration));
-      bodyPart.push(printTypedMemberDeclarationBody(declaration));
+      bodyPart.push(
+        path.call(
+          () => printMethodDeclarationBody(path, options, print),
+          commonMemberDeclaration,
+          0,
+          declaration,
+          0
+        )
+      );
+    } else if (declaration === "typed_member_declaration") {
+      signaturePart.push(
+        path.call(
+          () => printTypedMemberDeclarationSignature(path, options, print),
+          commonMemberDeclaration,
+          0,
+          declaration,
+          0
+        )
+      );
+      bodyPart.push(
+        path.call(
+          () => printTypedMemberDeclarationBody(path, options, print),
+          commonMemberDeclaration,
+          0,
+          declaration,
+          0
+        )
+      );
     } else {
-      signaturePart.push(printNode(commonMemberDeclaration));
+      signaturePart.push(path.call(print, commonMemberDeclaration, 0));
     }
   } else if (destructorDefinition) {
-    signaturePart.push(printNode(destructorDefinition));
+    signaturePart.push(path.call(print, destructorDefinition, 0));
   } else if (type) {
-    const fixedSizeBufferDeclarators = getChildNodes(
-      node,
-      "Fixed_size_buffer_declarator"
+    signaturePart.push("fixed", line, path.call(print, type, 0));
+    bodyPart.push(
+      line,
+      join(line, path.map(print, "fixed_size_buffer_declarator")),
+      ";"
     );
-
-    signaturePart.push("fixed", line, printNode(type));
-    bodyPart.push(line, join(line, fixedSizeBufferDeclarators), ";");
   }
 
   return group(
@@ -844,22 +818,22 @@ function printClassOrStructMemberDeclaration(node) {
   );
 }
 
-function printEnumMemberDeclaration(node) {
-  const attributes = getOptionalChildNode(node, "AttributesContext");
-  const identifier = getChildNode(node, "IdentifierContext");
-  const expression = getOptionalChildNode(node, "ExpressionContext");
+function printEnumMemberDeclaration(path, options, print) {
+  const node = path.getValue();
+  const attributes = getAny(node, "attributes");
+  const expression = getAny(node, "expression");
 
   const docs = [];
 
   if (attributes) {
-    docs.push(printNode(attributes), hardline);
+    docs.push(path.call(print, attributes, 0), hardline);
   }
 
-  const declarationPart = [printNode(identifier)];
+  const declarationPart = [path.call(print, "identifier", 0)];
 
   if (expression) {
     declarationPart.push(
-      indent(group(concat([line, "=", " ", printNode(expression)])))
+      indent(group(concat([line, "=", " ", path.call(print, expression, 0)])))
     );
   }
 
@@ -868,62 +842,51 @@ function printEnumMemberDeclaration(node) {
   return group(concat(docs));
 }
 
-function printCommonMemberDeclaration(node) {
-  const conversionOperator = getOptionalChildNode(
-    node,
-    "Conversion_operator_declaratorContext"
-  );
-  const methodDeclaration = getOptionalChildNode(
-    node,
-    "Method_declarationContext"
-  );
+function printCommonMemberDeclaration(path, options, print) {
+  const node = path.getValue();
+  const conversionOperator = getAny(node, "conversion_operator_declarator");
+  const methodDeclaration = getAny(node, "method_declaration");
 
   if (conversionOperator) {
-    const body = getOptionalChildNode(node, "BodyContext");
-    const expression = getOptionalChildNode(node, "ExpressionContext");
+    const body = getAny(node, "body");
+    const expression = getAny(node, "expression");
 
-    const docs = [printNode(conversionOperator)];
+    const docs = [path.call(print, conversionOperator, 0)];
 
     if (body) {
-      docs.push(line, printNode(body));
+      docs.push(line, path.call(print, body, 0));
     } else {
       docs.push(
-        indent(group(concat([line, "=>", " ", printNode(expression), ";"])))
+        indent(
+          group(concat([line, "=>", " ", path.call(print, expression, 0), ";"]))
+        )
       );
     }
 
     return group(concat(docs));
   } else if (methodDeclaration) {
-    return group(concat(["void", " ", printNode(methodDeclaration)]));
+    return group(concat(["void", " ", path.call(print, methodDeclaration, 0)]));
   } else {
-    return printList(line, node.children);
+    return join(line, path.map(print, "children"));
   }
 }
 
-function printMethodDeclarationSignatureBase(node) {
-  const methodMemberName = getAnyChildNode(node, [
-    "Method_member_nameContext",
-    "IdentifierContext"
-  ]);
-  const typeParameterList = getOptionalChildNode(
-    node,
-    "Type_parameter_listContext"
-  );
-  const formalParameterList = getOptionalChildNode(
-    node,
-    "Formal_parameter_listContext"
-  );
+function printMethodDeclarationSignatureBase(path, options, print) {
+  const node = path.getValue();
+  const methodMemberName = getAny(node, ["method_member_name", "identifier"]);
+  const typeParameterList = getAny(node, "type_parameter_list");
+  const formalParameterList = getAny(node, "formal_parameter_list");
 
-  const signatureBasePart = [printNode(methodMemberName)];
+  const signatureBasePart = [path.call(print, methodMemberName, 0)];
 
   if (typeParameterList) {
-    signatureBasePart.push(printNode(typeParameterList));
+    signatureBasePart.push(path.call(print, typeParameterList, 0));
   }
 
   signatureBasePart.push("(");
 
   if (formalParameterList) {
-    signatureBasePart.push(printNode(formalParameterList));
+    signatureBasePart.push(path.call(print, formalParameterList, 0));
   }
 
   signatureBasePart.push(")");
@@ -931,14 +894,12 @@ function printMethodDeclarationSignatureBase(node) {
   return group(concat(signatureBasePart));
 }
 
-function printMethodDeclarationSignatureConstraints(node) {
-  const constructorInitializer = getOptionalChildNode(
+function printMethodDeclarationSignatureConstraints(path, options, print) {
+  const node = path.getValue();
+  const constructorInitializer = getAny(node, "constructor_initializer");
+  const typeParameterConstraintsClauses = getAny(
     node,
-    "Constructor_initializerContext"
-  );
-  const typeParameterConstraintsClauses = getOptionalChildNode(
-    node,
-    "Type_parameter_constraints_clausesContext"
+    "type_parameter_constraints_clauses"
   );
 
   const docs = [];
@@ -946,7 +907,12 @@ function printMethodDeclarationSignatureConstraints(node) {
   if (typeParameterConstraintsClauses) {
     docs.push(
       indent(
-        group(concat([hardline, printNode(typeParameterConstraintsClauses)]))
+        group(
+          concat([
+            hardline,
+            path.call(print, typeParameterConstraintsClauses, 0)
+          ])
+        )
       )
     );
   }
@@ -954,19 +920,19 @@ function printMethodDeclarationSignatureConstraints(node) {
   if (constructorInitializer) {
     docs.push(" ", ":");
     docs.push(
-      indent(group(concat([hardline, printNode(constructorInitializer)])))
+      indent(
+        group(concat([hardline, path.call(print, constructorInitializer, 0)]))
+      )
     );
   }
 
   return group(concat(docs));
 }
 
-function printMethodDeclarationBody(node) {
-  const methodBody = getAnyChildNode(node, [
-    "Method_bodyContext",
-    "BodyContext"
-  ]);
-  const expression = getOptionalChildNode(node, "ExpressionContext");
+function printMethodDeclarationBody(path, options, print) {
+  const node = path.getValue();
+  const methodBody = getAny(node, ["method_body", "body"]);
+  const expression = getAny(node, "expression");
 
   const docs = [];
 
@@ -974,33 +940,28 @@ function printMethodDeclarationBody(node) {
     docs.push(
       " ",
       "=>",
-      indent(group(concat([line, printNode(expression), ";"])))
+      indent(group(concat([line, path.call(print, expression, 0), ";"])))
     );
   } else if (methodBody) {
-    docs.push(printNode(methodBody));
+    docs.push(path.call(print, methodBody, 0));
   }
 
   return group(concat(docs));
 }
 
-function printPropertyDeclarationBody(node) {
+function printPropertyDeclarationBody(path, options, print) {
+  const node = path.getValue();
   const docs = [];
 
-  const accessorDeclarations = getOptionalChildNode(
-    node,
-    "Accessor_declarationsContext"
-  );
+  const accessorDeclarations = getAny(node, "accessor_declarations");
 
   if (accessorDeclarations) {
-    const variableInitializer = getOptionalChildNode(
-      node,
-      "Variable_initializerContext"
-    );
+    const variableInitializer = getAny(node, "variable_initializer");
 
     docs.push(
       line,
       "{",
-      indent(group(concat([line, printNode(accessorDeclarations)]))),
+      indent(group(concat([line, path.call(print, accessorDeclarations, 0)]))),
       line,
       "}"
     );
@@ -1009,163 +970,216 @@ function printPropertyDeclarationBody(node) {
       docs.push(
         " ",
         "=",
-        indent(group(concat([line, printNode(variableInitializer), ";"])))
+        indent(
+          group(concat([line, path.call(print, variableInitializer, 0), ";"]))
+        )
       );
     }
   } else {
-    docs.push(printMethodDeclarationBody(node));
+    docs.push(printMethodDeclarationBody(path, options, print));
   }
 
   return group(concat(docs));
 }
 
-function printTypedMemberDeclarationSignature(node) {
-  const type = getChildNode(node, "TypeContext");
-  const declaration = getAnyChildNode(node, [
-    "Namespace_or_type_nameContext",
-    "Method_declarationContext",
-    "Property_declarationContext",
-    "Indexer_declarationContext",
-    "Operator_declarationContext",
-    "Field_declarationContext"
+function printTypedMemberDeclarationSignature(path, options, print) {
+  const node = path.getValue();
+  const typeDocs = path.call(print, "type", 0);
+  const declaration = getAny(node, [
+    "namespace_or_type_name",
+    "method_declaration",
+    "property_declaration",
+    "indexer_declaration",
+    "operator_declaration",
+    "field_declaration"
   ]);
 
   const docs = [];
 
-  if (isNode(declaration, "Property_declarationContext")) {
-    const memberName = getChildNode(declaration, "Member_nameContext");
-
-    docs.push(printNode(type), line, printNode(memberName));
-  } else if (isNode(declaration, "Method_declarationContext")) {
+  if (declaration === "property_declaration") {
+    docs.push(
+      typeDocs,
+      line,
+      path.call(print, declaration, 0, "member_name", 0)
+    );
+  } else if (declaration === "method_declaration") {
     docs.push(
       group(
         concat([
-          printNode(type),
+          typeDocs,
           line,
-          printMethodDeclarationSignatureBase(declaration)
+          path.call(
+            () => printMethodDeclarationSignatureBase(path, options, print),
+            declaration,
+            0
+          )
         ])
       ),
-      printMethodDeclarationSignatureConstraints(declaration)
+      path.call(
+        () => printMethodDeclarationSignatureConstraints(path, options, print),
+        declaration,
+        0
+      )
     );
-  } else if (isNode(declaration, "Indexer_declarationContext")) {
+  } else if (declaration === "indexer_declaration") {
     docs.push(
-      printNode(type),
+      typeDocs,
       line,
-      printIndexerDeclarationSignature(declaration)
+      path.call(
+        () => printIndexerDeclarationSignature(path, options, print),
+        declaration,
+        0
+      )
     );
-  } else if (isNode(declaration, "Operator_declarationContext")) {
+  } else if (declaration === "operator_declaration") {
     docs.push(
-      printNode(type),
+      typeDocs,
       line,
-      printOperatorDeclarationSignature(declaration)
+      path.call(
+        () => printOperatorDeclarationSignature(path, options, print),
+        declaration,
+        0
+      )
     );
   } else {
-    docs.push(printNode(type));
+    docs.push(typeDocs);
   }
 
   return group(concat(docs));
 }
 
-function printTypedMemberDeclarationBody(node) {
-  const declaration = getAnyChildNode(node, [
-    "Namespace_or_type_nameContext",
-    "Method_declarationContext",
-    "Property_declarationContext",
-    "Indexer_declarationContext",
-    "Operator_declarationContext",
-    "Field_declarationContext"
+function printTypedMemberDeclarationBody(path, options, print) {
+  const node = path.getValue();
+  const declaration = getAny(node, [
+    "namespace_or_type_name",
+    "method_declaration",
+    "property_declaration",
+    "indexer_declaration",
+    "operator_declaration",
+    "field_declaration"
   ]);
 
   const docs = [];
 
-  if (isNode(declaration, "Property_declarationContext")) {
-    docs.push(printPropertyDeclarationBody(declaration));
-  } else if (isNode(declaration, "Method_declarationContext")) {
-    docs.push(printMethodDeclarationBody(declaration));
-  } else if (isNode(declaration, "Namespace_or_type_nameContext")) {
-    const indexer = getChildNode(node, "Indexer_declarationContext");
+  if (declaration === "property_declaration") {
+    docs.push(
+      path.call(
+        () => printPropertyDeclarationBody(path, options, print),
+        declaration,
+        0
+      )
+    );
+  } else if (declaration === "method_declaration") {
+    docs.push(
+      path.call(
+        () => printMethodDeclarationBody(path, options, print),
+        declaration,
+        0
+      )
+    );
+  } else if (declaration === "namespace_or_type_name") {
+    const indexer = getAny(node, "indexer_declaration");
 
     docs.push(
-      printNode(declaration),
+      path.call(print, declaration, 0),
       ".",
-      printIndexerDeclarationBody(indexer)
+      path.call(
+        () => printIndexerDeclarationBody(path, options, print),
+        indexer,
+        0
+      )
     );
-  } else if (isNode(declaration, "Indexer_declarationContext")) {
-    docs.push(printIndexerDeclarationBody(declaration));
-  } else if (isNode(declaration, "Operator_declarationContext")) {
-    docs.push(printOperatorDeclarationBody(declaration));
+  } else if (declaration === "indexer_declaration") {
+    docs.push(
+      path.call(
+        () => printIndexerDeclarationBody(path, options, print),
+        declaration,
+        0
+      )
+    );
+  } else if (declaration === "operator_declaration") {
+    docs.push(
+      path.call(
+        () => printOperatorDeclarationBody(path, options, print),
+        declaration,
+        0
+      )
+    );
   } else {
-    docs.push(indent(group(concat([line, printNode(declaration)]))));
+    docs.push(indent(group(concat([line, path.call(print, declaration, 0)]))));
   }
 
   return group(concat(docs));
 }
 
-function printMethodDeclaration(node) {
+function printMethodDeclaration(path, options, print) {
   return concat([
-    printMethodDeclarationSignatureBase(node),
-    printMethodDeclarationSignatureConstraints(node),
-    printMethodDeclarationBody(node)
+    printMethodDeclarationSignatureBase(path, options, print),
+    printMethodDeclarationSignatureConstraints(path, options, print),
+    printMethodDeclarationBody(path, options, print)
   ]);
 }
 
-function printMethodInvocation(node) {
-  const argumentList = getOptionalChildNode(node, "Argument_listContext");
+function printMethodInvocation(path, options, print) {
+  const node = path.getValue();
+  const argumentList = getAny(node, "argument_list");
 
   return group(
-    concat(["(", argumentList ? printNode(argumentList) : softline, ")"])
+    concat([
+      "(",
+      argumentList ? path.call(print, argumentList, 0) : softline,
+      ")"
+    ])
   );
 }
 
-function printQualifiedIdentifier(node) {
-  return printDotList(node.children);
+function printQualifiedIdentifier(path, options, print) {
+  return printDotList(path.map(print, "identifier"));
 }
 
-function printQualifiedAliasMember(node) {
-  const identifiers = getChildNodes(node, "IdentifierContext");
-  const typeArgumentList = getOptionalChildNode(
-    node,
-    "Type_argument_listContext"
-  );
+function printQualifiedAliasMember(path, options, print) {
+  const node = path.getValue();
+  const identifiers = path.map(print, "identifier");
+  const typeArgumentList = getAny(node, "type_argument_list");
 
-  const docs = [printNode(identifiers[0]), "::", printNode(identifiers[1])];
+  const docs = [identifiers[0], "::", identifiers[1]];
 
   if (typeArgumentList) {
-    docs.push(printNode(typeArgumentList));
+    docs.push(path.call(print, typeArgumentList, 0));
   }
 
   return group(concat(docs));
 }
 
-function printConversionOperatorDeclarator(node) {
-  const type = getChildNode(node, "TypeContext");
-  const argDeclaration = getChildNode(node, "Arg_declarationContext");
-
+function printConversionOperatorDeclarator(path, options, print) {
   return group(
     concat([
-      printGenericSymbol(node.children[0]),
+      path.call(print, "children", 0),
       " ",
       "operator",
       " ",
-      printNode(type),
+      path.call(print, "type", 0),
       "(",
-      indent(group(concat([softline, printNode(argDeclaration)]))),
+      indent(group(concat([softline, path.call(print, "arg_declaration", 0)]))),
       softline,
       ")"
     ])
   );
 }
 
-function printConstructorInitializer(node) {
-  assertNodeStructure(node, 2, true);
+function printConstructorInitializer(path, options, print) {
+  const node = path.getValue();
 
-  const base = node.children[1]; // base or this
-  const argumentList = getOptionalChildNode(node, "Argument_listContext");
+  const baseDocs = path.call(print, "children", 1); // base or this
+  const argumentList = getAny(node, "argument_list");
 
-  const docs = [printNode(base), "("];
+  const docs = [baseDocs, "("];
 
   if (argumentList) {
-    docs.push(indent(concat([softline, printNode(argumentList)])), softline);
+    docs.push(
+      indent(concat([softline, path.call(print, argumentList, 0)])),
+      softline
+    );
   }
 
   docs.push(")");
@@ -1173,7 +1187,16 @@ function printConstructorInitializer(node) {
   return group(concat(docs));
 }
 
-function printAllMemberModifiers(node) {
+function printAccessorModifier(path, options, print) {
+  let resharperOrder = ["protected", "internal", "private"];
+
+  let modifiers = path.map(print, "terminal");
+  let orderedModifiers = _.intersection(resharperOrder, modifiers);
+
+  return group(join(line, orderedModifiers));
+}
+
+function printAllMemberModifiers(path, options, print) {
   let resharperOrder = [
     "public",
     "protected",
@@ -1189,38 +1212,27 @@ function printAllMemberModifiers(node) {
     "extern",
     "unsafe",
     "volatile",
-    "async"
+    "async",
+    "partial"
   ];
 
-  let modifiers = node.children.map(printNode);
+  let modifiers = path.map(print, "all_member_modifier");
   let orderedModifiers = _.intersection(resharperOrder, modifiers);
 
   return group(join(line, orderedModifiers));
 }
 
-function printAllMemberModifier(node) {
-  return printGenericSymbol(node);
+function printAllMemberModifier(path, options, print) {
+  return path.call(print, "terminal", 0);
 }
 
-function printMethodMemberName(node) {
-  return printDotList(node.children);
+function printMemberName(path, options, print) {
+  return path.call(print, "namespace_or_type_name", 0);
 }
 
-function printMemberName(node) {
-  const namespaceOrTypeName = getChildNode(
-    node,
-    "Namespace_or_type_nameContext"
-  );
-
-  return printNode(namespaceOrTypeName);
-}
-
-function printMemberAccess(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const typeArgumentList = getOptionalChildNode(
-    node,
-    "Type_argument_listContext"
-  );
+function printMemberAccess(path, options, print) {
+  const node = path.getValue();
+  const typeArgumentList = getAny(node, "type_argument_list");
   const isNullCoalescent = isSymbol(node.children[0], "?");
 
   const docs = [];
@@ -1229,32 +1241,36 @@ function printMemberAccess(node) {
     docs.push("?");
   }
 
-  docs.push(softline, ".", printNode(identifier));
+  docs.push(softline, ".", path.call(print, "identifier", 0));
 
   if (typeArgumentList) {
-    docs.push(softline, printNode(typeArgumentList));
+    docs.push(softline, path.call(print, typeArgumentList, 0));
   }
 
   return group(concat(docs));
 }
 
-function printBody(node) {
-  const block = getOptionalChildNode(node, "BlockContext");
+function printBody(path, options, print) {
+  const node = path.getValue();
+  const block = getAny(node, "block");
 
-  if (!block) return ";";
+  if (block) {
+    return concat([line, path.call(print, block, 0)]);
+  }
 
-  return concat([line, printNode(block)]);
+  return ";";
 }
 
-function printBlock(node) {
+function printBlock(path, options, print) {
+  const node = path.getValue();
   const docs = [];
 
   docs.push("{");
 
-  const statementList = getOptionalChildNode(node, "Statement_listContext");
+  const statementList = getAny(node, "statement_list");
 
   if (statementList) {
-    docs.push(indent(concat([hardline, printNode(statementList)])));
+    docs.push(indent(concat([hardline, path.call(print, statementList, 0)])));
   }
 
   docs.push(hardline, "}");
@@ -1262,167 +1278,229 @@ function printBlock(node) {
   return concat(docs);
 }
 
-function printFormalParameterList(node) {
-  const fixedParameters = getOptionalChildNode(node, "Fixed_parametersContext");
-  const parameterArray = getOptionalChildNode(node, "Parameter_arrayContext");
-
-  return group(
-    concat([indent(concat([softline, printNode(fixedParameters)])), softline])
-  );
-}
-
-function printFixedParameters(node) {
-  const fixedParameters = getChildNodes(node, "Fixed_parameterContext");
-
-  return printCommaList(fixedParameters);
-}
-
-function printFixedParameter(node) {
-  // FIXME: Handle __arglist if somebody cares.
-  const argDeclaration = getOptionalChildNode(node, "Arg_declarationContext");
-  const attributes = getOptionalChildNode(node, "AttributesContext");
-  const parameterModifier = getOptionalChildNode(
-    node,
-    "Parameter_modifierContext"
-  );
-
-  return group(
-    printList(line, [attributes, parameterModifier, argDeclaration])
-  );
-}
-
-function printFixedPointerDeclarators(node) {
-  const fixedPointerParameters = getChildNodes(
-    node,
-    "Fixed_pointer_declaratorContext"
-  );
-
-  return printCommaList(fixedPointerParameters);
-}
-
-function printFixedPointerDeclarator(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const initializer = getChildNode(node, "Fixed_pointer_initializerContext");
-
-  return group(
-    concat([printNode(identifier), line, "=", line, printNode(initializer)])
-  );
-}
-
-function printFixedPointerInitializer(node) {
-  const expression = getOptionalChildNode(node, "ExpressionContext");
-  const localVariableInitializer = getOptionalChildNode(
-    node,
-    "Local_variable_initializer_unsafeContext"
-  );
-
-  if (expression) {
-    if (isSymbol(node.children[0], "&")) {
-      return group(concat(["&", printNode(expression)]));
-    } else {
-      return printNode(expression);
-    }
-  }
-
-  return printNode(localVariableInitializer);
-}
-
-function printLocalVariableInitializerUnsafe(node) {
-  const type = getChildNode(node, "TypeContext");
-  const expression = getChildNode(node, "ExpressionContext");
+function printFormalParameterList(path, options, print) {
+  const node = path.getValue();
+  const parameters = getAll(node, ["fixed_parameters", "parameter_array"]);
 
   return group(
     concat([
-      "stackalloc",
+      indent(
+        concat([
+          softline,
+          printCommaList(
+            parameters.map(parameter => path.call(print, parameter, 0))
+          )
+        ])
+      ),
+      softline
+    ])
+  );
+}
+
+function printFixedParameters(path, options, print) {
+  return printCommaList(path.map(print, "fixed_parameter"));
+}
+
+function printFixedParameter(path, options, print) {
+  const node = path.getValue();
+  const argDeclaration = getAny(node, "arg_declaration");
+
+  if (!argDeclaration) {
+    return "__arglist";
+  }
+
+  const attributes = getAny(node, "attributes");
+  const parameterModifier = getAny(node, "parameter_modifier");
+
+  const docs = [];
+
+  if (attributes) {
+    docs.push(path.call(print, attributes, 0));
+  }
+
+  if (parameterModifier) {
+    docs.push(path.call(print, parameterModifier, 0));
+  }
+
+  docs.push(path.call(print, argDeclaration, 0));
+
+  return group(join(line, docs));
+}
+
+function printFixedPointerDeclarators(path, options, print) {
+  return printCommaList(path.map(print, "fixed_pointer_declarator"));
+}
+
+function printFixedPointerDeclarator(path, options, print) {
+  return group(
+    concat([
+      path.call(print, "identifier", 0),
       line,
-      printNode(type),
+      "=",
+      line,
+      path.call(print, "fixed_pointer_initializer", 0)
+    ])
+  );
+}
+
+function printFixedPointerInitializer(path, options, print) {
+  const node = path.getValue();
+  const expression = getAny(node, "expression");
+
+  if (expression) {
+    if (isSymbol(node.children[0], "&")) {
+      return group(concat(["&", path.call(print, expression, 0)]));
+    } else {
+      return path.call(print, expression, 0);
+    }
+  }
+
+  return path.call(print, "local_variable_initializer_unsafe", 0);
+}
+
+function printFixedSizeBufferDeclarator(path, options, print) {
+  return group(
+    concat([
+      path.call(print, "identifier", 0),
       "[",
-      indent(group(concat([softline, printNode(expression)]))),
+      indent(concat([softline, path.call(print, "expression", 0)])),
       softline,
       "]"
     ])
   );
 }
 
-function printArgDeclaration(node) {
-  const type = getChildNode(node, "TypeContext");
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-
-  return printList(line, [type, identifier]);
-}
-
-function printConstantDeclaration(node) {
-  const type = getChildNode(node, "TypeContext");
-  const constantDeclarators = getChildNode(node, "Constant_declaratorsContext");
-
+function printLocalVariableInitializerUnsafe(path, options, print) {
   return group(
     concat([
-      group(concat(["const", line, printNode(type)])),
-      indent(concat([line, printNode(constantDeclarators)])),
+      "stackalloc",
+      line,
+      path.call(print, "type", 0),
+      "[",
+      indent(group(concat([softline, path.call(print, "expression", 0)]))),
+      softline,
+      "]"
+    ])
+  );
+}
+
+function printParameterArray(path, options, print) {
+  const node = path.getValue();
+  const attributes = getAny(node, "attributes");
+
+  const docs = [];
+
+  if (attributes) {
+    docs.push(path.call(print, attributes, 0), line);
+  }
+
+  docs.push("params", line);
+  docs.push(path.call(print, "array_type", 0), line);
+  docs.push(path.call(print, "identifier", 0));
+
+  return group(concat(docs));
+}
+
+function printArgDeclaration(path, options, print) {
+  const node = path.getValue();
+  const expression = getAny(node, "expression");
+
+  const docs = [
+    path.call(print, "type", 0),
+    line,
+    path.call(print, "identifier", 0)
+  ];
+
+  if (expression) {
+    docs.push(
+      group(
+        concat([
+          line,
+          indent(concat(["=", line, path.call(print, expression, 0)]))
+        ])
+      )
+    );
+  }
+
+  return group(concat(docs));
+}
+
+function printConstantDeclaration(path, options, print) {
+  return group(
+    concat([
+      group(concat(["const", line, path.call(print, "type", 0)])),
+      indent(concat([line, path.call(print, "constant_declarators", 0)])),
       ";"
     ])
   );
 }
 
-function printConstantDeclarators(node) {
-  const constantDeclarators = getChildNodes(node, "Constant_declaratorContext");
-
-  return printCommaList(constantDeclarators);
+function printConstantDeclarators(path, options, print) {
+  return printCommaList(path.map(print, "constant_declarator"));
 }
 
-function printConstantDeclarator(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const expression = getChildNode(node, "ExpressionContext");
-
+function printConstantDeclarator(path, options, print) {
   return group(
-    concat([printNode(identifier), line, "=", line, printNode(expression)])
+    concat([
+      path.call(print, "identifier", 0),
+      line,
+      "=",
+      line,
+      path.call(print, "expression", 0)
+    ])
   );
 }
 
-function printInterfaceDefinition(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const variantTypeParameterList = getOptionalChildNode(
+function printInterfaceDefinition(path, options, print) {
+  const node = path.getValue();
+  const variantTypeParameterList = getAny(node, "variant_type_parameter_list");
+  const interfaceBase = getAny(node, "interface_base");
+  const typeParameterConstraintsClauses = getAny(
     node,
-    "Variant_type_parameter_listContext"
+    "type_parameter_constraints_clauses"
   );
-  const interfaceBase = getOptionalChildNode(node, "Interface_baseContext");
-  const interfaceBody = getChildNode(node, "Interface_bodyContext");
 
-  let interfaceHead = ["interface", line, printNode(identifier)];
+  let interfaceHead = ["interface", line, path.call(print, "identifier", 0)];
 
   if (variantTypeParameterList) {
-    interfaceHead.push(softline, printNode(variantTypeParameterList));
+    interfaceHead.push(softline, path.call(print, variantTypeParameterList, 0));
   }
 
   if (interfaceBase) {
-    interfaceHead.push(line, printNode(interfaceBase));
+    interfaceHead.push(line, path.call(print, interfaceBase, 0));
+  }
+
+  if (typeParameterConstraintsClauses) {
+    interfaceHead.push(
+      line,
+      path.call(print, typeParameterConstraintsClauses, 0)
+    );
   }
 
   return group(
-    concat([group(concat(interfaceHead)), line, printNode(interfaceBody)])
+    concat([
+      group(concat(interfaceHead)),
+      line,
+      path.call(print, "interface_body", 0)
+    ])
   );
 }
 
-function printInterfaceMemberDeclaration(node) {
+function printInterfaceMemberDeclaration(path, options, print) {
+  const node = path.getValue();
   const docs = [];
 
-  const attributes = getOptionalChildNode(node, "AttributesContext");
   const isNew = node.children.find(node => isSymbol(node, "new"));
   const isEvent = node.children.find(node => isSymbol(node, "event"));
   const isUnsafe = node.children.find(node => isSymbol(node, "unsafe"));
-  const type = getOptionalChildNode(node, "TypeContext");
-  const identifier = getChildNode(node, "IdentifierContext");
-  const interfaceAccessors = getOptionalChildNode(
-    node,
-    "Interface_accessorsContext"
-  );
-  const formalParameterList = getOptionalChildNode(
-    node,
-    "Formal_parameter_listContext"
-  );
+  const identifierDocs = path.call(print, "identifier", 0);
+  const attributes = getAny(node, "attributes");
+  const type = getAny(node, "type");
+  const interfaceAccessors = getAny(node, "interface_accessors");
+  const formalParameterList = getAny(node, "formal_parameter_list");
 
   if (attributes) {
-    docs.push(printNode(attributes), hardline);
+    docs.push(path.call(print, attributes, 0), hardline);
   }
 
   const declarationPart = [];
@@ -1433,21 +1511,21 @@ function printInterfaceMemberDeclaration(node) {
 
   if (isEvent) {
     declarationPart.push("event", " ");
-    declarationPart.push(printNode(type), line, printNode(identifier), ";");
+    declarationPart.push(path.call(print, type, 0), line, identifierDocs, ";");
   } else {
     if (isUnsafe) {
       declarationPart.push("unsafe", " ");
     }
 
     if (interfaceAccessors) {
-      declarationPart.push(printNode(type), line);
+      declarationPart.push(path.call(print, type, 0), line);
 
-      if (identifier) {
-        declarationPart.push(printNode(identifier), line);
-      } else {
+      if (identifierDocs) {
+        declarationPart.push(identifierDocs, line);
+      } else if (formalParameterList) {
         declarationPart.push("this", "[");
         declarationPart.push(
-          indent(concat([softline, printNode(formalParameterList)]))
+          indent(concat([softline, path.call(print, formalParameterList, 0)]))
         );
         declarationPart.push("]", line);
       }
@@ -1456,35 +1534,32 @@ function printInterfaceMemberDeclaration(node) {
         group(
           concat([
             "{",
-            indent(concat([line, printNode(interfaceAccessors)])),
+            indent(concat([line, path.call(print, interfaceAccessors, 0)])),
             line,
             "}"
           ])
         )
       );
     } else {
-      const typeParameterList = getOptionalChildNode(
+      const typeParameterList = getAny(node, "type_parameter_list");
+      const typeParameterConstraintsClauses = getAny(
         node,
-        "Type_parameter_listContext"
-      );
-      const typeParameterConstraintsClauses = getOptionalChildNode(
-        node,
-        "Type_parameter_constraints_clausesContext"
+        "type_parameter_constraints_clauses"
       );
 
-      declarationPart.push(type ? printNode(type) : "void", line);
+      declarationPart.push(type ? path.call(print, type, 0) : "void", line);
 
-      declarationPart.push(printNode(identifier));
+      declarationPart.push(identifierDocs);
 
       if (typeParameterList) {
-        declarationPart.push(printNode(typeParameterList));
+        declarationPart.push(path.call(print, typeParameterList, 0));
       }
 
       declarationPart.push("(");
 
       if (formalParameterList) {
         declarationPart.push(
-          indent(concat([softline, printNode(formalParameterList)])),
+          indent(concat([softline, path.call(print, formalParameterList, 0)])),
           softline
         );
       }
@@ -1493,7 +1568,9 @@ function printInterfaceMemberDeclaration(node) {
 
       if (typeParameterConstraintsClauses) {
         declarationPart.push(
-          indent(concat([line, printNode(typeParameterConstraintsClauses)]))
+          indent(
+            concat([line, path.call(print, typeParameterConstraintsClauses, 0)])
+          )
         );
       }
 
@@ -1506,51 +1583,61 @@ function printInterfaceMemberDeclaration(node) {
   return group(concat(docs));
 }
 
-function printTypeParameterList(node) {
-  const typeParameters = getAllChildNodes(node, [
-    "Type_parameterContext",
-    "Variant_type_parameterContext"
+function printTypeParameterList(path, options, print) {
+  const node = path.getValue();
+  const typeParameters = getAny(node, [
+    "type_parameter",
+    "variant_type_parameter"
   ]);
 
   return group(
-    concat(["<", indent(group(printCommaList(typeParameters))), ">"])
+    concat([
+      "<",
+      indent(group(printCommaList(path.map(print, typeParameters)))),
+      ">"
+    ])
   );
 }
 
-function printTypeParameter(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const attributes = getOptionalChildNode(node, "AttributesContext");
-  const varianceAnnotation = getOptionalChildNode(
-    node,
-    "Variance_annotationContext"
-  );
+function printTypeParameter(path, options, print) {
+  const node = path.getValue();
 
-  return printList(line, [attributes, varianceAnnotation, identifier]);
+  const docs = [];
+
+  const attributes = getAny(node, "attributes");
+
+  if (attributes) {
+    docs.push(path.call(print, attributes, 0), line);
+  }
+
+  const varianceAnnotation = getAny(node, "variance_annotation");
+
+  if (varianceAnnotation) {
+    docs.push(path.call(print, varianceAnnotation, 0), line);
+  }
+
+  const identifier = path.call(print, "identifier", 0);
+  docs.push(identifier);
+
+  return group(concat(docs));
 }
 
-function printVarianceAnnotation(node) {
-  return printGenericSymbol(node);
+function printVarianceAnnotation(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printDelegateDefinition(node) {
-  const returnType = getChildNode(node, "Return_typeContext");
-  const identifier = getChildNode(node, "IdentifierContext");
-  const variantTypeParameterList = getOptionalChildNode(
+function printDelegateDefinition(path, options, print) {
+  const node = path.getValue();
+  const variantTypeParameterList = getAny(node, "variant_type_parameter_list");
+  const typeParameterConstraintsClauses = getAny(
     node,
-    "Variant_type_parameter_listContext"
+    "type_parameter_constraints_clauses"
   );
-  const typeParameterConstraintsClauses = getOptionalChildNode(
-    node,
-    "Type_parameter_constraints_clausesContext"
-  );
-  const formalParameterList = getOptionalChildNode(
-    node,
-    "Formal_parameter_listContext"
-  );
+  const formalParameterList = getAny(node, "formal_parameter_list");
 
   return group(
     concat([
-      group(concat(["delegate", line, printNode(returnType)])),
+      group(concat(["delegate", line, path.call(print, "return_type", 0)])),
       indent(
         group(
           concat([
@@ -1559,15 +1646,15 @@ function printDelegateDefinition(node) {
               concat([
                 group(
                   concat([
-                    printNode(identifier),
+                    path.call(print, "identifier", 0),
                     softline,
                     variantTypeParameterList
-                      ? printNode(variantTypeParameterList)
+                      ? path.call(print, variantTypeParameterList, 0)
                       : softline,
                     softline,
                     "(",
                     formalParameterList
-                      ? printNode(formalParameterList)
+                      ? path.call(print, formalParameterList, 0)
                       : softline,
                     ")"
                   ])
@@ -1577,7 +1664,7 @@ function printDelegateDefinition(node) {
                       group(
                         concat([
                           line,
-                          printNode(typeParameterConstraintsClauses)
+                          path.call(print, typeParameterConstraintsClauses, 0)
                         ])
                       )
                     )
@@ -1592,111 +1679,102 @@ function printDelegateDefinition(node) {
   );
 }
 
-function printReturnType(node) {
-  return printGenericSymbol(node);
+function printReturnType(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printTypeParameterConstraintsClauses(node) {
-  const clauses = getChildNodes(
-    node,
-    "Type_parameter_constraints_clauseContext"
-  );
-
-  return printCommaList(clauses);
+function printTypeParameterConstraintsClauses(path, options, print) {
+  return printCommaList(path.map(print, "type_parameter_constraints_clause"));
 }
 
-function printTypeParameterConstraintsClause(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const typeParameterConstraints = getChildNode(
-    node,
-    "Type_parameter_constraintsContext"
-  );
-
+function printTypeParameterConstraintsClause(path, options, print) {
   return group(
     concat([
       "where",
       line,
-      printNode(identifier),
+      path.call(print, "identifier", 0),
       line,
       ":",
       line,
-      printNode(typeParameterConstraints)
+      path.call(print, "type_parameter_constraints", 0)
     ])
   );
 }
 
-function printTypeParameterConstraints(node) {
-  const constraint = getAnyChildNode(node, [
-    "Constructor_constraintContext",
-    "Primary_constraintContext"
+function printTypeParameterConstraints(path, options, print) {
+  const node = path.getValue();
+  const constraints = getAll(node, [
+    "primary_constraint",
+    "secondary_constraints",
+    "constructor_constraint"
   ]);
 
-  return printNode(constraint);
+  return printCommaList(
+    constraints.map(constraint => path.call(print, constraint, 0))
+  );
 }
 
-function printPrimaryConstraint(node) {
-  const classType = getOptionalChildNode(node, "Class_typeContext");
-
-  if (!classType) return printGenericSymbol(node);
-
-  return printNode(classType);
+function printConstructorConstraint() {
+  return concat(["new", "(", ")"]);
 }
 
-function printAssignment(node) {
-  const unaryExpression = getChildNode(node, "Unary_expressionContext");
-  const assignmentOperator = getChildNode(node, "Assignment_operatorContext");
-  const expression = getChildNode(node, "ExpressionContext");
+function printPrimaryConstraint(path, options, print) {
+  return path.call(print, "children", 0);
+}
 
+function printSecondaryConstraints(path, options, print) {
+  return printCommaList(path.map(print, "namespace_or_type_name"));
+}
+
+function printAssignment(path, options, print) {
   return group(
     concat([
       group(
         concat([
-          printNode(unaryExpression),
+          path.call(print, "unary_expression", 0),
           line,
-          printNode(assignmentOperator)
+          path.call(print, "assignment_operator", 0)
         ])
       ),
       line,
-      printNode(expression)
+      path.call(print, "expression", 0)
     ])
   );
 }
 
-function printOperator(node) {
-  return printGenericSymbol(node);
+function printOperator(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printFieldDeclaration(node) {
-  const variableDeclarators = getChildNode(node, "Variable_declaratorsContext");
-
-  return group(concat([printNode(variableDeclarators), ";"]));
+function printRightOperator(path, options, print) {
+  return concat(path.map(print, "children"));
 }
 
-function printEventDeclaration(node) {
-  const type = getChildNode(node, "TypeContext");
-  const variableDeclarators = getOptionalChildNode(
-    node,
-    "Variable_declaratorsContext"
-  );
+function printFieldDeclaration(path, options, print) {
+  return group(concat([path.call(print, "variable_declarators", 0), ";"]));
+}
 
-  const docs = ["event", " ", printNode(type)];
+function printEventDeclaration(path, options, print) {
+  const node = path.getValue();
+  const variableDeclarators = getAny(node, "variable_declarators");
+
+  const docs = ["event", " ", path.call(print, "type", 0)];
 
   if (variableDeclarators) {
-    docs.push(indent(concat([line, printNode(variableDeclarators), ";"])));
-  } else {
-    const memberName = getChildNode(node, "Member_nameContext");
-    const eventAccessorDeclarations = getChildNode(
-      node,
-      "Event_accessor_declarationsContext"
-    );
-
-    docs.push(line, printNode(memberName), line);
-
     docs.push(
+      indent(concat([line, path.call(print, "variable_declarators", 0), ";"]))
+    );
+  } else {
+    docs.push(
+      line,
+      path.call(print, "member_name", 0),
+      line,
       group(
         concat([
           "{",
-          indent(concat([line, printNode(eventAccessorDeclarations)])),
+          indent(
+            concat([line, path.call(print, "event_accessor_declarations", 0)])
+          ),
           line,
           "}"
         ])
@@ -1707,88 +1785,65 @@ function printEventDeclaration(node) {
   return group(concat(docs));
 }
 
-function printAccessorDeclarations(node) {
-  const attributes = getOptionalChildNode(node, "AttributesContext");
-  const accessorModifier = getOptionalChildNode(
-    node,
-    "Accessor_modifierContext"
-  );
+function printAccessorDeclarations(path, options, print) {
+  const node = path.getValue();
+  const attributes = getAny(node, "attributes");
+  const accessorModifier = getAny(node, "accessor_modifier");
+  const accessorBody = getAny(node, ["accessor_body", "block"]);
+  const accessorOperator = path.call(print, "terminal", 0);
 
   const docs = [];
 
   if (attributes) {
-    docs.push(printNode(attributes), line);
+    docs.push(path.call(print, attributes, 0), line);
   }
 
   if (accessorModifier) {
-    docs.push(printNode(accessorModifier), line);
+    docs.push(path.call(print, accessorModifier, 0), line);
   }
 
-  const accessorType = getChildNode(node, "TerminalNodeImpl");
-  const accessorBody = getAnyChildNode(node, [
-    "Accessor_bodyContext",
-    "BlockContext"
-  ]);
+  docs.push(accessorOperator);
 
-  docs.push(printGenericSymbol(accessorType));
-
-  if (isNode(accessorBody, "BlockContext")) {
+  if (accessorBody == "block") {
     docs.push(line);
   }
 
-  docs.push(printNode(accessorBody));
+  docs.push(path.call(print, accessorBody, 0));
 
-  if (isSymbol(accessorType, "get")) {
-    const setAccessorDeclaration = getOptionalChildNode(
+  const counterAccessorDeclarations = {
+    get: "set_accessor_declaration",
+    set: "get_accessor_declaration",
+    add: "remove_accessor_declaration",
+    remove: "add_accessor_declaration"
+  };
+
+  if (counterAccessorDeclarations[accessorOperator]) {
+    const counterAccessorDeclaration = getAny(
       node,
-      "Set_accessor_declarationContext"
+      counterAccessorDeclarations[accessorOperator]
     );
 
-    if (setAccessorDeclaration) {
-      docs.push(line, printNode(setAccessorDeclaration));
-    }
-  } else if (isSymbol(accessorType, "set")) {
-    const getAccessorDeclaration = getOptionalChildNode(
-      node,
-      "Get_accessor_declarationContext"
-    );
-
-    if (getAccessorDeclaration) {
-      docs.push(line, printNode(getAccessorDeclaration));
-    }
-  } else if (isSymbol(accessorType, "add")) {
-    const removeAccessorDeclaration = getOptionalChildNode(
-      node,
-      "Remove_accessor_declarationContext"
-    );
-
-    if (removeAccessorDeclaration) {
-      docs.push(line, printNode(removeAccessorDeclaration));
-    }
-  } else if (isSymbol(accessorType, "remove")) {
-    const addAccessorDeclaration = getOptionalChildNode(
-      node,
-      "Add_accessor_declarationContext"
-    );
-
-    if (addAccessorDeclaration) {
-      docs.push(line, printNode(addAccessorDeclaration));
+    if (counterAccessorDeclaration) {
+      docs.push(line, path.call(print, counterAccessorDeclaration, 0));
     }
   }
 
   return group(concat(docs));
 }
 
-function printInterfaceAccessors(node) {
-  const attributes = getChildNodes(node, "AttributesContext");
+function printInterfaceAccessors(path, options, print) {
+  const node = path.getValue();
+  const attributes = getAny(node, "attributes")
+    ? path.map(print, "attributes")
+    : [];
   const firstAccessorAttributes =
-    attributes.length >= 1 && isNode(node.children[0], "AttributesContext");
+    attributes.length >= 1 && isType(node.children[0], "attributes");
   const secondAccessorAttributes =
     (attributes.length == 1 && !firstAccessorAttributes) ||
     attributes.length == 2;
-  const accessors = node.children.filter(
-    node => isSymbol(node, "get") || isSymbol(node, "set")
-  );
+  const accessors = node["terminal"]
+    .map(child => child.value)
+    .filter(s => ["get", "set"].includes(s));
   const firstAccessor = accessors[0];
   const secondAccessor = accessors[1];
 
@@ -1797,10 +1852,10 @@ function printInterfaceAccessors(node) {
   const firstAccessorPart = [];
 
   if (firstAccessorAttributes) {
-    firstAccessorPart.push(printNode(firstAccessorAttributes), hardline);
+    firstAccessorPart.push(attributes[0], hardline);
   }
 
-  firstAccessorPart.push(printGenericSymbol(firstAccessor), ";");
+  firstAccessorPart.push(firstAccessor, ";");
 
   docs.push(group(concat(firstAccessorPart)));
 
@@ -1808,10 +1863,10 @@ function printInterfaceAccessors(node) {
     const secondAccessorPart = [];
 
     if (secondAccessorAttributes) {
-      secondAccessorPart.push(printNode(secondAccessorAttributes), hardline);
+      secondAccessorPart.push(attributes[1], hardline);
     }
 
-    secondAccessorPart.push(printGenericSymbol(secondAccessor), ";");
+    secondAccessorPart.push(secondAccessor, ";");
 
     docs.push(line, group(concat(secondAccessorPart)));
   }
@@ -1819,32 +1874,27 @@ function printInterfaceAccessors(node) {
   return group(concat(docs));
 }
 
-function printIndexerDeclarationSignature(node) {
-  const formalParameterList = getChildNode(
-    node,
-    "Formal_parameter_listContext"
-  );
-
+function printIndexerDeclarationSignature(path, options, print) {
   return group(
     concat([
       "this",
       softline,
       "[",
-      indent(group(concat([softline, printNode(formalParameterList)]))),
+      indent(
+        group(concat([softline, path.call(print, "formal_parameter_list", 0)]))
+      ),
       softline,
       "]"
     ])
   );
 }
 
-function printIndexerDeclarationBody(node) {
+function printIndexerDeclarationBody(path, options, print) {
+  const node = path.getValue();
   const docs = [];
 
-  const accessorDeclarations = getOptionalChildNode(
-    node,
-    "Accessor_declarationsContext"
-  );
-  const expression = getOptionalChildNode(node, "ExpressionContext");
+  const accessorDeclarations = getAny(node, "accessor_declarations");
+  const expression = getAny(node, "expression");
 
   if (accessorDeclarations) {
     docs.push(
@@ -1852,170 +1902,189 @@ function printIndexerDeclarationBody(node) {
         concat([
           line,
           "{",
-          indent(group(concat([hardline, printNode(accessorDeclarations)]))),
+          indent(
+            group(concat([hardline, path.call(print, accessorDeclarations, 0)]))
+          ),
           hardline,
           "}"
         ])
       )
     );
   } else if (expression) {
-    docs.push(" ", "=>", indent(group(concat([line, printNode(expression)]))));
+    docs.push(
+      " ",
+      "=>",
+      indent(group(concat([line, path.call(print, expression, 0)])))
+    );
   }
 
   return group(concat(docs));
 }
 
-function printOperatorDeclarationSignature(node) {
-  const argDeclarations = getChildNodes(node, "Arg_declarationContext");
-  const overloadableOperator = getChildNode(
-    node,
-    "Overloadable_operatorContext"
-  );
-
+function printOperatorDeclarationSignature(path, options, print) {
   return group(
     concat([
       "operator",
       line,
-      printNode(overloadableOperator),
+      path.call(print, "overloadable_operator", 0),
       "(",
-      indent(group(concat([softline, printCommaList(argDeclarations)]))),
+      indent(
+        group(
+          concat([softline, printCommaList(path.map(print, "arg_declaration"))])
+        )
+      ),
       softline,
       ")"
     ])
   );
 }
 
-function printOperatorDeclarationBody(node) {
-  const body = getOptionalChildNode(node, "BodyContext");
+function printOperatorDeclarationBody(path, options, print) {
+  const node = path.getValue();
+  const body = getAny(node, "body");
 
   if (body) {
-    return printNode(body);
+    return path.call(print, body, 0);
   }
 
-  const expression = getChildNode(node, "ExpressionContext");
-
   return group(
-    concat([" ", "=>", indent(group(concat([line, printNode(expression)])))])
+    concat([
+      " ",
+      "=>",
+      indent(group(concat([line, path.call(print, "expression", 0)])))
+    ])
   );
 }
 
-function printStatementList(node) {
+function printStatementList(path, options, print) {
   let docs = [];
 
   let previousChild = null;
 
-  for (let child of node.children) {
+  path.each(path => {
+    const child = path.getValue();
+
     if (previousChild) {
-      if (child.start.line - previousChild.stop.line > 1) {
+      if (child.lineStart - previousChild.lineEnd > 1) {
         docs.push(doublehardline);
       } else {
         docs.push(hardline);
       }
     }
 
-    docs.push(printNode(child));
+    docs.push(print(path, options, print));
 
     previousChild = child;
-  }
+  }, "children");
 
   return group(concat(docs));
 }
 
-function printDeclarationStatement(node) {
-  const declaration = getAnyChildNode(node, [
-    "Local_variable_declarationContext",
-    "Local_constant_declarationContext"
-  ]);
+function printLabeledStatement(path, options, print) {
+  const node = path.getValue();
 
-  return group(concat([printNode(declaration), ";"]));
-}
+  const identifier = getAny(node, "identifier");
 
-function printLabeledStatement(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const statement = getAnyChildNode(node, [
-    "LabeledStatementContext",
-    "DeclarationStatementContext",
-    "EmbeddedStatementContext"
+  if (!identifier) {
+    return path.call(print, "children", 0);
+  }
+
+  const statement = getAny(node, [
+    "labeled_statement",
+    "declaration_statement",
+    "embedded_statement"
   ]);
 
   return group(
     concat([
-      printNode(identifier),
+      path.call(print, identifier, 0),
       ":",
-      group(concat([hardline, printNode(statement)]))
+      group(concat([hardline, path.call(print, statement, 0)]))
     ])
   );
 }
 
-function printEmbeddedStatement(node) {
-  assertNodeStructure(node, 1);
-
-  return printNode(node.children[0]);
+function printEmbeddedStatement(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printExpressionStatement(node) {
-  const expression = getChildNode(node, "ExpressionContext");
-
-  return group(concat([printNode(expression), ";"]));
+function printExpressionStatement(path, options, print) {
+  return group(concat([path.call(print, "expression", 0), ";"]));
 }
 
-function printEmptyStatement(node) {
-  // FIXME: This will potentially push 2 successive hardlines.
-  // return ";";
+function printEmptyStatement() {
   return empty;
 }
 
-function printStatement(node) {
-  const declaration = getAnyChildNode(node, [
-    "Local_variable_declarationContext",
-    "Local_constant_declarationContext"
-  ]);
-  const statement = getAnyChildNode(node, [
-    "Labeled_statementContext",
-    "Embedded_statementContext"
-  ]);
+function printDeclarationStatement(path, options, print) {
+  const node = path.getValue();
 
-  if (statement) return printNode(statement);
+  const identifier = getAny(node, "identifier");
 
-  return concat([printNode(declaration), ";"]);
+  if (identifier) {
+    return;
+  }
+
+  const declaration = getAny(node, [
+    "local_variable_declaration",
+    "local_constant_declaration"
+  ]);
+  const statement = getAny(node, ["labeled_statement", "embedded_statement"]);
+
+  if (statement) {
+    return path.call(print, statement, 0);
+  }
+
+  return concat([path.call(print, declaration, 0), ";"]);
 }
 
-function printVariableDeclarator(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
+function printVariableDeclarator(path, options, print) {
+  const node = path.getValue();
 
-  const initializer = getAnyChildNode(node, [
-    "Local_variable_initializerContext",
-    "Variable_initializerContext"
+  const initializer = getAny(node, [
+    "local_variable_initializer",
+    "variable_initializer"
   ]);
 
-  const docs = [printNode(identifier)];
+  const docs = [path.call(print, "identifier", 0)];
 
   if (initializer) {
-    docs.push(" ", "=", indent(group(concat([line, printNode(initializer)]))));
+    docs.push(
+      " ",
+      "=",
+      indent(group(concat([line, path.call(print, initializer, 0)])))
+    );
   }
 
   return group(concat(docs));
 }
 
-function printVariableDeclaration(node) {
-  const variableType = getOptionalChildNode(node, "Local_variable_typeContext");
-  const variableDeclarators = getAllChildNodes(node, [
-    "Local_variable_declaratorContext",
-    "Variable_declaratorContext"
+function printVariableDeclaration(path, options, print) {
+  const node = path.getValue();
+  const variableType = getAny(node, "local_variable_type");
+  const variableDeclarators = getAll(node, [
+    "local_variable_declarator",
+    "variable_declarator"
   ]);
 
   let firstLinePart = [];
   let secondLinePart = [];
 
   if (variableType) {
-    firstLinePart.push(printNode(variableType));
+    firstLinePart.push(path.call(print, variableType, 0));
   }
 
-  if (variableDeclarators.length == 1) {
-    let identifier = getChildNode(variableDeclarators[0], "IdentifierContext");
-    let initializer = getAnyChildNode(variableDeclarators[0], [
-      "Local_variable_initializerContext",
-      "Variable_initializerContext"
+  if (node[variableDeclarators].length == 1) {
+    let identifierPart = path.call(
+      print,
+      variableDeclarators,
+      0,
+      "identifier",
+      0
+    );
+    let initializer = getAny(node[variableDeclarators][0], [
+      "local_variable_initializer",
+      "variable_initializer"
     ]);
 
     if (variableType) {
@@ -2023,13 +2092,19 @@ function printVariableDeclaration(node) {
     }
 
     if (initializer) {
-      firstLinePart.push(printNode(identifier), line, "=");
-      secondLinePart.push(line, printNode(initializer));
+      firstLinePart.push(identifierPart, line, "=");
+      secondLinePart.push(
+        line,
+        path.call(print, variableDeclarators, 0, initializer, 0)
+      );
     } else {
-      secondLinePart.push(printNode(identifier));
+      secondLinePart.push(identifierPart);
     }
   } else {
-    secondLinePart.push(hardline, printCommaList(variableDeclarators));
+    secondLinePart.push(
+      hardline,
+      printCommaList(path.map(print, variableDeclarators))
+    );
   }
 
   return group(
@@ -2040,167 +2115,150 @@ function printVariableDeclaration(node) {
   );
 }
 
-function printLocalConstantDeclaration(node) {
-  const type = getChildNode(node, "TypeContext");
-  const constantDeclarators = getChildNodes(
-    node,
-    "Constant_declaratorsContext"
-  );
-
+function printLocalConstantDeclaration(path, options, print) {
   return group(
     concat([
-      group(concat("const", " ", printNode(type))),
-      indent(concat([line, printCommaList(constantDeclarators)]))
+      group(concat(["const", " ", path.call(print, "type", 0)])),
+      indent(concat([line, path.call(print, "constant_declarators", 0)]))
     ])
   );
 }
 
-function printLocalVariableType(node) {
-  const type = getOptionalChildNode(node, "TypeContext");
+function printLocalVariableType(path, options, print) {
+  const node = path.getValue();
+  const type = getAny(node, "type");
 
   if (type) {
-    return printNode(type);
+    return path.call(print, "type", 0);
   }
 
   return "var";
 }
 
-function printVariableInitializer(node) {
-  const initializer = getAnyChildNode(node, [
-    "ExpressionContext",
-    "Array_initializerContext",
-    "Local_variable_initializer_unsafeContext"
+function printVariableInitializer(path, options, print) {
+  const node = path.getValue();
+  const initializer = getAny(node, [
+    "expression",
+    "array_initializer",
+    "local_variable_initializer_unsafe"
   ]);
 
-  return printNode(initializer);
+  return path.call(print, initializer, 0);
 }
 
-function printSizeofExpression(node) {
-  const type = getChildNode(node, "TypeContext");
-
+function printSizeofExpression(path, options, print) {
   return group(
     concat([
       "sizeof",
       "(",
-      concat([softline, indent(group(printNode(type)))]),
+      concat([softline, indent(group(path.call(print, "type", 0)))]),
       softline,
       ")"
     ])
   );
 }
 
-function printPrimaryObjectCreationExpression(node) {
-  assertNodeStructure(node, 2, true);
+function printObjectCreationExpression(path, options, print) {
+  const node = path.getValue();
 
   let expressionPart = [];
 
   const child = node.children[1];
 
-  if (isNode(child, "TypeContext")) {
-    const type = getChildNode(node, "TypeContext");
-    const objectCreationExpression = getOptionalChildNode(
+  if (isType(child, "type")) {
+    const objectCreationExpression = getAny(node, "object_creation_expression");
+    const objectOrCollectionInitializer = getAny(
       node,
-      "Object_creation_expressionContext"
-    );
-    const objectOrCollectionInitializer = getOptionalChildNode(
-      node,
-      "Object_or_collection_initializerContext"
+      "object_or_collection_initializer"
     );
 
-    expressionPart.push(printNode(type));
+    expressionPart.push(path.call(print, "type", 0));
 
     if (objectCreationExpression) {
-      expressionPart.push(printNode(objectCreationExpression));
-    } else if (objectOrCollectionInitializer) {
-      expressionPart.push(" ", printNode(objectOrCollectionInitializer));
-    } else {
-      const expressionList = getOptionalChildNode(
-        node,
-        "Expression_listContext"
+      const argumentList = getAny(
+        node[objectCreationExpression][0],
+        "argument_list"
       );
-      const rankSpecifiers = getChildNodes(node, "Rank_specifierContext");
-      const arrayInitializer = getOptionalChildNode(
-        node,
-        "Array_initializerContext"
+      const initializer = getAny(
+        node[objectCreationExpression][0],
+        "object_or_collection_initializer"
       );
 
+      let argPart = [];
+
+      argPart.push("(");
+
+      if (argumentList) {
+        argPart.push(
+          indent(path.call(print, objectCreationExpression, 0, argumentList, 0))
+        );
+      }
+
+      argPart.push(")");
+
+      if (initializer) {
+        argPart.push(
+          line,
+          path.call(print, objectCreationExpression, 0, initializer, 0)
+        );
+      }
+
+      expressionPart.push(group(concat(argPart)));
+    } else if (objectOrCollectionInitializer) {
+      expressionPart.push(
+        " ",
+        path.call(print, objectOrCollectionInitializer, 0)
+      );
+    } else {
+      const expressionList = getAny(node, "expression_list");
+      const rankSpecifiers = getAny(node, "rank_specifier");
+      const arrayInitializer = getAny(node, "array_initializer");
+
       if (expressionList) {
-        expressionPart.push("[", printNode(expressionList), "]");
+        expressionPart.push("[", path.call(print, expressionList, 0), "]");
       }
 
       if (rankSpecifiers) {
-        expressionPart.push(concat(rankSpecifiers.map(printNode)));
+        expressionPart.push(concat(path.map(print, rankSpecifiers)));
       }
 
       if (arrayInitializer) {
-        expressionPart.push(line, printNode(arrayInitializer));
+        expressionPart.push(line, path.call(print, arrayInitializer, 0));
       }
     }
-  } else if (isNode(child, "Anonymous_object_initializerContext")) {
-    const anonymousObjectInitializer = getChildNode(
-      node,
-      "Anonymous_object_initializerContext"
-    );
-    expressionPart.push(printNode(anonymousObjectInitializer));
-  } else if (isNode(child, "Rank_specifierContext")) {
-    const rankSpecifier = getChildNode(node, "Rank_specifierContext");
-    const arrayInitializer = getChildNode(node, "Array_initializerContext");
-
+  } else if (isType(child, "anonymous_object_initializer")) {
+    expressionPart.push(path.call(print, "anonymous_object_initializer", 0));
+  } else if (isType(child, "rank_specifier")) {
     expressionPart.push(
-      printNode(rankSpecifier),
+      path.call(print, "rank_specifier", 0),
       line,
-      printNode(arrayInitializer)
+      path.call(print, "array_initializer", 0)
     );
   }
 
   return group(concat(["new", " ", concat(expressionPart)]));
 }
 
-function printObjectCreationExpression(node) {
-  const argumentList = getOptionalChildNode(node, "Argument_listContext");
-  const initializer = getOptionalChildNode(
-    node,
-    "Object_or_collection_initializerContext"
-  );
-
-  let docs = [];
-
-  docs.push("(");
-
-  if (argumentList) {
-    docs.push(indent(printNode(argumentList)));
-  }
-
-  docs.push(")");
-
-  if (initializer) {
-    docs.push(line, printNode(initializer));
-  }
-
-  return group(concat(docs));
-}
-
-function printBaseAccessExpression(node) {
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-  const typeArgumentList = getOptionalChildNode(
-    node,
-    "Type_argument_listContext"
-  );
-  const expressionList = getOptionalChildNode(node, "Expression_listContext");
+function printBaseAccessExpression(path, options, print) {
+  const node = path.getValue();
+  const identifier = getAny(node, "identifier");
+  const expressionList = getAny(node, "expression_list");
 
   const docs = ["base"];
 
   if (identifier) {
     docs.push(".");
-    docs.push(printNode(identifier));
+    docs.push(path.call(print, "identifier", 0));
+
+    const typeArgumentList = getAny(node, "type_argument_list");
 
     if (typeArgumentList) {
-      docs.push(printNode(typeArgumentList));
+      docs.push(path.call(print, typeArgumentList, 0));
     }
   } else if (expressionList) {
     docs.push(
       "[",
-      indent(concat([softline, printNode(expressionList)])),
+      indent(concat([softline, path.call(print, expressionList, 0)])),
       softline,
       "]"
     );
@@ -2209,156 +2267,131 @@ function printBaseAccessExpression(node) {
   return group(concat(docs));
 }
 
-function printLiteralExpression(node) {
-  return printNode(node.children[0]);
+function printLiteralExpression(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printLiteral(node) {
-  const stringLiteral = getOptionalChildNode(node, "String_literalContext");
-
-  if (stringLiteral) {
-    return printNode(stringLiteral);
-  }
-
-  return printGenericSymbol(node.children[0]);
+function printLiteral(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printStringLiteral(node) {
-  const interpolatedString = getAnyChildNode(node, [
-    "Interpolated_regular_stringContext",
-    "Interpolated_verbatium_stringContext"
-  ]);
-
-  if (interpolatedString) {
-    return printNode(interpolatedString);
-  }
-
-  return printGenericSymbol(node.children[0]);
-}
-
-function printInterpolatedVerbatiumString(node) {
-  const parts = getChildNodes(
-    node,
-    "Interpolated_verbatium_string_partContext"
+function printInterpolatedVerbatiumString(path, options, print) {
+  return group(
+    concat([
+      '$@"',
+      concat(path.map(print, "interpolated_verbatium_string_part")),
+      '"'
+    ])
   );
-
-  return group(concat(['$@"', concat(parts.map(printNode)), '"']));
 }
 
-function printInterpolatedRegularString(node) {
-  const parts = getChildNodes(node, "Interpolated_regular_string_partContext");
-
-  return group(concat(['$"', concat(parts.map(printNode)), '"']));
-}
-
-function printInterpolatedStringPart(node) {
-  const expression = getOptionalChildNode(
-    node,
-    "Interpolated_string_expressionContext"
+function printInterpolatedRegularString(path, options, print) {
+  return group(
+    concat([
+      '$"',
+      concat(path.map(print, "interpolated_regular_string_part")),
+      '"'
+    ])
   );
+}
+
+function printInterpolatedStringPart(path, options, print) {
+  const node = path.getValue();
+  const expression = getAny(node, "interpolated_string_expression");
 
   if (expression) {
-    if (getOptionalChildNode(expression, "ExpressionContext")) {
-      return group(
-        concat([
-          "{",
-          indent(concat([softline, group(printNode(expression))])),
-          "}"
-        ])
-      );
-    }
-
-    return group(printNode(expression));
+    return group(
+      concat([
+        "{",
+        indent(concat([softline, group(path.call(print, expression, 0))])),
+        "}"
+      ])
+    );
   }
 
-  return printGenericSymbol(node.children[0]);
+  return path.call(print, "children", 0);
 }
 
-function printInterpolatedStringExpression(node) {
+function printInterpolatedStringExpression(path, options, print) {
   // FIXME: Handle format strings.
-  const expressions = getChildNodes(node, "ExpressionContext");
-
-  return group(printCommaList(expressions));
+  return group(printCommaList(path.map(print, "expression")));
 }
 
-function printIsType(node) {
-  const baseType = getChildNode(node, "Base_typeContext");
-  const rest = node.children.slice(1);
+function printIsType(path, options, print) {
+  const [baseType, ...rest] = path.map(print, "children");
 
-  if (rest.length === 0) return printNode(baseType);
+  if (rest.length === 0) {
+    return baseType;
+  }
 
-  return group(concat([printNode(baseType), " ", concat(rest.map(printNode))]));
+  return group(concat([baseType, " ", concat(rest)]));
 }
 
-function printIfStatement(node) {
-  const expression = getChildNode(node, "ExpressionContext");
-  const ifBodies = getChildNodes(node, "If_bodyContext");
+function printIfStatement(path, options, print) {
+  const node = path.getValue();
+  const expression = path.call(print, "expression", 0);
+  const ifBodies = path.map(print, "if_body");
   const hasElse = ifBodies.length > 1;
-  const ifHasBraces = !!getOptionalChildNode(ifBodies[0], "BlockContext");
-  const elseHasBraces =
-    hasElse && !!getOptionalChildNode(ifBodies[1], "BlockContext");
-  const hasElseIf =
-    hasElse && !!getOptionalChildNode(ifBodies[1], "IfStatementContext");
+  const ifHasBraces = !!node["if_body"][0]["block"];
+  const elseHasBraces = hasElse && !!node["if_body"][1]["block"];
+  const hasElseIf = hasElse && !!node["if_body"][1]["if_statement"];
 
   let docs = [
     "if",
     " ",
     "(",
-    group(
-      concat([
-        indent(group(concat([softline, printNode(expression)]))),
-        softline
-      ])
-    ),
+    group(concat([indent(group(concat([softline, expression]))), softline])),
     ")"
   ];
 
   if (ifHasBraces) {
-    docs.push(hardline, printNode(ifBodies[0]));
+    docs.push(hardline, ifBodies[0]);
   } else {
-    docs.push(
-      indent(group(concat([hasElse ? hardline : line, printNode(ifBodies[0])])))
-    );
+    docs.push(indent(group(concat([hasElse ? hardline : line, ifBodies[0]]))));
   }
 
   if (hasElse) {
     docs.push(hardline, "else");
 
     if (elseHasBraces || hasElseIf) {
-      docs.push(hasElseIf ? " " : hardline, printNode(ifBodies[1]));
+      docs.push(hasElseIf ? " " : hardline, ifBodies[1]);
     } else {
-      docs.push(indent(group(concat([hardline, printNode(ifBodies[1])]))));
+      docs.push(indent(group(concat([hardline, ifBodies[1]]))));
     }
   }
 
   return group(concat(docs));
 }
 
-function printBreakingStatement(node) {
-  const keyword = node.children[0];
-  const expression = getOptionalChildNode(node, "ExpressionContext");
+function printBreakingStatement(path, options, print) {
+  const node = path.getValue();
+  const expression = getAny(node, "expression");
 
-  let docs = [printNode(keyword)];
-
-  if (expression) {
-    docs.push(indent(concat([line, printNode(expression), ";"])));
-  } else {
-    docs.push(";");
-  }
-
-  return group(concat(docs));
+  return group(
+    concat([
+      path.call(print, "terminal", 0),
+      expression
+        ? indent(concat([line, path.call(print, "expression", 0), ";"]))
+        : ";"
+    ])
+  );
 }
 
-function printGotoStatement(node) {
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-  const expression = getOptionalChildNode(node, "ExpressionContext");
+function printGotoStatement(path, options, print) {
+  const node = path.getValue();
+  const identifier = getAny(node, "identifier");
+  const expression = getAny(node, "expression");
 
   let docs = ["goto"];
 
   if (identifier) {
-    docs.push(indent(concat([line, printNode(identifier), ";"])));
+    docs.push(indent(concat([line, path.call(print, "identifier", 0), ";"])));
   } else if (expression) {
-    docs.push(indent(concat([line, "case", line, printNode(expression), ";"])));
+    docs.push(
+      indent(
+        concat([line, "case", line, path.call(print, "expression", 0), ";"])
+      )
+    );
   } else {
     docs.push(" ", "default", ";");
   }
@@ -2366,10 +2399,7 @@ function printGotoStatement(node) {
   return group(concat(docs));
 }
 
-function printWhileStatement(node) {
-  const expression = getChildNode(node, "ExpressionContext");
-  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
-
+function printWhileStatement(path, options, print) {
   return group(
     concat([
       group(
@@ -2377,33 +2407,30 @@ function printWhileStatement(node) {
           "while",
           " ",
           "(",
-          indent(printNode(expression)),
+          indent(path.call(print, "expression", 0)),
           softline,
           ")"
         ])
       ),
       line,
-      printNode(embeddedStatement)
+      path.call(print, "embedded_statement", 0)
     ])
   );
 }
 
-function printDoStatement(node) {
-  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
-  const expression = getChildNode(node, "ExpressionContext");
-
+function printDoStatement(path, options, print) {
   return group(
     concat([
       "do",
       line,
-      printNode(embeddedStatement),
+      path.call(print, "embedded_statement", 0),
       line,
       group(
         concat([
           "while",
           " ",
           "(",
-          indent(printNode(expression)),
+          indent(path.call(print, "expression", 0)),
           softline,
           ")",
           ";"
@@ -2413,15 +2440,11 @@ function printDoStatement(node) {
   );
 }
 
-function printForStatement(node) {
-  const forInitializer = getOptionalChildNode(node, "For_initializerContext");
-  const expression = getOptionalChildNode(node, "ExpressionContext");
-  const forIterator = getOptionalChildNode(node, "For_iteratorContext");
-  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
-
-  const forExpressions = [forInitializer, expression, forIterator].map(
-    e => (e ? printExpression(e) : empty)
-  );
+function printForStatement(path, options, print) {
+  const node = path.getValue();
+  const forInitializer = getAny(node, "for_initializer");
+  const expression = getAny(node, "expression");
+  const forIterator = getAny(node, "for_iterator");
 
   return group(
     concat([
@@ -2431,44 +2454,44 @@ function printForStatement(node) {
           " ",
           "(",
           indent(
-            group(concat([softline, join(concat([";", line]), forExpressions)]))
+            group(
+              concat([
+                softline,
+                join(
+                  concat([";", line]),
+                  [forInitializer, expression, forIterator].map(
+                    e => (e ? path.call(print, e, 0) : empty)
+                  )
+                )
+              ])
+            )
           ),
           softline,
           ")"
         ])
       ),
       line,
-      printNode(embeddedStatement)
+      path.call(print, "embedded_statement", 0)
     ])
   );
 }
 
-function printForInitializer(node) {
-  const localVariableDeclaration = getOptionalChildNode(
-    node,
-    "Local_variable_declarationContext"
-  );
-  const expressions = getChildNodes(node, "ExpressionContext");
+function printForInitializer(path, options, print) {
+  const node = path.getValue();
+  const localVariableDeclaration = getAny(node, "local_variable_declaration");
 
   if (localVariableDeclaration) {
-    return group(printNode(localVariableDeclaration));
+    return group(path.call(print, localVariableDeclaration, 0));
   }
 
-  return group(join(concat([";", line]), expressions));
+  return group(join(concat([";", line]), path.map(print, "expression")));
 }
 
-function printForIterator(node) {
-  const expressions = getChildNodes(node, "ExpressionContext");
-
-  return group(printCommaList(expressions));
+function printForIterator(path, options, print) {
+  return group(printCommaList(path.map(print, "expression")));
 }
 
-function printForeachStatement(node) {
-  const localVariableType = getChildNode(node, "Local_variable_typeContext");
-  const identifier = getChildNode(node, "IdentifierContext");
-  const expression = getOptionalChildNode(node, "ExpressionContext");
-  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
-
+function printForeachStatement(path, options, print) {
   return group(
     concat([
       group(
@@ -2479,13 +2502,13 @@ function printForeachStatement(node) {
           indent(
             group(
               concat([
-                printNode(localVariableType),
+                path.call(print, "local_variable_type", 0),
                 line,
-                printNode(identifier),
+                path.call(print, "identifier", 0),
                 line,
                 "in",
                 line,
-                printNode(expression)
+                path.call(print, "expression", 0)
               ])
             )
           ),
@@ -2494,27 +2517,34 @@ function printForeachStatement(node) {
         ])
       ),
       line,
-      printNode(embeddedStatement)
+      path.call(print, "embedded_statement", 0)
     ])
   );
 }
 
-function printSwitchStatement(node) {
-  const expression = getChildNode(node, "ExpressionContext");
-  const switchSections = getChildNodes(node, "Switch_sectionContext");
+function printSwitchStatement(path, options, print) {
+  const node = path.getValue();
+  const switchSections = getAny(node, "switch_section");
 
   const docs = [
     group(
-      concat(["switch", " ", "(", indent(printNode(expression)), softline, ")"])
+      concat([
+        "switch",
+        " ",
+        "(",
+        indent(path.call(print, "expression", 0)),
+        softline,
+        ")"
+      ])
     ),
     line
   ];
 
   docs.push("{");
 
-  if (switchSections.length) {
+  if (switchSections) {
     docs.push(
-      indent(concat([line, join(hardline, switchSections.map(printNode))]))
+      indent(concat([line, join(hardline, path.map(print, switchSections))]))
     );
   }
 
@@ -2523,73 +2553,67 @@ function printSwitchStatement(node) {
   return group(concat(docs));
 }
 
-function printSwitchSection(node) {
-  const switchLabels = getChildNodes(node, "Switch_labelContext");
-  const statementList = getChildNode(node, "Statement_listContext");
-
+function printSwitchSection(path, options, print) {
   return group(
     concat([
-      join(hardline, switchLabels.map(printNode)),
-      indent(concat([hardline, printNode(statementList)]))
+      join(hardline, path.map(print, "switch_label")),
+      indent(concat([hardline, path.call(print, "statement_list", 0)]))
     ])
   );
 }
 
-function printSwitchLabel(node) {
-  const expression = getOptionalChildNode(node, "ExpressionContext");
+function printSwitchLabel(path, options, print) {
+  const node = path.getValue();
+  const expression = getAny(node, "expression");
 
   if (expression) {
-    return group(concat(["case", " ", printNode(expression), ":"]));
+    return group(concat(["case", " ", path.call(print, expression, 0), ":"]));
   }
 
   return group(concat(["default", ":"]));
 }
 
-function printCheckedStatement(node) {
-  const keyword = node.children[0];
-  const block = getChildNode(node, "BlockContext");
-
-  return group(concat([printNode(keyword), hardline, printNode(block)]));
-}
-
-function printCheckedExpression(node) {
-  const checkedOrUnchecked = node.children[0];
-  const expression = getChildNode(node, "ExpressionContext");
-
+function printCheckedStatement(path, options, print) {
   return group(
     concat([
-      printNode(checkedOrUnchecked),
+      path.call(print, "terminal", 0),
+      hardline,
+      path.call(print, "block", 0)
+    ])
+  );
+}
+
+function printCheckedExpression(path, options, print) {
+  return group(
+    concat([
+      path.call(print, "terminal", 0),
       "(",
-      group(indent(concat([softline, printNode(expression)]))),
+      group(indent(concat([softline, path.call(print, "expression", 0)]))),
       softline,
       ")"
     ])
   );
 }
 
-function printDefaultValueExpression(node) {
-  const type = getChildNode(node, "TypeContext");
-
+function printDefaultValueExpression(path, options, print) {
   return group(
     concat([
       "default",
       "(",
-      indent(group(concat([softline, printNode(type)]))),
+      indent(group(concat([softline, path.call(print, "type", 0)]))),
       softline,
       ")"
     ])
   );
 }
 
-function printAnonymousMethodExpression(node) {
-  const block = getChildNode(node, "BlockContext");
-  const parameterList = getOptionalChildNode(
+function printAnonymousMethodExpression(path, options, print) {
+  const node = path.getValue();
+  const parameterList = getAny(
     node,
-    "Explicit_anonymous_function_parameter_listContext"
+    "explicit_anonymous_function_parameter_list"
   );
   const isAsync = isSymbol(node.children[0], "async");
-
-  const docs = [];
 
   const signaturePart = [];
 
@@ -2603,117 +2627,112 @@ function printAnonymousMethodExpression(node) {
 
   paramsPart.push("(");
   if (parameterList) {
-    paramsPart.push(indent(concat([softline, printNode(parameterList)])));
+    paramsPart.push(
+      indent(concat([softline, path.call(print, parameterList, 0)]))
+    );
   }
   paramsPart.push(")");
 
   signaturePart.push(group(concat(paramsPart)));
 
   return group(
-    concat([group(concat(signaturePart)), hardline, printNode(block)])
+    concat([
+      group(concat(signaturePart)),
+      hardline,
+      path.call(print, "block", 0)
+    ])
   );
 }
 
-function printTypeofExpression(node) {
-  const type = getAnyChildNode(node, [
-    "Unbound_type_nameContext",
-    "TypeContext"
-  ]);
+function printTypeofExpression(path, options, print) {
+  const node = path.getValue();
+  const type = getAny(node, ["unbound_type_name", "type"]);
 
   return group(
     concat([
       "typeof",
       " ",
       "(",
-      indent(concat([softline, type ? printNode(type) : "void"])),
+      indent(concat([softline, type ? path.call(print, type, 0) : "void"])),
       softline,
       ")"
     ])
   );
 }
 
-function printUnboundTypeName(node) {
-  // unbound_type_name
-  // : identifier ( generic_dimension_specifier? | '::' identifier generic_dimension_specifier?)
-  //   ('.' identifier generic_dimension_specifier?)*
-  // ;
+function printUnboundTypeName(path, options, print) {
+  const node = path.getValue();
+  const hasDoubleColumn = node.children.find(child => isSymbol(child, "::"));
 
-  const splitArray = (array, condition) => {
-    const result = [];
+  const pathParts = [];
 
-    let currentPart = [];
+  let currentPathPart = [];
 
-    for (let currentItem of array) {
-      if (condition(currentItem)) {
-        result.push(currentPart);
-        currentPart = [];
-      } else {
-        currentPart.push(currentItem);
-      }
+  path.each(path => {
+    const child = path.getValue();
+    if (isSymbol(child, ".") || isSymbol(child, "::")) {
+      pathParts.push(currentPathPart);
+      currentPathPart = [];
+    } else {
+      currentPathPart.push(print(path, options, print));
     }
+  }, "children");
 
-    result.push(currentPart);
+  pathParts.push(currentPathPart);
 
-    return result;
-  };
-
-  const getTypeName = part => {
-    const identifier = part.find(child => isNode(child, "IdentifierContext"));
-    const specifier = part.find(child =>
-      isNode(child, "Generic_dimension_specifierContext")
-    );
-
-    const typePart = [printNode(identifier)];
-
-    if (specifier) {
-      typePart.push(printNode(specifier));
-    }
-
-    return group(concat(typePart));
-  };
-
-  const parts = splitArray(node.children, child => isSymbol(child, "."));
-  _.partit;
-
-  const headParts = splitArray(parts[0], child => isSymbol(child, "::"));
-  const tailParts = parts.slice(1);
-
-  const docs = [join("::", headParts.map(getTypeName))];
-
-  if (tailParts.length) {
-    docs.push(".", join(".", tailParts.map(getTypeName)));
+  if (!hasDoubleColumn) {
+    return group(join(".", pathParts.map(concat)));
   }
 
-  return group(concat(docs));
+  const [headPart, neckPart, ...tailParts] = pathParts;
+
+  return group(
+    join(".", [
+      concat(headPart),
+      "::",
+      concat(neckPart),
+      ...tailParts.map(concat)
+    ])
+  );
 }
 
-function printGenericDimensionSpecifier(node) {
+function printGenericDimensionSpecifier(path) {
+  const node = path.getValue();
   const commas = node.children.length - 2;
 
   return concat(["<", ..._.repeat(",", commas), ">"]);
 }
 
-function printCapturingStatement(node) {
-  const keyword = node.children[0];
-  const capturedExpressions = getAllChildNodes(node, [
-    "ExpressionContext",
-    "Resource_acquisitionContext",
-    "Pointer_typeContext",
-    "Fixed_pointer_declaratorsContext"
+function printCapturingStatement(path, options, print) {
+  const node = path.getValue();
+  const capturedExpressions = getAll(node, [
+    "expression",
+    "resource_acquisition",
+    "pointer_type",
+    "fixed_pointer_declarators"
   ]);
-  const embeddedStatement = getChildNode(node, "Embedded_statementContext");
-  const hasBraces = !!getOptionalChildNode(embeddedStatement, "BlockContext");
+  const hasBraces = !!getAny(node["embedded_statement"][0], "block");
 
   const docs = [
     group(
       concat([
-        printNode(keyword),
+        path.call(print, "terminal", 0),
         " ",
         "(",
         group(
           concat([
             indent(
-              group(concat([softline, printList(" ", capturedExpressions)]))
+              group(
+                concat([
+                  softline,
+                  join(
+                    " ",
+                    capturedExpressions.map(expression =>
+                      path.call(print, expression, 0)
+                    )
+                  )
+                ])
+              )
             ),
             softline
           ])
@@ -2723,22 +2742,27 @@ function printCapturingStatement(node) {
     )
   ];
 
+  const statementDocs = path.call(print, "embedded_statement", 0);
+
   if (hasBraces) {
-    docs.push(hardline, printNode(embeddedStatement));
+    docs.push(hardline, statementDocs);
   } else {
-    docs.push(indent(group(concat([hardline, printNode(embeddedStatement)]))));
+    docs.push(indent(group(concat([hardline, statementDocs]))));
   }
 
   return group(concat(docs));
 }
 
-function printYieldStatement(node) {
-  const expression = getOptionalChildNode(node, "ExpressionContext");
+function printYieldStatement(path, options, print) {
+  const node = path.getValue();
+  const expression = getAny(node, "expression");
 
   const docs = ["yield"];
 
   if (expression) {
-    docs.push(indent(concat([line, "return", " ", printNode(expression)])));
+    docs.push(
+      indent(concat([line, "return", " ", path.call(print, "expression", 0)]))
+    );
   } else {
     docs.push(line, "break");
   }
@@ -2748,50 +2772,55 @@ function printYieldStatement(node) {
   return group(concat(docs));
 }
 
-function printResourceAcquisition(node) {
-  return printNode(node.children[0]);
+function printResourceAcquisition(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printTryStatement(node) {
-  const block = getChildNode(node, "BlockContext");
-  const clauses = getAllChildNodes(node, [
-    "Catch_clausesContext",
-    "Finally_clause"
+function printTryStatement(path, options, print) {
+  const node = path.getValue();
+  const block = path.call(print, "block", 0);
+  const clauses = getAll(node, ["catch_clauses", "finally_clause"]);
+
+  return group(
+    concat([
+      "try",
+      hardline,
+      block,
+      hardline,
+      join(hardline, clauses.map(clause => path.call(print, clause, 0)))
+    ])
+  );
+}
+
+function printCatchClauses(path, options, print) {
+  const node = path.getValue();
+  const clauses = getAll(node, [
+    "specific_catch_clause",
+    "general_catch_clause"
   ]);
 
-  const docs = ["try", hardline, printNode(block)];
-
-  for (let clause of clauses) {
-    docs.push(hardline, printNode(clause));
-  }
-
-  return group(concat(docs));
+  return join(
+    hardline,
+    _.flatten(clauses.map(clause => path.map(print, clause)))
+  );
 }
 
-function printCatchClauses(node) {
-  const catchClauses = getAllChildNodes(node, [
-    "Specific_catch_clauseContext",
-    "General_catch_clauseContext"
-  ]);
-
-  return printList(hardline, catchClauses);
-}
-
-function printCatchClause(node) {
-  const classType = getOptionalChildNode(node, "Class_typeContext");
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-  const exceptionFilter = getOptionalChildNode(node, "Exception_filterContext");
-  const block = getChildNode(node, "BlockContext");
+function printCatchClause(path, options, print) {
+  const node = path.getValue();
+  const classType = getAny(node, "class_type");
+  const exceptionFilter = getAny(node, "exception_filter");
 
   const catchPart = ["catch"];
 
   if (classType) {
     catchPart.push(" ");
 
-    const exceptionPart = [printNode(classType)];
+    const exceptionPart = [path.call(print, classType, 0)];
+
+    const identifier = getAny(node, "identifier");
 
     if (identifier) {
-      exceptionPart.push(" ", printNode(identifier));
+      exceptionPart.push(" ", path.call(print, identifier, 0));
     }
 
     catchPart.push(
@@ -2807,45 +2836,48 @@ function printCatchClause(node) {
   }
 
   if (exceptionFilter) {
-    catchPart.push(line, printNode(exceptionFilter));
+    catchPart.push(line, path.call(print, exceptionFilter, 0));
   }
 
-  return group(concat([group(concat(catchPart)), hardline, printNode(block)]));
+  return group(
+    concat([group(concat(catchPart)), hardline, path.call(print, "block", 0)])
+  );
 }
 
-function printExceptionFilter(node) {
-  const expression = getChildNode(node, "ExpressionContext");
+function printFinallyClause(path, options, print) {
+  return group(concat(["finally", hardline, path.call(print, "block", 0)]));
+}
 
+function printExceptionFilter(path, options, print) {
   return group(
     concat([
       "when",
       " ",
       "(",
-      group(concat([softline, printNode(expression)])),
+      group(concat([softline, path.call(print, "expression", 0)])),
       softline,
       ")"
     ])
   );
 }
 
-function printObjectOrCollectionInitializer(node) {
-  const initializer = getAnyChildNode(node, [
-    "Object_initializerContext",
-    "Collection_initializerContext"
-  ]);
-  return printNode(initializer);
+function printObjectOrCollectionInitializer(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printObjectInitializer(node) {
-  const memberInitializerList = getAnyChildNode(node, [
-    "Member_initializer_listContext",
-    "Member_declarator_listContext"
+function printObjectInitializer(path, options, print) {
+  const node = path.getValue();
+  const memberInitializerList = getAny(node, [
+    "member_initializer_list",
+    "member_declarator_list"
   ]);
 
   let docs = ["{"];
 
   if (memberInitializerList) {
-    docs.push(indent(concat([line, printNode(memberInitializerList)])));
+    docs.push(
+      indent(concat([line, path.call(print, memberInitializerList, 0)]))
+    );
   }
 
   docs.push(line, "}");
@@ -2853,133 +2885,119 @@ function printObjectInitializer(node) {
   return group(concat(docs));
 }
 
-function printCollectionInitializer(node) {
-  const elementInitializers = getChildNodes(node, "Element_initializerContext");
-
+function printCollectionInitializer(path, options, print) {
   return group(
     concat([
       "{",
-      indent(concat([line, printCommaList(elementInitializers)])),
+      indent(
+        concat([line, printCommaList(path.map(print, "element_initializer"))])
+      ),
       line,
       "}"
     ])
   );
 }
 
-function printMemberInitializerList(node) {
-  const memberInitializers = getChildNodes(node, "Member_initializerContext");
-
-  return printCommaList(memberInitializers);
+function printMemberInitializerList(path, options, print) {
+  return printCommaList(path.map(print, "member_initializer"));
 }
 
-function printMemberInitializer(node) {
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-  const expression = getOptionalChildNode(node, "ExpressionContext");
-  const value = getChildNode(node, "Initializer_valueContext");
+function printMemberInitializer(path, options, print) {
+  const node = path.getValue();
+  const identifier = getAny(node, "identifier");
+  const expression = getAny(node, "expression");
 
   let docs = [];
 
   if (identifier) {
-    docs.push(printNode(identifier));
+    docs.push(path.call(print, identifier, 0));
   } else if (expression) {
     docs.push(
       "[",
-      indent(concat([softline, printNode(expression)])),
+      indent(concat([softline, path.call(print, expression, 0)])),
       softline,
       "]"
     );
   }
 
   docs.push(" ", "=");
-  docs.push(indent(concat([line, printNode(value)])));
+  docs.push(indent(concat([line, path.call(print, "initializer_value", 0)])));
 
   return group(concat(docs));
 }
 
-function printInitializerValue(node) {
-  const value = getAnyChildNode(node, [
-    "ExpressionContext",
-    "Object_or_collection_initializerContext"
-  ]);
-
-  return printNode(value);
+function printInitializerValue(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printMemberDeclaratorList(node) {
-  const memberDeclarators = getChildNodes(node, "Member_declaratorContext");
-
-  return printCommaList(memberDeclarators);
+function printMemberDeclaratorList(path, options, print) {
+  return printCommaList(path.map(print, "member_declarator"));
 }
 
-function printMemberDeclarator(node) {
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-  const expression = getOptionalChildNode(node, "ExpressionContext");
-  const primaryExpression = getOptionalChildNode(
-    node,
-    "Primary_expressionContext"
-  );
+function printMemberDeclarator(path, options, print) {
+  const node = path.getValue();
+  const primaryExpression = getAny(node, "primary_expression");
 
   if (primaryExpression) {
-    return printNode(primaryExpression);
+    return path.call(print, primaryExpression, 0);
   }
 
   return group(
     concat([
-      printNode(identifier),
+      path.call(print, "identifier", 0),
       " ",
       "=",
-      indent(concat([line, printNode(expression)]))
+      indent(concat([line, path.call(print, "expression", 0)]))
     ])
   );
 }
 
-function printElementInitializer(node) {
-  const nonAssignmentExpression = getOptionalChildNode(
-    node,
-    "Non_assignment_expressionContext"
-  );
-  const expressionList = getOptionalChildNode(node, "Expression_listContext");
+function printElementInitializer(path, options, print) {
+  const node = path.getValue();
+  const nonAssignmentExpression = getAny(node, "non_assignment_expression");
 
   if (nonAssignmentExpression) {
-    return printNode(nonAssignmentExpression);
+    return path.call(print, nonAssignmentExpression, 0);
   }
-
-  return group(
-    concat(["{", indent(concat([line, printNode(expressionList)])), line, "}"])
-  );
-}
-
-function printExpressionList(node) {
-  const expressions = getChildNodes(node, "ExpressionContext");
-
-  return printCommaList(expressions);
-}
-
-function printRankSpecifier(node) {
-  let ranks = node.children.length - 2;
-
-  return concat(["[", _.repeat(",", ranks), "]"]);
-}
-
-function printArrayInitializer(node) {
-  const variableInitializers = getChildNodes(
-    node,
-    "Variable_initializerContext"
-  );
 
   return group(
     concat([
       "{",
-      indent(concat([line, printCommaList(variableInitializers)])),
+      indent(concat([line, path.call(print, "expression_list", 0)])),
       line,
       "}"
     ])
   );
 }
 
-function printBracketExpression(node) {
+function printExpressionList(path, options, print) {
+  return printCommaList(path.map(print, "expression"));
+}
+
+function printRankSpecifier(path) {
+  const node = path.getValue();
+  const ranks = node.children.length - 2;
+
+  return concat(["[", _.repeat(",", ranks), "]"]);
+}
+
+function printArrayInitializer(path, options, print) {
+  return group(
+    concat([
+      "{",
+      indent(
+        concat([line, printCommaList(path.map(print, "variable_initializer"))])
+      ),
+      line,
+      "}"
+    ])
+  );
+}
+
+function printBracketExpression(path, options, print) {
+  const node = path.getValue();
   const isNullCoalescent = isSymbol(node.children[0], "?");
-  const indexerArguments = getChildNodes(node, "Indexer_argumentContext");
+  const indexerArguments = path.map(print, "indexer_argument");
 
   let docs = [];
 
@@ -2992,113 +3010,107 @@ function printBracketExpression(node) {
   return concat(docs);
 }
 
-function printIndexerArgument(node) {
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-  const expression = getChildNode(node, "ExpressionContext");
+function printIndexerArgument(path, options, print) {
+  const node = path.getValue();
+  const identifier = getAny(node, "identifier");
 
   const docs = [];
 
   if (identifier) {
-    docs.push(printNode(identifier), ":", line);
+    docs.push(path.call(print, "identifier", 0), ":", line);
   }
 
-  docs.push(printNode(expression));
+  docs.push(path.call(print, "expression", 0));
 
   return group(concat(docs));
 }
 
-function printQueryExpression(node) {
-  const fromClause = getChildNode(node, "From_clauseContext");
-  const queryBody = getChildNode(node, "Query_bodyContext");
-
-  return group(concat([printNode(fromClause), line, printNode(queryBody)]));
-}
-
-function printFromClause(node) {
-  const type = getOptionalChildNode(node, "TypeContext");
-  const identifier = getChildNode(node, "IdentifierContext");
-  const expression = getChildNode(node, "ExpressionContext");
-
-  const fromPart = ["from", line];
-
-  if (type) {
-    fromPart.push(printNode(type), line);
-  }
-
-  fromPart.push(printNode(identifier));
-
-  const inPart = ["in", line, printNode(expression)];
-
-  return group(concat([group(concat(fromPart)), line, group(concat(inPart))]));
-}
-
-function printQueryBody(node) {
-  const queryBodyClauses = getChildNodes(node, "Query_body_clauseContext");
-  const selectOrGroupClause = getChildNode(
-    node,
-    "Select_or_group_clauseContext"
-  );
-  const queryContinuation = getOptionalChildNode(
-    node,
-    "Query_continuationContext"
-  );
-
-  const docs = [
-    printList(line, queryBodyClauses),
-    line,
-    printNode(selectOrGroupClause)
-  ];
-
-  if (queryContinuation) {
-    docs.push(line, printNode(queryContinuation));
-  }
-
-  return group(concat(docs));
-}
-
-function printQueryBodyClause(node) {
-  return printNode(node.children[0]);
-}
-
-function printLetClause(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const expression = getChildNode(node, "ExpressionContext");
-
+function printQueryExpression(path, options, print) {
   return group(
     concat([
-      "let",
+      path.call(print, "from_clause", 0),
       line,
-      printNode(identifier),
-      line,
-      "=",
-      line,
-      printNode(expression)
+      path.call(print, "query_body", 0)
     ])
   );
 }
 
-function printWhereClause(node) {
-  const expression = getChildNode(node, "ExpressionContext");
+function printFromClause(path, options, print) {
+  const node = path.getValue();
+  const type = getAny(node, "type");
 
-  return group(concat(["where", line, printNode(expression)]));
+  const fromPart = ["from", line];
+
+  if (type) {
+    fromPart.push(path.call(print, "type", 0), line);
+  }
+
+  fromPart.push(path.call(print, "identifier", 0));
+
+  const inPart = ["in", line, path.call(print, "expression", 0)];
+
+  return group(concat([group(concat(fromPart)), line, group(concat(inPart))]));
 }
 
-function printCombinedJoinClause(node) {
-  const type = getOptionalChildNode(node, "TypeContext");
-  const identifiers = getChildNodes(node, "IdentifierContext");
-  const expressions = getChildNodes(node, "ExpressionContext");
+function printQueryBody(path, options, print) {
+  const node = path.getValue();
+  const queryContinuation = getAny(node, "query_continuation");
+  const queryBodyClause = getAny(node, "query_body_clause");
+
+  const docs = [];
+
+  if (queryBodyClause) {
+    docs.push(join(line, path.map(print, "query_body_clause")), line);
+  }
+
+  docs.push(path.call(print, "select_or_group_clause", 0));
+
+  if (queryContinuation) {
+    docs.push(line, path.call(print, queryContinuation, 0));
+  }
+
+  return group(concat(docs));
+}
+
+function printQueryBodyClause(path, options, print) {
+  return path.call(print, "children", 0);
+}
+
+function printLetClause(path, options, print) {
+  return group(
+    concat([
+      "let",
+      line,
+      path.call(print, "identifier", 0),
+      line,
+      "=",
+      line,
+      path.call(print, "expression", 0)
+    ])
+  );
+}
+
+function printWhereClause(path, options, print) {
+  return group(concat(["where", line, path.call(print, "expression", 0)]));
+}
+
+function printCombinedJoinClause(path, options, print) {
+  const node = path.getValue();
+  const type = getAny(node, "type");
+  const identifierDocs = path.map(print, "identifier");
+  const expressionDocs = path.map(print, "expression");
 
   const joinPart = ["join", line];
 
   if (type) {
-    joinPart.push(printNode(type), line);
+    joinPart.push(path.call(print, "type", 0), line);
   }
 
-  joinPart.push(printNode(identifiers[0]));
+  joinPart.push(identifierDocs[0]);
 
-  const inPart = ["in", line, printNode(expressions[0])];
-  const onPart = ["on", line, printNode(expressions[1])];
-  const equalsPart = ["equals", line, printNode(expressions[2])];
+  const inPart = ["in", line, expressionDocs[0]];
+  const onPart = ["on", line, expressionDocs[1]];
+  const equalsPart = ["equals", line, expressionDocs[2]];
 
   const docs = [
     group(concat(joinPart)),
@@ -3110,70 +3122,65 @@ function printCombinedJoinClause(node) {
     group(concat(equalsPart))
   ];
 
-  if (identifiers.length > 1) {
-    const intoPart = ["into", line, printNode(identifiers[1])];
+  if (identifierDocs.length > 1) {
+    const intoPart = ["into", line, identifierDocs[1]];
     docs.push(line, group(concat(intoPart)));
   }
   return group(concat(docs));
 }
 
-function printOrderByClause(node) {
-  const orderings = getChildNodes(node, "OrderingContext");
-
-  return group(concat(["orderby", line, printCommaList(orderings)]));
+function printOrderByClause(path, options, print) {
+  return group(
+    concat(["orderby", line, printCommaList(path.map(print, "ordering"))])
+  );
 }
 
-function printOrdering(node) {
-  const expression = getChildNode(node, "ExpressionContext");
-  const dir = node.dir;
+function printOrdering(path, options, print) {
+  const node = path.getValue();
+  const dir = getAny(node, "terminal");
 
-  return group(concat([printNode(expression), line, dir.text]));
+  return group(
+    concat([path.call(print, "expression", 0), line, path.call(print, dir, 0)])
+  );
 }
 
-function printSelectOrGroupClause(node) {
-  const expressions = getChildNodes(node, "ExpressionContext");
+function printSelectOrGroupClause(path, options, print) {
+  const expressionDocs = path.map(print, "expression");
 
-  if (expressions.length == 1) {
-    return group(concat(["select", line, printNode(expressions[0])]));
+  if (expressionDocs.length == 1) {
+    return group(concat(["select", line, expressionDocs[0]]));
   } else {
     return group(
       concat([
         "group",
         line,
-        printNode(expressions[0]),
+        expressionDocs[0],
         line,
         "by",
         line,
-        printNode(expressions[1])
+        expressionDocs[1]
       ])
     );
   }
 }
 
-function printQueryContinuation(node) {
-  const identifier = getChildNode(node, "IdentifierContext");
-  const queryBody = getChildNode(node, "Query_bodyContext");
-
+function printQueryContinuation(path, options, print) {
   return group(
-    concat(["into", line, printNode(identifier), line, printNode(queryBody)])
+    concat([
+      "into",
+      line,
+      path.call(print, "identifier", 0),
+      line,
+      path.call(print, "query_body", 0)
+    ])
   );
 }
 
-function printLambdaExpression(node) {
-  const anonymousFunctionSignature = getChildNode(
-    node,
-    "Anonymous_function_signatureContext"
-  );
-  const anonymousFunctionBody = getChildNode(
-    node,
-    "Anonymous_function_bodyContext"
-  );
+function printLambdaExpression(path, options, print) {
+  const node = path.getValue();
 
   const isAsync = isSymbol(node.children[0], "async");
-  const isExpression = getOptionalChildNode(
-    anonymousFunctionBody,
-    "ExpressionContext"
-  );
+  const isExpression = !!node["anonymous_function_body"][0]["expression"];
 
   const docs = [];
 
@@ -3181,33 +3188,39 @@ function printLambdaExpression(node) {
     docs.push("async", " ");
   }
 
-  docs.push(printNode(anonymousFunctionSignature));
+  docs.push(path.call(print, "anonymous_function_signature", 0));
   docs.push(" ", "=>");
 
-  const bodyPart = group(concat([line, printNode(anonymousFunctionBody)]));
+  const bodyPart = group(
+    concat([line, path.call(print, "anonymous_function_body", 0)])
+  );
 
   docs.push(isExpression ? indent(bodyPart) : bodyPart);
 
   return group(concat(docs));
 }
 
-function printAnonymousFunctionSignature(node) {
-  const identifier = getOptionalChildNode(node, "IdentifierContext");
-  const params = getAnyChildNode(node, [
-    "Explicit_anonymous_function_parameter_listContext",
-    "Implicit_anonymous_function_parameter_listContext"
+function printAnonymousFunctionSignature(path, options, print) {
+  const node = path.getValue();
+  const identifier = getAny(node, "identifier");
+  const parameters = getAny(node, [
+    "explicit_anonymous_function_parameter_list",
+    "implicit_anonymous_function_parameter_list"
   ]);
 
   if (identifier) {
-    return printNode(identifier);
+    return path.call(print, identifier, 0);
   }
 
   const docs = [];
 
   docs.push("(");
 
-  if (params) {
-    docs.push(indent(group(concat([softline, printNode(params)]))), softline);
+  if (parameters) {
+    docs.push(
+      indent(group(concat([softline, path.call(print, parameters, 0)]))),
+      softline
+    );
   }
 
   docs.push(")");
@@ -3215,518 +3228,488 @@ function printAnonymousFunctionSignature(node) {
   return group(concat(docs));
 }
 
-function printAnonymousFunctionBody(node) {
-  return printNode(node.children[0]);
+function printAnonymousFunctionBody(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
-function printAnonymousFunctionParameterList(node) {
-  const parameters = getAllChildNodes(node, [
-    "Explicit_anonymous_function_parameter",
-    "IdentifierContext"
+function printAnonymousFunctionParameterList(path, options, print) {
+  const node = path.getValue();
+  const parameters = getAny(node, [
+    "explicit_anonymous_function_parameter",
+    "identifier"
   ]);
 
-  return printCommaList(parameters);
+  return printCommaList(path.map(print, parameters));
 }
 
-function printExplicitAnonymousFunctionParameter(node) {
-  const refout = node.refout;
-  const type = getChildNode(node, "TypeContext");
-  const identifier = getChildNode(node, "IdentifierContext");
-
+function printExplicitAnonymousFunctionParameter(path, options, print) {
+  const node = path.getValue();
+  const refout =
+    isSymbol(node.children[0], "ref") || isSymbol(node.children[0], "out");
   const docs = [];
 
   if (refout) {
-    docs.push(refout.text, line);
+    docs.push(path.call(print, "children", 0), line);
   }
 
-  docs.push(printNode(type), line, printNode(identifier));
+  docs.push(
+    path.call(print, "type", 0),
+    line,
+    path.call(print, "identifier", 0)
+  );
 
   return group(concat(docs));
 }
 
-function printImplicitAnonymousFunctionParameterList(node) {
-  const identifiers = getChildNodes(node, "IdentifierContext");
+function printNode(path, options, print) {
+  const node = path.getValue();
 
-  return printCommaList(identifiers);
-}
-
-function printNode(node) {
-  if (!node || node.parentCtx === undefined) {
-    debugger;
-    throw new Error(`Not a node: ${node}`);
-  }
-
-  switch (node.constructor.name) {
-    case "Compilation_unitContext":
-      return printCompilationUnit(node);
-    case "Extern_alias_directivesContext":
-      return printExternAliasDirectives(node);
-    case "Extern_alias_directiveContext":
-      return printExternAliasDirective(node);
-    case "TerminalNodeImpl":
-      return printTerminalNode(node);
-    case "IdentifierContext":
-      return printIdentifier(node);
-    case "KeywordContext":
-    case "ThisReferenceExpressionContext":
-    case "Parameter_modifierContext":
-      return printKeyword(node);
-    case "Using_directivesContext":
-      return printUsingDirectives(node);
-    case "UsingNamespaceDirectiveContext":
-      return printUsingNamespaceDirective(node);
-    case "Namespace_or_type_nameContext":
-      return printNamespaceOrTypeName(node);
-    case "Unbound_type_nameContext":
-      return printUnboundTypeName(node);
-    case "UsingAliasDirectiveContext":
-      return printUsingAliasDirective(node);
-    case "Type_argument_listContext":
-      return printTypeArgumentList(node);
-    case "Argument_listContext":
-      return printArgumentList(node);
-    case "ArgumentContext":
-      return printArgument(node);
-    case "TypeContext":
-      return printType(node);
-    case "Base_typeContext":
-      return printBaseType(node);
-    case "Class_typeContext":
-      return printClassType(node);
-    case "Predefined_typeContext":
-    case "Simple_typeContext":
-    case "Numeric_typeContext":
-    case "Integral_typeContext":
-      return printSimpleType(node);
-    case "Pointer_typeContext":
-      return printPointerType(node);
-    case "UsingStaticDirectiveContext":
-      return printUsingStaticDirective(node);
-    case "Global_attribute_sectionContext":
-      return printGlobalAttributeSection(node);
-    case "Global_attribute_targetContext":
-      return printGlobalAttributeTarget(node);
-    case "Attribute_listContext":
-      return printAttributeList(node);
-    case "AttributeContext":
-      return printAttribute(node);
-    case "AttributesContext":
-      return printAttributes(node);
-    case "Attribute_argumentContext":
-      return printAttributeArgument(node);
-    case "Attribute_sectionContext":
-      return printAttributeSection(node);
-    case "Attribute_targetContext":
-      return printAttributeTarget(node);
-    case "Method_member_nameContext":
-      return printMethodMemberName(node);
-    case "Member_nameContext":
-      return printMemberName(node);
-    case "Formal_parameter_listContext":
-      return printFormalParameterList(node);
-    case "Fixed_parametersContext":
-      return printFixedParameters(node);
-    case "Fixed_parameterContext":
-      return printFixedParameter(node);
-    case "Fixed_pointer_declaratorsContext":
-      return printFixedPointerDeclarators(node);
-    case "Fixed_pointer_declaratorContext":
-      return printFixedPointerDeclarator(node);
-    case "Fixed_pointer_initializerContext":
-      return printFixedPointerInitializer(node);
-    case "Local_variable_initializer_unsafeContext":
-      return printLocalVariableInitializerUnsafe(node);
-    case "Accessor_bodyContext":
-    case "Method_bodyContext":
-    case "BodyContext":
-      return printBody(node);
-    case "ExpressionContext":
-      return printExpression(node);
-    case "Non_assignment_expressionContext":
-      return printNonAssignmentExpression(node);
-    case "Conditional_expressionContext":
-      return printConditionalExpression(node);
-    case "Null_coalescing_expressionContext":
-      return printNullCoalescingExpression(node);
-    case "Conditional_or_expressionContext":
-    case "Conditional_and_expressionContext":
-    case "Inclusive_or_expressionContext":
-    case "Exclusive_or_expressionContext":
-    case "And_expressionContext":
-    case "Equality_expressionContext":
-    case "Relational_expressionContext":
-    case "Shift_expressionContext":
-    case "Additive_expressionContext":
-    case "Multiplicative_expressionContext":
-      return printBinaryishExpression(node);
-    case "LiteralExpressionContext":
-      return printLiteralExpression(node);
-    case "LiteralContext":
-      return printLiteral(node);
-    case "String_literalContext":
-      return printStringLiteral(node);
-    case "MemberAccessExpressionContext":
-      return printMemberAccessExpression(node);
-    case "LiteralAccessExpressionContext":
-      return printLiteralAccessExpression(node);
-    case "Primary_expressionContext":
-      return printPrimaryExpression(node);
-    case "Unary_expressionContext":
-      return printUnaryExpression(node);
-    case "ParenthesisExpressionsContext":
-      return printParenthesisExpression(node);
-    case "SimpleNameExpressionContext":
-      return printSimpleNameExpression(node);
-    case "Namespace_member_declarationsContext":
-      return printNamespaceMemberDeclarations(node);
-    case "Namespace_member_declarationContext":
-      return printNamespaceMemberDeclaration(node);
-    case "Type_declarationContext":
-      return printTypeDeclaration(node);
-    case "Namespace_declarationContext":
-      return printNamespaceDeclaration(node);
-    case "Namespace_bodyContext":
-    case "Class_bodyContext":
-    case "Struct_bodyContext":
-    case "Interface_bodyContext":
-    case "Enum_bodyContext":
-      return printBraceBody(node);
-    case "Interface_type_listContext":
-      return printInterfaceTypeList(node);
-    case "Class_definitionContext":
-    case "Struct_definitionContext":
-    case "Enum_definitionContext":
-      return printStructDefinition(node);
-    case "Class_baseContext":
-    case "Enum_baseContext":
-    case "Struct_interfacesContext":
-      return printStructBase(node);
-    case "Qualified_identifierContext":
-      return printQualifiedIdentifier(node);
-    case "Qualified_alias_memberContext":
-      return printQualifiedAliasMember(node);
-    case "All_member_modifiersContext":
-    case "Accessor_modifierContext":
-      return printAllMemberModifiers(node);
-    case "All_member_modifierContext":
-      return printAllMemberModifier(node);
-    case "Class_member_declarationsContext":
-    case "Struct_member_declarationsContext":
-      return printClassOrStructMemberDeclarations(node);
-    case "Enum_member_declarationContext":
-      return printEnumMemberDeclaration(node);
-    case "Class_member_declarationContext":
-    case "Struct_member_declarationContext":
-      return printClassOrStructMemberDeclaration(node);
-    case "Common_member_declarationContext":
-      return printCommonMemberDeclaration(node);
-    case "Constructor_declarationContext":
-    case "Destructor_definitionContext":
-      return printMethodDeclaration(node);
-    case "Constructor_initializerContext":
-      return printConstructorInitializer(node);
-    case "Arg_declarationContext":
-      return printArgDeclaration(node);
-    case "Constant_declarationContext":
-      return printConstantDeclaration(node);
-    case "Constant_declaratorsContext":
-      return printConstantDeclarators(node);
-    case "Constant_declaratorContext":
-      return printConstantDeclarator(node);
-    case "BlockContext":
-      return printBlock(node);
-    case "Interface_definitionContext":
-      return printInterfaceDefinition(node);
-    case "Interface_member_declarationContext":
-      return printInterfaceMemberDeclaration(node);
-    case "Type_parameter_listContext":
-    case "Variant_type_parameter_listContext":
-      return printTypeParameterList(node);
-    case "Type_parameterContext":
-    case "Variant_type_parameterContext":
-      return printTypeParameter(node);
-    case "Variance_annotationContext":
-      return printVarianceAnnotation(node);
-    case "Delegate_definitionContext":
-      return printDelegateDefinition(node);
-    case "Return_typeContext":
-      return printReturnType(node);
-    case "Type_parameter_constraints_clausesContext":
-      return printTypeParameterConstraintsClauses(node);
-    case "Type_parameter_constraints_clauseContext":
-      return printTypeParameterConstraintsClause(node);
-    case "Type_parameter_constraintsContext":
-      return printTypeParameterConstraints(node);
-    case "Primary_constraintContext":
-      return printPrimaryConstraint(node);
-    case "AssignmentContext":
-      return printAssignment(node);
-    case "Assignment_operatorContext":
-    case "Overloadable_operatorContext":
-      return printOperator(node);
-    case "Typed_member_declarationContext":
-      return printTypedMemberDeclaration(node);
-    case "Field_declarationContext":
-      return printFieldDeclaration(node);
-    case "Event_declarationContext":
-      return printEventDeclaration(node);
-    case "Member_accessContext":
-      return printMemberAccess(node);
-    case "Statement_listContext":
-      return printStatementList(node);
-    case "LabeledStatementContext":
-    case "EmbeddedStatementContext":
-    case "DeclarationStatementContext":
-      return printStatement(node);
-    case "Labeled_statementContext":
-      return printLabeledStatement(node);
-    case "Embedded_statementContext":
-    case "If_bodyContext":
-      return printEmbeddedStatement(node);
-    case "Local_variable_declarationContext":
-    case "Variable_declaratorsContext":
-      return printVariableDeclaration(node);
-    case "Local_constant_declarationContext":
-      return printLocalConstantDeclaration(node);
-    case "ExpressionStatementContext":
-      return printExpressionStatement(node);
-    case "EmptyStatementContext":
-      return printEmptyStatement(node);
-    case "Local_variable_typeContext":
-      return printLocalVariableType(node);
-    case "Variable_declaratorContext":
-    case "Local_variable_declaratorContext":
-      return printVariableDeclarator(node);
-    case "SizeofExpressionContext":
-      return printSizeofExpression(node);
-    case "ObjectCreationExpressionContext":
-      return printPrimaryObjectCreationExpression(node);
-    case "BaseAccessExpressionContext":
-      return printBaseAccessExpression(node);
-    case "Method_invocationContext":
-      return printMethodInvocation(node);
-    case "Interpolated_verbatium_stringContext":
-      return printInterpolatedVerbatiumString(node);
-    case "Interpolated_regular_stringContext":
-      return printInterpolatedRegularString(node);
-    case "Interpolated_regular_string_partContext":
-    case "Interpolated_verbatium_string_partContext":
-      return printInterpolatedStringPart(node);
-    case "Interpolated_string_expressionContext":
-      return printInterpolatedStringExpression(node);
-    case "IsTypeContext":
-      return printSimpleType(node);
-    case "Object_creation_expressionContext":
-      return printObjectCreationExpression(node);
-    case "IfStatementContext":
-      return printIfStatement(node);
-    case "ReturnStatementContext":
-    case "ThrowStatementContext":
-    case "BreakStatementContext":
-    case "ContinueStatementContext":
-      return printBreakingStatement(node);
-    case "GotoStatementContext":
-      return printGotoStatement(node);
-    case "SwitchStatementContext":
-      return printSwitchStatement(node);
-    case "Switch_sectionContext":
-      return printSwitchSection(node);
-    case "Switch_labelContext":
-      return printSwitchLabel(node);
-    case "WhileStatementContext":
-      return printWhileStatement(node);
-    case "ForStatementContext":
-      return printForStatement(node);
-    case "For_initializerContext":
-      return printForInitializer(node);
-    case "For_iteratorContext":
-      return printForIterator(node);
-    case "ForeachStatementContext":
-      return printForeachStatement(node);
-    case "DoStatementContext":
-      return printDoStatement(node);
-    case "CheckedStatementContext":
-    case "UncheckedStatementContext":
-    case "UnsafeStatementContext":
-      return printCheckedStatement(node);
-    case "CheckedExpressionContext":
-    case "UncheckedExpressionContext":
-      return printCheckedExpression(node);
-    case "DefaultValueExpressionContext":
-      return printDefaultValueExpression(node);
-    case "AnonymousMethodExpressionContext":
-      return printAnonymousMethodExpression(node);
-    case "TypeofExpressionContext":
-      return printTypeofExpression(node);
-    case "LockStatementContext":
-    case "UsingStatementContext":
-    case "FixedStatementContext":
-      return printCapturingStatement(node);
-    case "YieldStatementContext":
-      return printYieldStatement(node);
-    case "Resource_acquisitionContext":
-      return printResourceAcquisition(node);
-    case "TryStatementContext":
-      return printTryStatement(node);
-    case "Catch_clausesContext":
-      return printCatchClauses(node);
-    case "Specific_catch_clauseContext":
-    case "General_catch_clauseContext":
-      return printCatchClause(node);
-    case "Exception_filterContext":
-      return printExceptionFilter(node);
-    case "Object_or_collection_initializerContext":
-      return printObjectOrCollectionInitializer(node);
-    case "Object_initializerContext":
-    case "Anonymous_object_initializerContext":
-      return printObjectInitializer(node);
-    case "Collection_initializerContext":
-      return printCollectionInitializer(node);
-    case "Member_initializer_listContext":
-      return printMemberInitializerList(node);
-    case "Member_initializerContext":
-      return printMemberInitializer(node);
-    case "Initializer_valueContext":
-      return printInitializerValue(node);
-    case "Member_declarator_listContext":
-      return printMemberDeclaratorList(node);
-    case "Member_declaratorContext":
-      return printMemberDeclarator(node);
-    case "Element_initializerContext":
-      return printElementInitializer(node);
-    case "Expression_listContext":
-      return printExpressionList(node);
-    case "Rank_specifierContext":
-      return printRankSpecifier(node);
-    case "Generic_dimension_specifierContext":
-      return printGenericDimensionSpecifier(node);
-    case "Array_initializerContext":
-      return printArrayInitializer(node);
-    case "Local_variable_initializerContext":
-    case "Variable_initializerContext":
-      return printVariableInitializer(node);
-    case "Bracket_expressionContext":
-      return printBracketExpression(node);
-    case "Indexer_argumentContext":
-      return printIndexerArgument(node);
-    case "Query_expressionContext":
-      return printQueryExpression(node);
-    case "From_clauseContext":
-      return printFromClause(node);
-    case "Query_bodyContext":
-      return printQueryBody(node);
-    case "Query_body_clauseContext":
-      return printQueryBodyClause(node);
-    case "Where_clauseContext":
-      return printWhereClause(node);
-    case "Let_clauseContext":
-      return printLetClause(node);
-    case "Combined_join_clauseContext":
-      return printCombinedJoinClause(node);
-    case "Orderby_clauseContext":
-      return printOrderByClause(node);
-    case "OrderingContext":
-      return printOrdering(node);
-    case "Select_or_group_clauseContext":
-      return printSelectOrGroupClause(node);
-    case "Query_continuationContext":
-      return printQueryContinuation(node);
-    case "Accessor_declarationsContext":
-    case "Set_accessor_declarationContext":
-    case "Get_accessor_declarationContext":
-    case "Event_accessor_declarationsContext":
-    case "Add_accessor_declarationContext":
-    case "Remove_accessor_declarationContext":
-      return printAccessorDeclarations(node);
-    case "Interface_accessorsContext":
-      return printInterfaceAccessors(node);
-    case "Lambda_expressionContext":
-      return printLambdaExpression(node);
-    case "Anonymous_function_signatureContext":
-      return printAnonymousFunctionSignature(node);
-    case "Anonymous_function_bodyContext":
-      return printAnonymousFunctionBody(node);
-    case "Implicit_anonymous_function_parameter_listContext":
-    case "Explicit_anonymous_function_parameter_listContext":
-      return printAnonymousFunctionParameterList(node);
-    case "Explicit_anonymous_function_parameterContext":
-      return printExplicitAnonymousFunctionParameter(node);
-    case "Implicit_anonymous_function_parameterContext":
-      return printImplicitAnonymousFunctionParameterList(node);
-    case "Conversion_operator_declaratorContext":
-      return printConversionOperatorDeclarator(node);
+  switch (node.nodeType) {
+    case "compilation_unit":
+      return printCompilationUnit(path, options, print);
+    case "extern_alias_directives":
+      return printExternAliasDirectives(path, options, print);
+    case "extern_alias_directive":
+      return printExternAliasDirective(path, options, print);
+    case "terminal":
+      return printTerminal(path, options, print);
+    case "identifier":
+      return printIdentifier(path, options, print);
+    case "keyword":
+    case "this_reference_expression":
+    case "parameter_modifier":
+      return printKeyword(path, options, print);
+    case "using_directives":
+      return printUsingDirectives(path, options, print);
+    case "using_namespace_directive":
+      return printUsingNamespaceDirective(path, options, print);
+    case "namespace_or_type_name":
+      return printNamespaceOrTypeName(path, options, print);
+    case "method_member_name":
+    case "unbound_type_name":
+      return printUnboundTypeName(path, options, print);
+    case "using_alias_directive":
+      return printUsingAliasDirective(path, options, print);
+    case "type_argument_list":
+      return printTypeArgumentList(path, options, print);
+    case "argument_list":
+      return printArgumentList(path, options, print);
+    case "argument":
+      return printArgument(path, options, print);
+    case "is_type":
+      return printIsType(path, options, print);
+    case "type":
+      return printType(path, options, print);
+    case "base_type":
+      return printBaseType(path, options, print);
+    case "class_type":
+      return printClassType(path, options, print);
+    case "predefined_type":
+    case "simple_type":
+    case "numeric_type":
+    case "integral_type":
+    case "floating_point_type":
+      return printSimpleType(path, options, print);
+    case "pointer_type":
+      return printPointerType(path, options, print);
+    case "array_type":
+      return printArrayType(path, options, print);
+    case "using_static_directive":
+      return printUsingStaticDirective(path, options, print);
+    case "global_attribute_section":
+      return printGlobalAttributeSection(path, options, print);
+    case "global_attribute_target":
+      return printGlobalAttributeTarget(path, options, print);
+    case "attribute_list":
+      return printAttributeList(path, options, print);
+    case "attribute":
+      return printAttribute(path, options, print);
+    case "attributes":
+      return printAttributes(path, options, print);
+    case "attribute_argument":
+      return printAttributeArgument(path, options, print);
+    case "attribute_section":
+      return printAttributeSection(path, options, print);
+    case "attribute_target":
+      return printAttributeTarget(path, options, print);
+    case "member_name":
+      return printMemberName(path, options, print);
+    case "formal_parameter_list":
+      return printFormalParameterList(path, options, print);
+    case "fixed_parameters":
+      return printFixedParameters(path, options, print);
+    case "fixed_parameter":
+      return printFixedParameter(path, options, print);
+    case "fixed_pointer_declarators":
+      return printFixedPointerDeclarators(path, options, print);
+    case "fixed_pointer_declarator":
+      return printFixedPointerDeclarator(path, options, print);
+    case "fixed_pointer_initializer":
+      return printFixedPointerInitializer(path, options, print);
+    case "fixed_size_buffer_declarator":
+      return printFixedSizeBufferDeclarator(path, options, print);
+    case "local_variable_initializer_unsafe":
+      return printLocalVariableInitializerUnsafe(path, options, print);
+    case "parameter_array":
+      return printParameterArray(path, options, print);
+    case "accessor_body":
+    case "method_body":
+    case "body":
+      return printBody(path, options, print);
+    case "expression":
+      return printExpression(path, options, print);
+    case "non_assignment_expression":
+      return printNonAssignmentExpression(path, options, print);
+    case "conditional_expression":
+      return printConditionalExpression(path, options, print);
+    case "null_coalescing_expression":
+      return printNullCoalescingExpression(path, options, print);
+    case "conditional_or_expression":
+    case "conditional_and_expression":
+    case "inclusive_or_expression":
+    case "exclusive_or_expression":
+    case "and_expression":
+    case "equality_expression":
+    case "relational_expression":
+    case "shift_expression":
+    case "additive_expression":
+    case "multiplicative_expression":
+      return printBinaryishExpression(path, options, print);
+    case "literal_expression":
+      return printLiteralExpression(path, options, print);
+    case "literal":
+    case "string_literal":
+    case "boolean_literal":
+      return printLiteral(path, options, print);
+    case "member_access_expression":
+      return printMemberAccessExpression(path, options, print);
+    case "literal_access_expression":
+      return printLiteralAccessExpression(path, options, print);
+    case "primary_expression":
+      return printPrimaryExpression(path, options, print);
+    case "unary_expression":
+      return printUnaryExpression(path, options, print);
+    case "parenthesis_expressions":
+      return printParenthesisExpression(path, options, print);
+    case "simple_name_expression":
+      return printSimpleNameExpression(path, options, print);
+    case "namespace_member_declarations":
+      return printNamespaceMemberDeclarations(path, options, print);
+    case "namespace_member_declaration":
+      return printNamespaceMemberDeclaration(path, options, print);
+    case "type_declaration":
+      return printTypeDeclaration(path, options, print);
+    case "namespace_declaration":
+      return printNamespaceDeclaration(path, options, print);
+    case "namespace_body":
+    case "class_body":
+    case "struct_body":
+    case "interface_body":
+    case "enum_body":
+      return printBraceBody(path, options, print);
+    case "interface_type_list":
+      return printInterfaceTypeList(path, options, print);
+    case "class_definition":
+    case "struct_definition":
+    case "enum_definition":
+      return printStructDefinition(path, options, print);
+    case "class_base":
+    case "enum_base":
+    case "struct_interfaces":
+      return printStructBase(path, options, print);
+    case "qualified_identifier":
+      return printQualifiedIdentifier(path, options, print);
+    case "qualified_alias_member":
+      return printQualifiedAliasMember(path, options, print);
+    case "all_member_modifiers":
+      return printAllMemberModifiers(path, options, print);
+    case "all_member_modifier":
+      return printAllMemberModifier(path, options, print);
+    case "accessor_modifier":
+      return printAccessorModifier(path, options, print);
+    case "class_member_declarations":
+    case "struct_member_declarations":
+      return printClassOrStructMemberDeclarations(path, options, print);
+    case "enum_member_declaration":
+      return printEnumMemberDeclaration(path, options, print);
+    case "class_member_declaration":
+    case "struct_member_declaration":
+      return printClassOrStructMemberDeclaration(path, options, print);
+    case "common_member_declaration":
+      return printCommonMemberDeclaration(path, options, print);
+    case "constructor_declaration":
+    case "destructor_definition":
+      return printMethodDeclaration(path, options, print);
+    case "constructor_initializer":
+      return printConstructorInitializer(path, options, print);
+    case "arg_declaration":
+      return printArgDeclaration(path, options, print);
+    case "constant_declaration":
+      return printConstantDeclaration(path, options, print);
+    case "constant_declarators":
+      return printConstantDeclarators(path, options, print);
+    case "constant_declarator":
+      return printConstantDeclarator(path, options, print);
+    case "block":
+      return printBlock(path, options, print);
+    case "interface_definition":
+      return printInterfaceDefinition(path, options, print);
+    case "interface_member_declaration":
+      return printInterfaceMemberDeclaration(path, options, print);
+    case "type_parameter_list":
+    case "variant_type_parameter_list":
+      return printTypeParameterList(path, options, print);
+    case "type_parameter":
+    case "variant_type_parameter":
+      return printTypeParameter(path, options, print);
+    case "variance_annotation":
+      return printVarianceAnnotation(path, options, print);
+    case "delegate_definition":
+      return printDelegateDefinition(path, options, print);
+    case "return_type":
+      return printReturnType(path, options, print);
+    case "type_parameter_constraints_clauses":
+      return printTypeParameterConstraintsClauses(path, options, print);
+    case "type_parameter_constraints_clause":
+      return printTypeParameterConstraintsClause(path, options, print);
+    case "type_parameter_constraints":
+      return printTypeParameterConstraints(path, options, print);
+    case "constructor_constraint":
+      return printConstructorConstraint(path, options, print);
+    case "primary_constraint":
+      return printPrimaryConstraint(path, options, print);
+    case "secondary_constraints":
+      return printSecondaryConstraints(path, options, print);
+    case "assignment":
+      return printAssignment(path, options, print);
+    case "right_arrow":
+    case "right_shift":
+    case "right_shift_assignment":
+      return printRightOperator(path, options, print);
+    case "assignment_operator":
+    case "overloadable_operator":
+      return printOperator(path, options, print);
+    case "field_declaration":
+      return printFieldDeclaration(path, options, print);
+    case "event_declaration":
+      return printEventDeclaration(path, options, print);
+    case "member_access":
+      return printMemberAccess(path, options, print);
+    case "statement_list":
+      return printStatementList(path, options, print);
+    case "declaration_statement":
+      return printDeclarationStatement(path, options, print);
+    case "labeled_statement":
+      return printLabeledStatement(path, options, print);
+    case "embedded_statement":
+    case "if_body":
+      return printEmbeddedStatement(path, options, print);
+    case "local_variable_declaration":
+    case "variable_declarators":
+      return printVariableDeclaration(path, options, print);
+    case "local_constant_declaration":
+      return printLocalConstantDeclaration(path, options, print);
+    case "expression_statement":
+      return printExpressionStatement(path, options, print);
+    case "empty_statement":
+      return printEmptyStatement(path, options, print);
+    case "local_variable_type":
+      return printLocalVariableType(path, options, print);
+    case "variable_declarator":
+    case "local_variable_declarator":
+      return printVariableDeclarator(path, options, print);
+    case "sizeof_expression":
+      return printSizeofExpression(path, options, print);
+    case "object_creation_expression":
+      return printObjectCreationExpression(path, options, print);
+    case "base_access_expression":
+      return printBaseAccessExpression(path, options, print);
+    case "method_invocation":
+      return printMethodInvocation(path, options, print);
+    case "interpolated_verbatium_string":
+      return printInterpolatedVerbatiumString(path, options, print);
+    case "interpolated_regular_string":
+      return printInterpolatedRegularString(path, options, print);
+    case "interpolated_regular_string_part":
+    case "interpolated_verbatium_string_part":
+      return printInterpolatedStringPart(path, options, print);
+    case "interpolated_string_expression":
+      return printInterpolatedStringExpression(path, options, print);
+    case "if_statement":
+      return printIfStatement(path, options, print);
+    case "return_statement":
+    case "throw_statement":
+    case "break_statement":
+    case "continue_statement":
+      return printBreakingStatement(path, options, print);
+    case "goto_statement":
+      return printGotoStatement(path, options, print);
+    case "switch_statement":
+      return printSwitchStatement(path, options, print);
+    case "switch_section":
+      return printSwitchSection(path, options, print);
+    case "switch_label":
+      return printSwitchLabel(path, options, print);
+    case "while_statement":
+      return printWhileStatement(path, options, print);
+    case "for_statement":
+      return printForStatement(path, options, print);
+    case "for_initializer":
+      return printForInitializer(path, options, print);
+    case "for_iterator":
+      return printForIterator(path, options, print);
+    case "foreach_statement":
+      return printForeachStatement(path, options, print);
+    case "do_statement":
+      return printDoStatement(path, options, print);
+    case "checked_statement":
+    case "unchecked_statement":
+    case "unsafe_statement":
+      return printCheckedStatement(path, options, print);
+    case "checked_expression":
+    case "unchecked_expression":
+      return printCheckedExpression(path, options, print);
+    case "default_value_expression":
+      return printDefaultValueExpression(path, options, print);
+    case "anonymous_method_expression":
+      return printAnonymousMethodExpression(path, options, print);
+    case "typeof_expression":
+      return printTypeofExpression(path, options, print);
+    case "lock_statement":
+    case "using_statement":
+    case "fixed_statement":
+      return printCapturingStatement(path, options, print);
+    case "yield_statement":
+      return printYieldStatement(path, options, print);
+    case "resource_acquisition":
+      return printResourceAcquisition(path, options, print);
+    case "try_statement":
+      return printTryStatement(path, options, print);
+    case "catch_clauses":
+      return printCatchClauses(path, options, print);
+    case "specific_catch_clause":
+    case "general_catch_clause":
+      return printCatchClause(path, options, print);
+    case "finally_clause":
+      return printFinallyClause(path, options, print);
+    case "exception_filter":
+      return printExceptionFilter(path, options, print);
+    case "object_or_collection_initializer":
+      return printObjectOrCollectionInitializer(path, options, print);
+    case "object_initializer":
+    case "anonymous_object_initializer":
+      return printObjectInitializer(path, options, print);
+    case "collection_initializer":
+      return printCollectionInitializer(path, options, print);
+    case "member_initializer_list":
+      return printMemberInitializerList(path, options, print);
+    case "member_initializer":
+      return printMemberInitializer(path, options, print);
+    case "initializer_value":
+      return printInitializerValue(path, options, print);
+    case "member_declarator_list":
+      return printMemberDeclaratorList(path, options, print);
+    case "member_declarator":
+      return printMemberDeclarator(path, options, print);
+    case "element_initializer":
+      return printElementInitializer(path, options, print);
+    case "expression_list":
+      return printExpressionList(path, options, print);
+    case "rank_specifier":
+      return printRankSpecifier(path, options, print);
+    case "generic_dimension_specifier":
+      return printGenericDimensionSpecifier(path, options, print);
+    case "array_initializer":
+      return printArrayInitializer(path, options, print);
+    case "local_variable_initializer":
+    case "variable_initializer":
+      return printVariableInitializer(path, options, print);
+    case "bracket_expression":
+      return printBracketExpression(path, options, print);
+    case "indexer_argument":
+      return printIndexerArgument(path, options, print);
+    case "query_expression":
+      return printQueryExpression(path, options, print);
+    case "from_clause":
+      return printFromClause(path, options, print);
+    case "query_body":
+      return printQueryBody(path, options, print);
+    case "query_body_clause":
+      return printQueryBodyClause(path, options, print);
+    case "where_clause":
+      return printWhereClause(path, options, print);
+    case "let_clause":
+      return printLetClause(path, options, print);
+    case "combined_join_clause":
+      return printCombinedJoinClause(path, options, print);
+    case "orderby_clause":
+      return printOrderByClause(path, options, print);
+    case "ordering":
+      return printOrdering(path, options, print);
+    case "select_or_group_clause":
+      return printSelectOrGroupClause(path, options, print);
+    case "query_continuation":
+      return printQueryContinuation(path, options, print);
+    case "accessor_declarations":
+    case "set_accessor_declaration":
+    case "get_accessor_declaration":
+    case "event_accessor_declarations":
+    case "add_accessor_declaration":
+    case "remove_accessor_declaration":
+      return printAccessorDeclarations(path, options, print);
+    case "interface_accessors":
+      return printInterfaceAccessors(path, options, print);
+    case "lambda_expression":
+      return printLambdaExpression(path, options, print);
+    case "anonymous_function_signature":
+      return printAnonymousFunctionSignature(path, options, print);
+    case "anonymous_function_body":
+      return printAnonymousFunctionBody(path, options, print);
+    case "implicit_anonymous_function_parameter_list":
+    case "explicit_anonymous_function_parameter_list":
+      return printAnonymousFunctionParameterList(path, options, print);
+    case "explicit_anonymous_function_parameter":
+      return printExplicitAnonymousFunctionParameter(path, options, print);
+    case "conversion_operator_declarator":
+      return printConversionOperatorDeclarator(path, options, print);
     default:
-      console.error("Unknown C# node:", node.constructor.name);
-      return `{${node.constructor.name}}`;
+      throw new Error(
+        "Unknown C# node:",
+        node.nodeType || node.constructor.name
+      );
   }
 }
 
-function getChildNodes(node, type) {
-  return node.children.filter(n => n.constructor.name === type);
-}
-
-function getAllChildNodes(node, types) {
-  return node.children.filter(n => types.includes(n.constructor.name));
-}
-
-function getOptionalChildNode(node, type) {
-  return node.children.find(n => n.constructor.name === type);
-}
-
-function getAnyChildNode(node, types) {
-  return node.children.find(n => types.includes(n.constructor.name));
-}
-
-function getChildNode(node, type) {
-  const child = getOptionalChildNode(node, type);
-
-  if (!child) {
-    debugger;
-    throw new Error(
-      `Missing child node ${type} inside ${
-        node.constructor.name
-      }. Children are: ${node.children.map(_.toString).join(", ")}`
-    );
+function getAll(node, types) {
+  if (typeof types === "string") {
+    return node[types] ? [types] : [];
   }
+  return types.filter(type => node[type]);
+}
 
-  return child;
+function getAny(node, types) {
+  if (typeof types === "string") {
+    return node[types] ? types : undefined;
+  }
+  return types.find(type => node[type]);
 }
 
 function isSymbol(node, symbol) {
-  return node && node.symbol && node.symbol.text === symbol;
+  return isType(node, "terminal") && node.value === symbol;
 }
 
-function isNode(node, type) {
-  return node && node.constructor.name === type;
+function isType(node, type) {
+  return node && node.nodeType === type;
 }
 
-function assertNodeStructure(node, expectedLength, atLeast = false) {
-  if (
-    atLeast
-      ? node.children.length < expectedLength
-      : node.children.length !== expectedLength
-  ) {
+// eslint-disable-next-line no-unused-vars
+function debugAtLine(node, line) {
+  if (node && node.lineStart <= line && node.lineEnd >= line) {
+    // eslint-disable-next-line no-debugger
     debugger;
-    throw new Error(
-      `Unexpected node structure: ${
-        node.children.length
-      }/${expectedLength} children for ${node.constructor.name}`
-    );
   }
 }
 
-function debugAtLine(node, line) {
-  if (node && node.start && node.start.line === line) debugger;
-}
-
-function genericPrint(path, options, print) {
-  const node = path.getValue();
-  // Not using `path.call(print, "foo")` to recurse because all child nodes
-  // are under the `children` array property.
-  const result = printNode(node);
-  return result;
-}
-
 module.exports = {
-  print: genericPrint
+  print: printNode
 };

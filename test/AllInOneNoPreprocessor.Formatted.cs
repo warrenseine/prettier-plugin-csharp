@@ -18,7 +18,6 @@ using static System.Math;
 [assembly: System.Copyright(@"(C)"" 
 
 2009")]
-
 [module: System.Copyright("\n\t\u0123(C) \"2009" - ("\u0123" + "foo"))]
 
 class TopLevelType : IDisposable, Foo
@@ -37,7 +36,7 @@ namespace My.Moy
     delegate void
         CoContra2<[System.Obsolete()] out T, in K>(int i) where T : struct;
 
-    public unsafe class A : C, I
+    public unsafe partial class A : C, I
     {
         [DllImport("kernel32", SetLastError = true)]
         static extern bool CreateDirectory(string name, SecurityAttribute sa);
@@ -88,8 +87,8 @@ namespace My.Moy
 
             Console.WriteLine(export.iefSupplied.command);
 
-            const local = int.MaxValue;
-            const local0 = new Guid(r.ToString());
+            const int? local = int.MaxValue;
+            const Guid? local0 = new Guid(r.ToString());
 
             var привет = local;
             var мир = local;
@@ -244,7 +243,7 @@ namespace My.Moy
                             i = 0,
                             j = 0;
                         i < length;
-                        i++  j++
+                        i++, j++
                     )
                     {
                     }
@@ -308,6 +307,15 @@ namespace My.Moy
             {
                 throw;
             }
+            finally
+            {
+                try
+                {
+                }
+                catch
+                {
+                }
+            }
             var anonymous = { A = 1, B = 2, C = 3 };
             var query =
                 from c in customers
@@ -325,7 +333,7 @@ namespace My.Moy
                 orderby g.Count() ascending
                 orderby g.Key descending
                 select new { Country = g.Key, CustCount = g.Count() };
-            query = from c in customers  select c into d  select d;
+            query = from c in customers select c into d select d;
         }
 
         A()
@@ -353,7 +361,7 @@ namespace My.Moy
         }
 
         public int m<T>(T t)
-            where T : class
+            where T : class, new()
         {
             base.m(t);
             return 1;
@@ -460,7 +468,7 @@ namespace My.Moy
             return first.Add(second);
         }
 
-        fixed int ;
+        fixed int field[10];
 
         class C { }
     }
@@ -581,7 +589,7 @@ namespace ConsoleApplication1
             public class Foo : IEnumerable<T>
             {
                 public void Method<K, V>(K k, T t, U u)
-                    where K : IList<V>,
+                    where K : IList<V>, IList<T>, IList<U>,
                     where V : IList<K>
                 {
                     A<int> a;
@@ -607,7 +615,7 @@ namespace ConsoleApplication1
             return new ConsoleApplication1.Test();
         }
 
-        public static explicit operator Test(string s)
+        public static explicit operator Test(string s = "")
 
         {
             return new Test();
@@ -641,12 +649,12 @@ namespace ConsoleApplication1
                         return;
                     };
             Func<bool, bool> f =
-                async delegate ()
+                async delegate (bool a)
                 {
                     return await !a;
                 };
             Func<int, int, int> f2 = (a, b) => 0;
-            f2 = () => 1;
+            f2 = (int a, int b) => 1;
             Action a = Blah;
             f2 =
             () =>
@@ -720,7 +728,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
     class yield
     {
-        void Foo<U>()
+        void Foo<U>(__arglist)
         {
             C<U> c = null;
             c.M<int>(5, default(U));
@@ -731,11 +739,15 @@ namespace Comments.XmlComments.UndocumentedKeywords
             Params(ref c, out c);
         }
 
-        void Params(ref dynamic a, out dynamic b)
+        void Params(ref dynamic a, out dynamic b, params dynamic[] c)
         {
         }
 
-        void Params(out dynamic a, ref dynamic c)
+        void Params(
+            out dynamic a = 2,
+            ref dynamic c = default(dynamic),
+            params dynamic[][] c
+        )
         {
         }
 
@@ -744,9 +756,9 @@ namespace Comments.XmlComments.UndocumentedKeywords
             return base.ToString();
         }
 
-        public void OnError();
+        public partial void OnError();
 
-        public void method()
+        public partial void method()
         {
             int?[] a = new int?[5];
             int[] var = { 1, 2, 3, 4, 5 };
@@ -868,7 +880,10 @@ namespace Comments.XmlComments.UndocumentedKeywords
             {
                 await Resource.LogAsync(res, e);
             }
+            finally
+            {
+                if (res != null) await res.CloseAsync();
+            }
         }
     }
 }
-
