@@ -17,7 +17,8 @@
     "test:debug": "node --lazy --inspect-brk test",
     "test": "node test && git diff -- test/AllInOneNoPreprocessor.Formatted.cs",
     "generate-parser": "antlr4 -Dlanguage=JavaScript asset/csharp/*.g4",
-    "precommit": "pretty-quick --staged"
+    "precommit": "pretty-quick --staged",
+    "prettier": "prettier --plugin=. --parser=cs"
   },
   "devDependencies": {
     "eslint": "^4.19.1",
