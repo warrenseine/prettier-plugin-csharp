@@ -3727,4 +3727,6 @@ function genericPrint(path, options, print) {
   return result;
 }
 
-module.exports = genericPrint;
+module.exports = {
+  print: genericPrint
+};

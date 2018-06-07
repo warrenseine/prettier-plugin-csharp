@@ -1,7 +1,7 @@
 "use strict";
 
-const parse = require("./parser");
-const print = require("./printer");
+const parser = require("./parser");
+const printer = require("./printer");
 
 const languages = [
   {
@@ -16,25 +16,12 @@ const languages = [
   }
 ];
 
-const loc = function(prop) {
-  return function(node) {
-    return node.loc && node.loc[prop] && node.loc[prop].offset;
-  };
-};
-
 const parsers = {
-  cs: {
-    parse,
-    astFormat: "cs",
-    locStart: loc("start"),
-    locEnd: loc("end")
-  }
+  cs: parser
 };
 
 const printers = {
-  cs: {
-    print
-  }
+  cs: printer
 };
 
 const options = {};
