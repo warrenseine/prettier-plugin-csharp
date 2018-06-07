@@ -12,9 +12,9 @@ function parseCSharp(text) {
   const parser = new CSharpParser.CSharpParser(tokens);
   const compilationUnit = parser.compilation_unit();
   const result = simplifyTree(compilationUnit);
-  // result.comments = tokens.tokens
-  //   .filter(token => token.channel == CSharpLexer.CSharpLexer.COMMENTS_CHANNEL)
-  //   .map(token => buildComment(token));
+  result.comments = tokens.tokens
+    .filter(token => token.channel == CSharpLexer.CSharpLexer.COMMENTS_CHANNEL)
+    .map(token => buildComment(token));
   return result;
 }
 

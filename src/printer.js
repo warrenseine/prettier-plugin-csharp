@@ -3710,6 +3710,32 @@ function debugAtLine(node, line) {
   }
 }
 
+function printComment(path) {
+  const node = path.getValue();
+
+  if (node.value.startsWith("//")) {
+    return node.value.trimRight();
+  } else {
+    return node.value;
+  }
+}
+
+function canAttachComment(node) {
+  return (
+    node &&
+    node.leading === undefined &&
+    node.trailing === undefined &&
+    node.dangling === undefined
+  );
+}
+
+function getCommentChildNodes(node) {
+  return node.children.filter(child => !isType(child, "terminal"));
+}
+
 module.exports = {
-  print: printNode
+  print: printNode,
+  printComment,
+  canAttachComment,
+  getCommentChildNodes
 };

@@ -83,6 +83,9 @@ namespace My.Moy
                 int i = sizeof(int);
                 ++i;
                 var s0 = $"foo{1, 2}";
+                // FIXME: Non-trivial string interpolation can't be parsed.
+                // var s1 = $"x {1 , -2 :d}";
+                // var s2 = $@"x {1 , -2 :d}";
             }
 
             Console.WriteLine(export.iefSupplied.command);
@@ -199,8 +202,8 @@ namespace My.Moy
                     { { 211, 212 }, { 221, 222 } }
                 };
             int[][] jagged = { { 111 }, { 121, 122 } };
-            int[][,] arr = new int[5][,];
-            arr[0] = new int[5, 5];
+            int[][,] arr = new int[5][,]; // as opposed to new int[][5,5]
+            arr[0] = new int[5, 5]; // as opposed to arr[0,0] = new int[5];
             arr[0][0, 0] = 47;
             int[] arrayTypeInference = new [] { 0, 1 };
             switch (3) { }
@@ -526,11 +529,12 @@ namespace My.Moy
 
             async void Wait()
             {
+                // await System.Threading.Tasks.Task.Foooooooooooooooooooo.Delay(0);
                 await
                     SystemxThreadingxTasksxTaskxFooooooooooooooooooooxDelay(0);
             }
 
-            void AsyncAnonymous()
+            void AsyncAnonymous() // C # 5 feature
             {
                 var task =
                     Task.Factory.StartNew(async () =>
@@ -706,24 +710,61 @@ namespace ConsoleApplication1
 
 namespace Comments.XmlComments.UndocumentedKeywords
 {
-    class C
+    /// <summary>
+    /// Whatever
+
+    /// </summary>
+    /// <!-- c -->
+    /// <![CDATA[c]]> //
+    /// <c></c> /* */
+    /// <code></code>
+    /// <example></example>
+    /// <exception cref="bla"></exception>
+    /// <include file='' path='[@name=""]'/>
+    /// <permission cref=" "></permission>
+    /// <remarks></remarks>
+    /// <see cref=""/>
+    /// <seealso cref=" "/>
+    /// <value></value>
+    /// <typeparam name="T"></typeparam>
+    class
+    /*///*/
+    C
     {
         void M<U>(T t, U u)
         {
-            int intValue = 0;
-            intValue = intValue + 1;
-            string strValue = "hello";
+            // comment
+            /* *** / */
+            /* //
+             */
+            /*s*/
+            //comment
+            // /***/
+            /*s*/
+            int /*s*/
+            intValue
+            = 0;
+            intValue =
+            intValue + /*s*/
+            1;
+            string
+            strValue /*s*/
+            = "hello";
+            /*s*/
             MyClass c = new MyClass();
-            string verbatimStr = @"\\\\";
+            string
+            verbatimStr /*s*/
+            = @"\\\\";
         }
     }
 
+    //General Test F. Type a very long class name, verify colorization happens correctly only upto the correct size (118324)
     class
-    TestClassXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    TestClassXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX /*Scen8*/
     { }
 
     class
-    TestClassXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX22
+    TestClassXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX22 /*Scen9*/
     { }
 
     class yield
@@ -760,42 +801,42 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
         public partial void method()
         {
-            int?[] a = new int?[5];
-            int[] var = { 1, 2, 3, 4, 5 };
-            int i = a[i];
-            Foo<T> f = new Foo<int>();
-            f.method();
-            i = i + i - i * i / i % i & i | i ^ i;
-            bool b = true & false | true ^ false;
-            b = !b;
-            i = ~i;
-            b = i < i && i > i;
-            int? ii = 5;
-            int f = true ? 1 : 0;
-            i++;
-            i--;
-            b = true && false || true;
-            i << 5;
-            i >> 5;
-            b = i == i && i != i && i <= i && i >= i;
-            i += 5.0;
-            i -= i;
-            i *= i;
-            i /= i;
-            i %= i;
-            i &= i;
-            i |= i;
-            i ^= i;
-            i <<= i;
-            i >>= i;
-            object s = x => x + 1;
+            int?[] a = new int?[5]; /*[] bug*/ // YES []
+            int[] var = { 1, 2, 3, 4, 5 }; /*,;*/
+            int i = a[i]; /*[]*/
+            Foo<T> f = new Foo<int>(); /*<> ()*/
+            f.method(); /*().*/
+            i = i + i - i * i / i % i & i | i ^ i; /*+ - * / % & | ^*/
+            bool b = true & false | true ^ false; /*& | ^*/
+            b = !b; /*!*/
+            i = ~i; /*~i*/
+            b = i < i && i > i; /*< && >*/
+            int? ii = 5; /*? bug*/ // NO ?
+            int f = true ? 1 : 0; /*? :*/ // YES :
+            i++; /*++*/
+            i--; /*--*/
+            b = true && false || true; /*&& ||*/
+            i << 5; /*<<*/
+            i >> 5; /*>>*/
+            b = i == i && i != i && i <= i && i >= i; /*= == && != <= >=*/
+            i += 5.0; /*+=*/
+            i -= i; /*-=*/
+            i *= i; /**=*/
+            i /= i; /*/=*/
+            i %= i; /*%=*/
+            i &= i; /*&=*/
+            i |= i; /*|=*/
+            i ^= i; /*^=*/
+            i <<= i; /*<<=*/
+            i >>= i; /*>>=*/
+            object s = x => x + 1; /*=>*/
             double d = .3;
 
             Point point;
             unsafe
             {
-                Point* p = &point;
-                p->x = 10;
+                Point* p = &point; /** &*/
+                p->x = 10; /*->*/
             }
             IO::BinaryReader br = null;
             x[i: 1] = 3;
@@ -815,16 +856,20 @@ namespace Comments.XmlComments.UndocumentedKeywords
         }
     }
 
+    // From here:https://github.com/dotnet/roslyn/wiki/New-Language-Features-in-C%23-6
     class CSharp6Features
     {
+        // Initializers for auto-properties
         public string First { get; set; } = "Jane";
 
         public string Last { get; set; } = "Doe";
 
+        // Getter-only auto-properties
         public string Third { get; } = "Jane";
 
         public string Fourth { get; } = "Doe";
 
+        // Expression bodies on method-like members
         public Point Move(int dx, int dy) => new Point(x + dx, y + dy);
 
         public static Complex operator +(Complex a, Complex b) => a.Add(b)
@@ -834,29 +879,40 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
         public void Print() => Console.WriteLine(First + " " + Last);
 
+        // Expression bodies on property-like function members
         public string Name => First + " " + Last;
 
         public int this[long id] => id
 
         async void Test()
         {
+            // Using static
             WriteLine(Sqrt(3 * 3 + 4 * 4));
             WriteLine(Friday - Monday);
-            var range = Range(5, 17);
-            var even = range.Where(i => i % 2 == 0);
+            var range = Range(5, 17); // Ok: not extension
+            var even = range.Where(i => i % 2 == 0); // Ok
 
-            int? length = customers?.Length;
-            Customer first = customers?[0];
-            int length = customers?.Length ?? 0;
+            // Null-conditional operators
+            int? length = customers?.Length; // null if customers is null
+            Customer first = customers?[0]; // null if customers is null
+            int length = customers?.Length ?? 0; // 0 if customers is null
             int? first = customers?[0]?.Orders?.Count();
             PropertyChanged?.Invoke(this, args);
 
+            // String interpolation
+            // FIXME: Non-trivial string interpolation can't be parsed.
+            // string s = $"{p.Name, 20} is {p.Age:D3} year{{s}} old #";
+            // s = $"{p.Name} is \"{p.Age} year{(p.Age == 1 ? "" : "s")} old";
+            // s = $"{(p.Age == 2 ? $"{new Person { } }" : "")}";
             s = $@"\{p.Name}
                                    ""\";
 
+            // s = $"Color [ R={func(b: 3):#0.##}, G={G:#0.##}, B={B:#0.##}, A={A:#0.##} ]";
+            // nameof expressions
             if (x == null) throw new ArgumentNullException(nameof(x));
-            WriteLine(nameof(person.Address.ZipCode));
+            WriteLine(nameof(person.Address.ZipCode)); // prints "ZipCode"
 
+            // Index initializers
             var numbers =
                 new Dictionary<int, string> {
                     [7] = "seven",
@@ -864,6 +920,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
                     [13] = "thirteen"
                 };
 
+            // Exception filters
             try
             {
             }
@@ -871,18 +928,19 @@ namespace Comments.XmlComments.UndocumentedKeywords
             {
             }
 
+            // Await in catch and finally blocks
             Resource res = null;
             try
             {
-                res = await Resource.OpenAsync();
+                res = await Resource.OpenAsync(); // You could do this.
             }
             catch (ResourceException e)
             {
-                await Resource.LogAsync(res, e);
+                await Resource.LogAsync(res, e); // Now you can do this …
             }
             finally
             {
-                if (res != null) await res.CloseAsync();
+                if (res != null) await res.CloseAsync(); // … and this.
             }
         }
     }
