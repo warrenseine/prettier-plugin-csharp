@@ -15,47 +15,49 @@ const alphanumerical = require("is-alphanumerical");
 const _ = require("lodash");
 
 function printCompilationUnit(path, options, print) {
+  const node = path.getValue();
   const parts = [];
 
-  const externAliasDirectives = path.call(print, "extern_alias_directives", 0);
-  const usingDirectives = path.call(print, "using_directives", 0);
-  const globalAttributeSections = path.map(print, "global_attribute_section");
-  const namespaceMemberDeclarations = path.call(
-    print,
-    "namespace_member_declarations",
-    0
+  const externAliasDirectives = getAny(node, "extern_alias_directives");
+  const usingDirectives = getAny(node, "using_directives");
+  const globalAttributeSections = getAny(node, "global_attribute_section");
+  const namespaceMemberDeclarations = getAny(
+    node,
+    "namespace_member_declarations"
   );
 
   if (externAliasDirectives) {
-    parts.push(externAliasDirectives);
+    parts.push(path.call(print, externAliasDirectives, 0));
   }
 
   if (usingDirectives) {
-    parts.push(usingDirectives);
+    parts.push(path.call(print, usingDirectives, 0));
   }
 
-  if (globalAttributeSections.length) {
-    parts.push(join(hardline, globalAttributeSections));
+  if (globalAttributeSections) {
+    parts.push(join(hardline, path.map(print, globalAttributeSections)));
   }
 
   if (namespaceMemberDeclarations) {
-    parts.push(namespaceMemberDeclarations);
+    parts.push(path.call(print, namespaceMemberDeclarations, 0));
   }
 
   return group(join(doublehardline, parts));
 }
 
 function printExternAliasDirectives(path, options, print) {
-  const externAliasDirectives = path.map(print, "extern_alias_directive");
-
-  return group(join(hardline, externAliasDirectives));
+  return group(join(hardline, path.map(print, "extern_alias_directive")));
 }
 
 function printExternAliasDirective(path, options, print) {
-  const identifier = path.call(print, "identifier", 0);
-
   return group(
-    concat(["extern", " ", "alias", indent(concat([line, identifier])), ";"])
+    concat([
+      "extern",
+      " ",
+      "alias",
+      indent(concat([line, path.call(print, "identifier", 0)])),
+      ";"
+    ])
   );
 }
 
