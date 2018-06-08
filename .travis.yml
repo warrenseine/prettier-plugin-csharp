@@ -1,10 +1,17 @@
----
 language: node_js
 node_js:
-  - stable
+- stable
 cache:
   yarn: true
   directories:
-    - node_modules
+  - node_modules
 script:
-  - yarn test
+- yarn test
+deploy:
+  provider: npm
+  email: warren.seine@gmail.com
+  api_key:
+    secure: iBiBmHEI0ZSa+JQM/ccvvraGUqOoqPEdZUfg5BBOG36/fc1pST9W83PAQS3qseygnHbFJ6aNh5tDSkoovQyhMYusywH9Sb8Ay48bdBcEqj+j66x64zit/sVZMGPERzBee1sGXP0MLn8ZPo+Me6nnctVoJvAABHV06wNzEer2RBVbjtDO3u5Fz1Sun1J9otFMeDkF0+HrrBJB+/0CytfYncW4S12NMbDjRl3noVWMKMG8TrbWpnfP7dDqU6WyH7y77L881ZjvbrYYVBoAdAnKgJCItQs9Ks4a/W3dSd1RSHk5paeL2+ULaOXkh12xGkEMu4+t09XZe2gsgRbfs8pK6TmZv8q5mi2cP79c81GLddxVK1cxlb5BXL1JVRVcjKitnJWswV8BBPjGl/U1zyIHruwgG4Eo5bgM/NzMS4G3MqI40bMR4hRJaFhwm6QrGMMqmmVbovYAoza+Eho/lYI6GmNOwFqRCmawC0cU7EMgfGNbo+8H+i0OBzepd8zku1MwbmA73E/9q5YoX7NgTQzaTOIb0YdE9HTi9qLaMKY3MlJt9Jnfi5KQ69cPAVeYJmcNgT/hfZSf/gJVXby4/Yc8tCV7TRwv67gpfdcrJNKZdIPwsqJKN8jx5vG8rdfhyUNqalWPfoNFKfYwr+MZWBJrId0tTUG9wm9e7yCLHI1/IUY=
+  on:
+    tags: true
+    repo: warrenseine/prettier-csharp
