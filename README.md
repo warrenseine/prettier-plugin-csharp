@@ -31,6 +31,12 @@
   </a>
 </p>
 
+## Intro
+
+Prettier C# adds C# support to the [Prettier](https://github.com/prettier/prettier) code formatter. Like Prettier,
+it is opinionated and restricts style options to a minimum. It runs where Prettier runs, including CI and pre-commit
+hooks.
+
 ## WORK IN PROGRESS
 
 Please note that this plugin is under active development, and might not be ready to run on production code yet. **It will break your code.**
