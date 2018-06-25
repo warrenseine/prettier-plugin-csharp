@@ -7,7 +7,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch via NPM",
+      "name": "Debug regression tests",
       "runtimeExecutable": "yarn",
       "runtimeArgs": ["test:debug"],
       "port": 9229,
