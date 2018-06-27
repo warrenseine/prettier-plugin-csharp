@@ -10,7 +10,7 @@
     "antlr4": "^4.7.1",
     "is-alphanumerical": "^1.0.2",
     "lodash": "^4.17.10",
-    "prettier": "^1.13.4"
+    "prettier": "^1.13.6"
   },
   "scripts": {
     "lint": "eslint src/**",
