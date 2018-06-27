@@ -19,9 +19,11 @@ SINGLE_LINE_DOC_COMMENT: '///' InputCharacter*    -> channel(COMMENTS_CHANNEL);
 DELIMITED_DOC_COMMENT:   '/**' .*? '*/'           -> channel(COMMENTS_CHANNEL);
 SINGLE_LINE_COMMENT:     '//'  InputCharacter*    -> channel(COMMENTS_CHANNEL);
 DELIMITED_COMMENT:       '/*'  .*? '*/'           -> channel(COMMENTS_CHANNEL);
+SINGLE_LINE_DIRECTIVE:   '#'   (IF|DEFINE|UNDEF|LINE|ERROR|WARNING|REGION|ENDREGION|PRAGMA) InputCharacter* -> channel(DIRECTIVE);
+ELSEIF_DIRECTIVE:     	 ('#' (ELSE|ELIF) .*?)* '#' ENDIF  -> channel(DIRECTIVE);
 
 WHITESPACES:   (Whitespace | NewLine)+            -> channel(HIDDEN);
-SHARP:         '#'                                -> mode(DIRECTIVE_MODE);
+SHARP:         '#';
 
 ABSTRACT:      'abstract';
 ADD:           'add';

@@ -1,13 +1,16 @@
 "use strict";
 
 const docBuilders = require("prettier").doc.builders;
+const util = require("prettier").util;
 const concat = docBuilders.concat;
 const join = docBuilders.join;
 const hardline = docBuilders.hardline;
 const line = docBuilders.line;
 const softline = docBuilders.softline;
+const trim = docBuilders.trim;
 const group = docBuilders.group;
 const indent = docBuilders.indent;
+const dedentToRoot = docBuilders.dedentToRoot;
 const doublehardline = concat([hardline, hardline]);
 const empty = "";
 
@@ -74,7 +77,8 @@ function printKeyword(path, options, print) {
   return path.call(print, "terminal", 0);
 }
 
-function printUsingDirectives(path, options, print) {
+function reorderAndPrintUsingDirectives(path, options, print) {
+  // Broken with preprocessor directives.
   const node = path.getValue();
 
   const getUsingPath = parts => {
@@ -118,6 +122,16 @@ function printUsingDirectives(path, options, print) {
     );
 
   return join(doublehardline, docs);
+}
+
+function printUsingDirectives(path, options, print) {
+  const node = path.getValue();
+
+  if (hasPreprocessorDirectives(node)) {
+    return join(hardline, path.map(print, "children"));
+  }
+
+  return reorderAndPrintUsingDirectives(path, options, print);
 }
 
 function printNamespaceOrTypeName(path, options, print) {
@@ -3712,11 +3726,37 @@ function debugAtLine(node, line) {
   }
 }
 
-function printComment(path) {
+function isLastComment(path) {
+  const stack = path.stack;
+  const comments = stack[stack.length - 3];
+  const currentComment = stack[stack.length - 1];
+  return comments && comments[comments.length - 1] === currentComment;
+}
+
+function printComment(path, options, print) {
   const node = path.getValue();
 
   if (node.value.startsWith("//")) {
     return node.value.trimRight();
+  } else if (node.value.startsWith("#")) {
+    const isPreviousLineEmpty = util.isPreviousLineEmpty(
+      options.originalText,
+      node,
+      options
+    );
+    const isNextLineEmpty = util.isNextLineEmptyAfterIndex(
+      options.originalText,
+      options.locEnd(node) + 1
+    );
+    const docs = [];
+    if (isPreviousLineEmpty) {
+      docs.push(dedentToRoot(hardline));
+    }
+    docs.push(trim, node.value);
+    if (isNextLineEmpty && isLastComment(path)) {
+      docs.push(hardline);
+    }
+    return concat(docs);
   } else {
     return node.value;
   }
@@ -3735,9 +3775,40 @@ function getCommentChildNodes(node) {
   return node.children.filter(child => !isType(child, "terminal"));
 }
 
+function hasPreprocessorDirectives(node) {
+  return (
+    (node.comments &&
+      node.comments.find(child => isType(child, "directive"))) ||
+    (node.children && node.children.find(hasPreprocessorDirectives))
+  );
+}
+
+function handleOwnLineComments(comment, text, options, ast, isLastComment) {
+  if (
+    comment.followingNode &&
+    ["#if", "#region"].some(d => comment.value.startsWith(d))
+  ) {
+    util.addLeadingComment(comment.followingNode, comment);
+    return true;
+  } else if (
+    comment.precedingNode &&
+    ["#endregion", "#elif", "#else", "#endif"].some(d =>
+      comment.value.startsWith(d)
+    )
+  ) {
+    util.addTrailingComment(comment.precedingNode, comment);
+    return true;
+  }
+
+  return false;
+}
+
 module.exports = {
   print: printNode,
   printComment,
   canAttachComment,
-  getCommentChildNodes
+  getCommentChildNodes,
+  handleComments: {
+    ownLine: handleOwnLineComments
+  }
 };

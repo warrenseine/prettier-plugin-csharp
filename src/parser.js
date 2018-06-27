@@ -13,14 +13,28 @@ function parseCSharp(text) {
   const compilationUnit = parser.compilation_unit();
   const result = simplifyTree(compilationUnit);
   result.comments = tokens.tokens
-    .filter(token => token.channel == CSharpLexer.CSharpLexer.COMMENTS_CHANNEL)
+    .filter(
+      token =>
+        token.channel == CSharpLexer.CSharpLexer.COMMENTS_CHANNEL ||
+        token.channel == CSharpLexer.CSharpLexer.DIRECTIVE
+    )
     .map(token => buildComment(token));
   return result;
 }
 
+function getNodeTypeFromChannel(token) {
+  switch (token.channel) {
+    case CSharpLexer.CSharpLexer.COMMENTS_CHANNEL:
+      return "comment";
+    case CSharpLexer.CSharpLexer.DIRECTIVE:
+      return "directive";
+  }
+  return "unknown";
+}
+
 function buildComment(token) {
   return {
-    nodeType: "comment",
+    nodeType: getNodeTypeFromChannel(token),
     start: token.start,
     end: token.stop,
     lineStart: token.line,
