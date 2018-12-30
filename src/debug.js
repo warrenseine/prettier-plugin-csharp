@@ -11,7 +11,8 @@ const referenceCode = fs.readFileSync(file, "utf8");
 
 const formattedCode = prettier.format(referenceCode, {
   parser: "cs",
-  plugins: ["."]
+  plugins: ["."],
+  printWidth: 120
 });
 
-fs.writeFileSync(file.replace(/\.cs$/, ".Formatted.cs"), formattedCode, "utf8");
+fs.writeFileSync(file, formattedCode, "utf8");

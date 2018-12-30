@@ -12,6 +12,15 @@
       "runtimeArgs": ["test:debug"],
       "port": 9229,
       "outputCapture": "std"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug on a real-life file",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["prettier:debug", "File.cs"],
+      "port": 9229,
+      "outputCapture": "std"
     }
   ]
 }
