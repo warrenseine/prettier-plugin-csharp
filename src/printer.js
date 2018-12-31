@@ -3731,7 +3731,7 @@ function isLastComment(path) {
   return comments && comments[comments.length - 1] === currentComment;
 }
 
-function printComment(path, options, print) {
+function printComment(path, options) {
   const node = path.getValue();
 
   if (node.value.startsWith("//")) {
@@ -3781,7 +3781,9 @@ function hasPreprocessorDirectives(node) {
   );
 }
 
-function handleOwnLineComments(comment, text, options, ast, isLastComment) {
+function handleOwnLineComments(
+  comment /*, text, options, ast, isLastComment*/
+) {
   if (
     comment.followingNode &&
     ["#if", "#region"].some(d => comment.value.startsWith(d))
