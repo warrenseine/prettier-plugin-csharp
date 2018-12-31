@@ -15,7 +15,7 @@
   "scripts": {
     "lint": "eslint src/**",
     "test:debug": "node --lazy --inspect-brk test",
-    "test": "node test && git diff -- test/AllInOneNoPreprocessor.Formatted.cs",
+    "test": "node test && git diff -- test/*.Formatted.cs",
     "generate-parser": "antlr4 -Dlanguage=JavaScript asset/csharp/*.g4",
     "precommit": "pretty-quick --staged",
     "prettier": "prettier --plugin=. --parser=cs",
