@@ -448,9 +448,8 @@ function printBinaryishExpression(path, options, print) {
   return group(
     join(
       line,
-      operations.map(
-        ([operand, operator]) =>
-          operator ? group(concat([operand, " ", operator])) : operand
+      operations.map(([operand, operator]) =>
+        operator ? group(concat([operand, " ", operator])) : operand
       )
     )
   );
@@ -1752,8 +1751,7 @@ function printAssignment(path, options, print) {
           path.call(print, "assignment_operator", 0)
         ])
       ),
-      line,
-      path.call(print, "expression", 0)
+      indent(group(concat([line, path.call(print, "expression", 0)])))
     ])
   );
 }
@@ -2475,8 +2473,8 @@ function printForStatement(path, options, print) {
                 softline,
                 join(
                   concat([";", line]),
-                  [forInitializer, expression, forIterator].map(
-                    e => (e ? path.call(print, e, 0) : empty)
+                  [forInitializer, expression, forIterator].map(e =>
+                    e ? path.call(print, e, 0) : empty
                   )
                 )
               ])
