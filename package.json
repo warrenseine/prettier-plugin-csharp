@@ -7,10 +7,10 @@
   "license": "MIT",
   "main": "src",
   "dependencies": {
-    "antlr4": "^4.7.1",
+    "antlr4": "^4.7.2",
     "is-alphanumerical": "^1.0.2",
-    "lodash": "^4.17.10",
-    "prettier": "^1.13.6"
+    "lodash": "^4.17.11",
+    "prettier": "^1.15.3"
   },
   "scripts": {
     "lint": "eslint src/**",
