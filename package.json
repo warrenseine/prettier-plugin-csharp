@@ -17,14 +17,18 @@
     "test:debug": "node --lazy --inspect-brk test",
     "test": "node test && git diff -- test/*.Formatted.cs",
     "generate-parser": "antlr4 -Dlanguage=JavaScript asset/csharp/*.g4",
-    "precommit": "pretty-quick --staged",
     "prettier": "prettier --plugin=. --parser=cs",
     "prettier:debug": "node --lazy --inspect-brk src/debug.js"
   },
   "devDependencies": {
     "eslint": "^5.11.1",
     "eslint-config-prettier": "^3.3.0",
-    "husky": "^0.14.3",
-    "pretty-quick": "^1.6.0"
+    "husky": "^1.3.1",
+    "precise-commits": "^1.0.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "precise-commits"
+    }
   }
 }
