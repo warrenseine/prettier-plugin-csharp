@@ -422,7 +422,7 @@ namespace My.Moy
         {
         }
     }
-    public interface I
+    public interface I : J
     {
         void A(int value);
         string Value

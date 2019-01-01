@@ -507,7 +507,7 @@ namespace My.Moy
         class C { }
     }
 
-    public interface I
+    public interface I : J
     {
         void A(int value);
 

@@ -3427,6 +3427,7 @@ function printNode(path, options, print) {
     case "struct_definition":
     case "enum_definition":
       return printStructDefinition(path, options, print);
+    case "interface_base":
     case "class_base":
     case "enum_base":
     case "struct_interfaces":
