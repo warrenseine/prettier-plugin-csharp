@@ -3688,8 +3688,7 @@ function printNode(path, options, print) {
       return printConversionOperatorDeclarator(path, options, print);
     default:
       throw new Error(
-        "Unknown C# node:",
-        node.nodeType || node.constructor.name
+        `Unknown C# node: ${node.nodeType || node.constructor.name}`
       );
   }
 }
