@@ -45,7 +45,7 @@ function printCompilationUnit(path, options, print) {
     parts.push(path.call(print, namespaceMemberDeclarations, 0));
   }
 
-  return group(join(doublehardline, parts));
+  return concat([join(doublehardline, parts), line]);
 }
 
 function printExternAliasDirectives(path, options, print) {

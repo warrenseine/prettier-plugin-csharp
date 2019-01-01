@@ -935,3 +935,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
         }
     }
 }
+#line 6
+#line 2 "test.cs"
+#line default
+#line hidden
