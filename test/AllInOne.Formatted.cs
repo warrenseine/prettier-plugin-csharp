@@ -697,15 +697,13 @@ namespace ConsoleApplication1
             Func<int, int, int> f2 = (a, b) => 0;
             f2 = (int a, int b) => 1;
             Action a = Blah;
-            f2 =
-                () =>
-                {
-                };
-            f2 =
-                () =>
-                {
+            f2 = () =>
+            {
+            };
+            f2 = () =>
+            {
 
-                };
+            };
         }
 
         delegate Recursive Recursive(Recursive r);
@@ -780,9 +778,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
             int /*s*/
             intValue
             = 0;
-            intValue =
-                intValue + /*s*/
-                1;
+            intValue = intValue + /*s*/
+            1;
             string
             strValue /*s*/
             = "hello";

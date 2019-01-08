@@ -1288,6 +1288,7 @@ function printBlock(path, options, print) {
     docs.push(indent(concat([hardline, path.call(print, statementList, 0)])));
   }
 
+  // FIXME: Decide whether we want a `hardline` or a `line` (which would inline empty blocks like `int F() { }`).
   docs.push(hardline, "}");
 
   return concat(docs);
@@ -1742,16 +1743,17 @@ function printSecondaryConstraints(path, options, print) {
 }
 
 function printAssignment(path, options, print) {
+  const left = path.call(print, "unary_expression", 0);
+  const operator = path.call(print, "assignment_operator", 0);
+  const right = path.call(print, "expression", 0);
+
+  // FIXME: Refine logic so member expression chains or conditional expressions can break.
+  const canBreak = false;
+
   return group(
     concat([
-      group(
-        concat([
-          path.call(print, "unary_expression", 0),
-          line,
-          path.call(print, "assignment_operator", 0)
-        ])
-      ),
-      indent(group(concat([line, path.call(print, "expression", 0)])))
+      group(concat([left, " ", operator])),
+      canBreak ? group(indent(concat([line, right]))) : concat([" ", right])
     ])
   );
 }
