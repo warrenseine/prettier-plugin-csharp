@@ -1,7 +1,7 @@
 const prettier = require("prettier");
 const fs = require("fs");
 
-const tests = ["AllInOneNoPreprocessor", "AllInOne"];
+const tests = ["AllInOne"];
 
 for (let test of tests) {
   const referenceFile = `asset/csharp/examples/${test}.cs`;

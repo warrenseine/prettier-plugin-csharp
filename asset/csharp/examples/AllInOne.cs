@@ -14,6 +14,8 @@ extern alias Foo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using ConsoleApplication2.Test;
 using System.Linq.Expressions;
 using System.Text;
 using M = System.Math;
@@ -43,19 +45,19 @@ using static System.Linq.Enumerable;
 [assembly: System.Copyright(@"(C)""
 
 2009")]
-[module: System.Copyright("\n\t\u0123(C) \"2009" + "\u0123")]
+[module: System.Copyright("\n\t\u0123(C) \"2009" - ("\u0123" + "foo"))]
 
-class TopLevelType : IDisposable
+class TopLevelType : IDisposable, Foo
 {
-    void IDisposable.Dispose() { }
+    void IDisposable.Dispose(int x, int y) { }
 }
 
-namespace My
+namespace My.Moy
 {
     using A.B;
 
     interface CoContra<out T, in K> { }
-    delegate void CoContra2<[System.Obsolete()] out T, in K> () where T : struct;
+    delegate void CoContra2<[System.Obsolete()] out T, in K> (int i) where T : struct;
 
     public unsafe partial class A : C, I
     {
@@ -66,16 +68,23 @@ namespace My
 
         static A()
         {
+            a.a.d().e().a->c.a++.b().a;
+
+            var x = 1 * 1 + 1 * 1 + (1+(1+1)) + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1  + 1 + 1 + 1;
         }
 
         [method: Obsolete]
-        public A([param: Obsolete] int foo) :
+        public A([param: Obsolete] int foo, [param: Obsolete] int foo, [param: Obsolete] int foo, [param: Obsolete] int foo) :
             base(1)
         {
         L:
             {
                 int i = sizeof(int);
                 ++i;
+                var s0 = $"foo{1,2}";
+                // FIXME: Non-trivial string interpolation can't be parsed.
+                // var s1 = $"x {1 , -2 :d}";
+                // var s2 = $@"x {1 , -2 :d}";
             }
 
 #if DEBUG
@@ -146,6 +155,7 @@ namespace My
             var remove = 0;
             var select = 0;
             var set = 0;
+			var var = 0;
             var when = 0;
             var where = 0;
             var yield = 0;
@@ -465,7 +475,8 @@ namespace My
             }
             async void Wait()
             {
-                await System.Threading.Tasks.Task.Delay(0);
+                // await System.Threading.Tasks.Task.Foooooooooooooooooooo.Delay(0);
+                await SystemxThreadingxTasksxTaskxFooooooooooooooooooooxDelay(0);
             }
             void AsyncAnonymous() // C # 5 feature
             {
@@ -690,6 +701,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             i >>= i;/*>>=*/
             object s = x => x + 1;/*=>*/
             double d = .3;
+            ;
             Point point;
             unsafe
             {
@@ -740,6 +752,15 @@ namespace Comments.XmlComments.UndocumentedKeywords
             int? first = customers?[0]?.Orders?.Count();
             PropertyChanged?.Invoke(this, args);
 
+            // String interpolation
+            // FIXME: Non-trivial string interpolation can't be parsed.
+            // string s = $"{p.Name, 20} is {p.Age:D3} year{{s}} old #";
+            // s = $"{p.Name} is \"{p.Age} year{(p.Age == 1 ? "" : "s")} old";
+            // s = $"{(p.Age == 2 ? $"{new Person { } }" : "")}";
+            s = $@"\{p.Name}
+                                   ""\";
+            // s = $"Color [ R={func(b: 3):#0.##}, G={G:#0.##}, B={B:#0.##}, A={A:#0.##} ]";
+            
             // nameof expressions
             if (x == null)
                 throw new ArgumentNullException(nameof(x));
