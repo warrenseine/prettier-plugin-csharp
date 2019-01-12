@@ -2083,52 +2083,28 @@ function printVariableDeclaration(path, options, print) {
     "variable_declarator"
   ]);
 
-  let firstLinePart = [];
-  let secondLinePart = [];
+  const docs = [];
 
   if (variableType) {
-    firstLinePart.push(path.call(print, variableType, 0));
+    docs.push(path.call(print, variableType, 0), " ");
   }
 
   if (node[variableDeclarators].length == 1) {
-    let identifierPart = path.call(
-      print,
-      variableDeclarators,
-      0,
-      "identifier",
-      0
-    );
-    let initializer = getAny(node[variableDeclarators][0], [
-      "local_variable_initializer",
-      "variable_initializer"
-    ]);
-
-    if (variableType) {
-      (initializer ? firstLinePart : secondLinePart).push(line);
-    }
-
-    if (initializer) {
-      firstLinePart.push(identifierPart, line, "=");
-      secondLinePart.push(
-        line,
-        path.call(print, variableDeclarators, 0, initializer, 0)
-      );
-    } else {
-      secondLinePart.push(identifierPart);
-    }
+    docs.push(path.call(print, variableDeclarators, 0));
   } else {
-    secondLinePart.push(
-      hardline,
-      printCommaList(path.map(print, variableDeclarators))
+    docs.push(
+      indent(
+        group(
+          concat([
+            hardline,
+            printCommaList(path.map(print, variableDeclarators))
+          ])
+        )
+      )
     );
   }
 
-  return group(
-    concat([
-      group(concat(firstLinePart)),
-      indent(group(concat(secondLinePart)))
-    ])
-  );
+  return group(concat(docs));
 }
 
 function printLocalConstantDeclaration(path, options, print) {

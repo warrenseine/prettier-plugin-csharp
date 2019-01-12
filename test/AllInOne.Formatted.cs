@@ -775,19 +775,13 @@ namespace Comments.XmlComments.UndocumentedKeywords
             //comment
             // /***/
             /*s*/
-            int /*s*/
-            intValue
-            = 0;
+            int intValue = 0; /*s*/
             intValue = intValue + /*s*/
             1;
-            string
-            strValue /*s*/
-            = "hello";
+            string strValue = "hello"; /*s*/
             /*s*/
             MyClass c = new MyClass();
-            string
-            verbatimStr /*s*/
-            = @"\\\\";
+            string verbatimStr = @"\\\\"; /*s*/
         }
     }
 
