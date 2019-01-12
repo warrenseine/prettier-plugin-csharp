@@ -642,6 +642,15 @@ namespace Comments.XmlComments.UndocumentedKeywords
             string strValue = /*s*/"hello";
             /*s*/MyClass c = new MyClass();
             string verbatimStr = /*s*/@"\\\\";
+            int i = 0 // foo
+                + 1 // bar
+                + 2; // qux
+            i = 3 // foo
+                + 4 // bar
+                + 5; // qux
+            i = strValue != null ?
+                6 : // bar
+                7; // qux
         }
     }
 
