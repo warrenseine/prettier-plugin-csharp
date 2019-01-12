@@ -99,11 +99,11 @@ function reorderAndPrintUsingDirectives(path, options, print) {
   };
 
   const sortUsingDirectives = docs => {
-    for (let doc of docs) {
+    for (const doc of docs) {
       doc.usingPath = getUsingPath(doc);
     }
 
-    let [systems, others] = _.map(
+    const [systems, others] = _.map(
       _.partition(docs, doc => doc.usingPath.startsWith("System")),
       docs => _.sortBy(docs, ["usingPath"])
     );
@@ -252,7 +252,7 @@ function printBaseType(path, options, print) {
 function printSimpleType(path, options, print) {
   const node = path.getValue();
 
-  for (let typeType of [
+  for (const typeType of [
     "predefined_type",
     "simple_type",
     "numeric_type",
@@ -443,7 +443,7 @@ function printBinaryishExpression(path, options, print) {
     return path.call(print, "children", 0);
   }
 
-  let operations = _.chunk(path.map(print, "children"), 2);
+  const operations = _.chunk(path.map(print, "children"), 2);
 
   return group(
     join(
@@ -691,7 +691,7 @@ function printStructDefinition(path, options, print) {
   const base = getAny(node, ["class_base", "struct_interfaces", "enum_base"]);
   const body = getAny(node, ["class_body", "struct_body", "enum_body"]);
   const clauses = getAny(node, "type_parameter_constraints_clauses");
-  let head = [path.call(print, "children", 0), line, identifier];
+  const head = [path.call(print, "children", 0), line, identifier];
 
   if (base) {
     head.push(line, path.call(print, base, 0));
@@ -1203,16 +1203,16 @@ function printConstructorInitializer(path, options, print) {
 }
 
 function printAccessorModifier(path, options, print) {
-  let resharperOrder = ["protected", "internal", "private"];
+  const resharperOrder = ["protected", "internal", "private"];
 
-  let modifiers = path.map(print, "terminal");
-  let orderedModifiers = _.intersection(resharperOrder, modifiers);
+  const modifiers = path.map(print, "terminal");
+  const orderedModifiers = _.intersection(resharperOrder, modifiers);
 
   return group(join(line, orderedModifiers));
 }
 
 function printAllMemberModifiers(path, options, print) {
-  let resharperOrder = [
+  const resharperOrder = [
     "public",
     "protected",
     "internal",
@@ -1231,8 +1231,8 @@ function printAllMemberModifiers(path, options, print) {
     "partial"
   ];
 
-  let modifiers = path.map(print, "all_member_modifier");
-  let orderedModifiers = _.intersection(resharperOrder, modifiers);
+  const modifiers = path.map(print, "all_member_modifier");
+  const orderedModifiers = _.intersection(resharperOrder, modifiers);
 
   return group(join(line, orderedModifiers));
 }
@@ -1476,7 +1476,7 @@ function printInterfaceDefinition(path, options, print) {
     "type_parameter_constraints_clauses"
   );
 
-  let interfaceHead = ["interface", line, path.call(print, "identifier", 0)];
+  const interfaceHead = ["interface", line, path.call(print, "identifier", 0)];
 
   if (variantTypeParameterList) {
     interfaceHead.push(softline, path.call(print, variantTypeParameterList, 0));
@@ -1973,7 +1973,7 @@ function printOperatorDeclarationBody(path, options, print) {
 }
 
 function printStatementList(path, options, print) {
-  let docs = [];
+  const docs = [];
 
   let previousChild = null;
 
@@ -2153,7 +2153,7 @@ function printSizeofExpression(path, options, print) {
 function printObjectCreationExpression(path, options, print) {
   const node = path.getValue();
 
-  let expressionPart = [];
+  const expressionPart = [];
 
   const child = node.children[1];
 
@@ -2176,7 +2176,7 @@ function printObjectCreationExpression(path, options, print) {
         "object_or_collection_initializer"
       );
 
-      let argPart = [];
+      const argPart = [];
 
       argPart.push("(");
 
@@ -2328,7 +2328,7 @@ function printIfStatement(path, options, print) {
   const elseHasBraces = hasElse && !!node["if_body"][1]["block"];
   const hasElseIf = hasElse && !!node["if_body"][1]["if_statement"];
 
-  let docs = [
+  const docs = [
     "if",
     " ",
     "(",
@@ -2374,7 +2374,7 @@ function printGotoStatement(path, options, print) {
   const identifier = getAny(node, "identifier");
   const expression = getAny(node, "expression");
 
-  let docs = ["goto"];
+  const docs = ["goto"];
 
   if (identifier) {
     docs.push(indent(concat([line, path.call(print, "identifier", 0), ";"])));
@@ -2864,7 +2864,7 @@ function printObjectInitializer(path, options, print) {
     "member_declarator_list"
   ]);
 
-  let docs = ["{"];
+  const docs = ["{"];
 
   if (memberInitializerList) {
     docs.push(
@@ -2899,7 +2899,7 @@ function printMemberInitializer(path, options, print) {
   const identifier = getAny(node, "identifier");
   const expression = getAny(node, "expression");
 
-  let docs = [];
+  const docs = [];
 
   if (identifier) {
     docs.push(path.call(print, identifier, 0));
@@ -2991,7 +2991,7 @@ function printBracketExpression(path, options, print) {
   const isNullCoalescent = isSymbol(node.children[0], "?");
   const indexerArguments = path.map(print, "indexer_argument");
 
-  let docs = [];
+  const docs = [];
 
   if (isNullCoalescent) {
     docs.push("?");
