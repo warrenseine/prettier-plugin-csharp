@@ -82,9 +82,8 @@ namespace My.Moy
                 int i = sizeof(int);
                 ++i;
                 var s0 = $"foo{1,2}";
-                // FIXME: Non-trivial string interpolation can't be parsed.
-                // var s1 = $"x {1 , -2 :d}";
-                // var s2 = $@"x {1 , -2 :d}";
+                var s1 = $"x {1 , -2 :d}";
+                var s2 = $@"x {1 , -2 :d}";
             }
 
 #if DEBUG
@@ -762,13 +761,12 @@ namespace Comments.XmlComments.UndocumentedKeywords
             PropertyChanged?.Invoke(this, args);
 
             // String interpolation
-            // FIXME: Non-trivial string interpolation can't be parsed.
-            // string s = $"{p.Name, 20} is {p.Age:D3} year{{s}} old #";
-            // s = $"{p.Name} is \"{p.Age} year{(p.Age == 1 ? "" : "s")} old";
-            // s = $"{(p.Age == 2 ? $"{new Person { } }" : "")}";
+            string s = $"{p.Name, 20} is {p.Age:D3} year{{s}} old #";
+            s = $"{p.Name} is \"{p.Age} year{(p.Age == 1 ? "" : "s")} old";
+            s = $"{(p.Age == 2 ? $"{new Person { } }" : "")}";
             s = $@"\{p.Name}
                                    ""\";
-            // s = $"Color [ R={func(b: 3):#0.##}, G={G:#0.##}, B={B:#0.##}, A={A:#0.##} ]";
+            s = $"Color [ R={func(b: 3):#0.##}, G={G:#0.##}, B={B:#0.##}, A={A:#0.##} ]";
             
             // nameof expressions
             if (x == null)

@@ -2374,15 +2374,16 @@ CSharpLexer.prototype.COLON_action = function(localctx, actionIndex) {
       if (interpolatedStringLevel > 0) {
         var ind = 1;
         var switchToFormatString = true;
-        while (this._input.LA(ind) != "}") {
-          if (this._input.LA(ind) == ":" || this._input.LA(ind) == ")") {
+        var la;
+        while ((la = String.fromCharCode(this._input.LA(ind))) != "}") {
+          if (la == ":" || la == ")") {
             switchToFormatString = false;
             break;
           }
           ind++;
         }
         if (switchToFormatString) {
-          mode(INTERPOLATION_FORMAT);
+          this.mode(CSharpLexer.INTERPOLATION_FORMAT);
         }
       }
 

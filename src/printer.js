@@ -2318,8 +2318,16 @@ function printInterpolatedStringPart(path, options, print) {
 }
 
 function printInterpolatedStringExpression(path, options, print) {
-  // FIXME: Handle format strings.
-  return group(printCommaList(path.map(print, "expression")));
+  const docs = [];
+
+  for (let doc of path.map(print, "children")) {
+    docs.push(doc);
+    if (doc == ",") {
+      docs.push(" ");
+    }
+  }
+
+  return group(concat(docs));
 }
 
 function printIsType(path, options, print) {
