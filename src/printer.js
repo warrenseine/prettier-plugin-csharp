@@ -1742,13 +1742,26 @@ function printSecondaryConstraints(path, options, print) {
   return printCommaList(path.map(print, "namespace_or_type_name"));
 }
 
+function canAssignmentBreak(node) {
+  const lambdaExpression = getDescendant(
+    node,
+    "expression.non_assignment_expression.lambda_expression"
+  );
+
+  if (lambdaExpression) {
+    return false;
+  }
+
+  return true;
+}
+
 function printAssignment(path, options, print) {
   const left = path.call(print, "unary_expression", 0);
   const operator = path.call(print, "assignment_operator", 0);
   const right = path.call(print, "expression", 0);
 
   // FIXME: Refine logic so member expression chains or conditional expressions can break.
-  const canBreak = false;
+  const canBreak = canAssignmentBreak(path.getValue());
 
   return group(
     concat([
@@ -3684,6 +3697,32 @@ function getAny(node, types) {
     return node[types] ? types : undefined;
   }
   return types.find(type => node[type]);
+}
+
+function getDescendant(node, path) {
+  const pathAccessorRegex = /^([a-zA-Z_]+)(\[([0-9])\])?$/;
+  const pathParts = path.split(".");
+
+  let currentNode = node;
+
+  for (const pathPart of pathParts) {
+    const match = pathAccessorRegex.exec(pathPart);
+
+    if (!match) {
+      throw new Error(`Incorrect descendant path: ${path}`);
+    }
+
+    const rank = Number(match[3]) || 0;
+    const name = match[1];
+
+    if (!currentNode[name] || !currentNode[name][rank]) {
+      return null;
+    }
+
+    currentNode = currentNode[name][rank];
+  }
+
+  return currentNode;
 }
 
 function isSymbol(node, symbol) {

@@ -776,8 +776,9 @@ namespace Comments.XmlComments.UndocumentedKeywords
             // /***/
             /*s*/
             int intValue = 0; /*s*/
-            intValue = intValue + /*s*/
-            1;
+            intValue =
+                intValue + /*s*/
+                1;
             string strValue = "hello"; /*s*/
             /*s*/
             MyClass c = new MyClass();
@@ -786,12 +787,14 @@ namespace Comments.XmlComments.UndocumentedKeywords
                 0 + // foo
                 1 + // bar
                 2; // qux
-            i = 3 + // foo
-            4 + // bar
-            5; // qux
-            i = strValue != null
-                ? 6 // bar
-                : 7; // qux
+            i =
+                3 + // foo
+                4 + // bar
+                5; // qux
+            i =
+                strValue != null
+                    ? 6 // bar
+                    : 7; // qux
         }
     }
 
