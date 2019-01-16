@@ -1,4 +1,3 @@
-// Generated from asset/csharp/CSharpParser.g4 by ANTLR 4.7.1
 // jshint ignore: start
 var antlr4 = require("antlr4/index");
 var CSharpParserListener = require("./CSharpParserListener")
