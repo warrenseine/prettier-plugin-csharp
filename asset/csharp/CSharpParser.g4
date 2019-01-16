@@ -77,7 +77,12 @@ argument_list
 	;
 
 argument
-	: (identifier ':')? refout=(REF | OUT)? expression
+	: (identifier ':')? refout=(REF | OUT)? typed_argument
+	;
+
+typed_argument
+	: expression
+	| (VAR | type) expression
 	;
 
 expression

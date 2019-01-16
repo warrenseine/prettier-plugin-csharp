@@ -669,6 +669,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
             int j = __refvalue(tr, int);
             Params(a: t, b: t);
             Params(ref c, out c);
+            Params(out var d, out Test d);
         }
         void Params(ref dynamic a, out dynamic b, params dynamic[] c) {}
         void Params(out dynamic a = 2, ref dynamic c = default(dynamic), params dynamic[][] c) {}

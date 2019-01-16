@@ -210,18 +210,41 @@ function printArgumentList(path, options, print) {
 function printArgument(path, options, print) {
   const node = path.getValue();
   const identifier = getAny(node, "identifier");
-  const refoutIndex = node.children.findIndex(
-    child => isSymbol(child, "ref") || isSymbol(child, "out")
-  );
+  const hasRef = node.children.find(child => isSymbol(child, "ref"));
+  const hasOut = node.children.find(child => isSymbol(child, "out"));
 
   const docs = [];
 
   if (identifier) {
-    docs.push(path.call(print, "identifier", 0), softline, ":", line);
+    docs.push(path.call(print, "identifier", 0), ":", " ");
   }
 
-  if (refoutIndex >= 0) {
-    docs.push(path.call(print, "children", refoutIndex), line);
+  if (hasRef) {
+    docs.push("ref", " ");
+  }
+
+  if (hasOut) {
+    docs.push("out", " ");
+  }
+
+  docs.push(path.call(print, "typed_argument", 0));
+
+  return group(concat(docs));
+}
+
+function printTypedArgument(path, options, print) {
+  const node = path.getValue();
+  const type = getAny(node, "type");
+  const hasVar = node.children.find(child => isSymbol(child, "var"));
+
+  const docs = [];
+
+  if (hasVar) {
+    docs.push("var", " ");
+  }
+
+  if (type) {
+    docs.push(path.call(print, type, 0), " ");
   }
 
   docs.push(path.call(print, "expression", 0));
@@ -3309,6 +3332,8 @@ function printNode(path, options, print) {
       return printArgumentList(path, options, print);
     case "argument":
       return printArgument(path, options, print);
+    case "typed_argument":
+      return printTypedArgument(path, options, print);
     case "is_type":
       return printIsType(path, options, print);
     case "type":

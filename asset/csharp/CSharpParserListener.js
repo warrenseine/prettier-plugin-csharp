@@ -84,6 +84,12 @@ CSharpParserListener.prototype.enterArgument = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#argument.
 CSharpParserListener.prototype.exitArgument = function(ctx) {};
 
+// Enter a parse tree produced by CSharpParser#typed_argument.
+CSharpParserListener.prototype.enterTyped_argument = function(ctx) {};
+
+// Exit a parse tree produced by CSharpParser#typed_argument.
+CSharpParserListener.prototype.exitTyped_argument = function(ctx) {};
+
 // Enter a parse tree produced by CSharpParser#expression.
 CSharpParserListener.prototype.enterExpression = function(ctx) {};
 
