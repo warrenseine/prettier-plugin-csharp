@@ -71,6 +71,8 @@ namespace My.Moy
             a.a.d().e().a->c.a++.b().a;
 
             var x = 1 * 1 + 1 * 1 + (1+(1+1)) + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1  + 1 + 1 + 1;
+
+            var y = a is Dictionary<string, object> dict ? 42 : 51;
         }
 
         [method: Obsolete]

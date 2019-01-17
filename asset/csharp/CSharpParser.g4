@@ -272,7 +272,7 @@ generic_dimension_specifier
 	;
 
 isType
-	: base_type (rank_specifier | '*')* '?'?
+	: base_type (rank_specifier | '*')* '?'? identifier?
 	;
 
 lambda_expression

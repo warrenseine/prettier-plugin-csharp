@@ -95,6 +95,8 @@ namespace My.Moy
                 1 +
                 1 +
                 1;
+
+            var y = a is Dictionary<string, object> dict ? 42 : 51;
         }
 
         [method: Obsolete]
