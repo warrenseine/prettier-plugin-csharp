@@ -256,6 +256,17 @@ namespace My.Moy
                         return;
                     }
             }
+            switch (shape)
+            {
+                case Circle c:
+                    WriteLine($"circle with radius {c.Radius}");
+                    break;
+                case Rectangle s:
+                    WriteLine($"{s.Length} x {s.Height} square");
+                    break;
+                case null:
+                    throw new ArgumentNullException(nameof(shape));
+            }
             while (i < 10)
             {
                 ++i;

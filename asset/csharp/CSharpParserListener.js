@@ -766,6 +766,12 @@ CSharpParserListener.prototype.enterSwitch_label = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#switch_label.
 CSharpParserListener.prototype.exitSwitch_label = function(ctx) {};
 
+// Enter a parse tree produced by CSharpParser#switch_filter.
+CSharpParserListener.prototype.enterSwitch_filter = function(ctx) {};
+
+// Exit a parse tree produced by CSharpParser#switch_filter.
+CSharpParserListener.prototype.exitSwitch_filter = function(ctx) {};
+
 // Enter a parse tree produced by CSharpParser#statement_list.
 CSharpParserListener.prototype.enterStatement_list = function(ctx) {};
 

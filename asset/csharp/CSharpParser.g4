@@ -437,8 +437,12 @@ switch_section
 	;
 
 switch_label
-	: CASE expression ':'
+	: CASE type? expression switch_filter? ':'
 	| DEFAULT ':'
+	;
+
+switch_filter
+	: WHEN conditional_expression
 	;
 
 statement_list

@@ -2601,12 +2601,34 @@ function printSwitchSection(path, options, print) {
 function printSwitchLabel(path, options, print) {
   const node = path.getValue();
   const expression = getAny(node, "expression");
+  const type = getAny(node, "type");
+  const switchWhen = getAny(node, "switch_when");
 
   if (expression) {
-    return group(concat(["case", " ", path.call(print, expression, 0), ":"]));
+    const docs = ["case", " "];
+
+    if (type) {
+      docs.push(path.call(print, type, 0), " ");
+    }
+
+    docs.push(path.call(print, expression, 0));
+
+    if (switchWhen) {
+      docs.push(
+        indent(group(concat([line, path.call(print, switchWhen, 0), ":"])))
+      );
+    } else {
+      docs.push(":");
+    }
+
+    return group(concat(docs));
   }
 
   return group(concat(["default", ":"]));
+}
+
+function printSwitchFilter(path, options, print) {
+  return group(concat(["when", path.call(print, "conditional_expression", 0)]));
 }
 
 function printCheckedStatement(path, options, print) {
@@ -3589,6 +3611,8 @@ function printNode(path, options, print) {
       return printSwitchSection(path, options, print);
     case "switch_label":
       return printSwitchLabel(path, options, print);
+    case "switch_filter":
+      return printSwitchFilter(path, options, print);
     case "while_statement":
       return printWhileStatement(path, options, print);
     case "for_statement":
