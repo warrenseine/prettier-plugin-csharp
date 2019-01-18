@@ -259,15 +259,10 @@ function printType(path, options, print) {
 
 function printBaseType(path, options, print) {
   const node = path.getValue();
-  const simpleType = getAny(node, "simple_type");
-  const classType = getAny(node, "class_type");
+  const nonVoidType = getAny(node, ["simple_type", "class_type", "tuple_type"]);
 
-  if (simpleType) {
-    return path.call(print, simpleType, 0);
-  }
-
-  if (classType) {
-    return path.call(print, classType, 0);
+  if (nonVoidType) {
+    return path.call(print, nonVoidType, 0);
   }
 
   return concat(["void", "*"]);
@@ -294,6 +289,17 @@ function printSimpleType(path, options, print) {
 
 function printClassType(path, options, print) {
   return path.call(print, "children", 0);
+}
+
+function printTupleType(path, options, print) {
+  return group(
+    concat([
+      "(",
+      indent(concat([softline, printCommaList(path.map(print, "type"))])),
+      softline,
+      ")"
+    ])
+  );
 }
 
 function printPointerType(path, options, print) {
@@ -569,6 +575,10 @@ function printParenthesisExpression(path, options, print) {
   return group(
     concat(["(", softline, path.call(print, "expression", 0), softline, ")"])
   );
+}
+
+function printTupleExpression(path, options, print) {
+  return path.call(print, "children", 0);
 }
 
 function printSimpleNameExpression(path, options, print) {
@@ -2988,6 +2998,37 @@ function printCollectionInitializer(path, options, print) {
   );
 }
 
+function printTupleInitializer(path, options, print) {
+  return group(
+    concat([
+      "(",
+      indent(
+        concat([
+          softline,
+          printCommaList(path.map(print, "tuple_element_initializer"))
+        ])
+      ),
+      softline,
+      ")"
+    ])
+  );
+}
+
+function printTupleElementInitializer(path, options, print) {
+  const node = path.getValue();
+  const identifier = getAny(node, "identifier");
+
+  const docs = [];
+
+  if (identifier) {
+    docs.push(path.call(print, identifier, 0), ":", line);
+  }
+
+  docs.push(path.call(print, "non_assignment_expression", 0));
+
+  return group(concat(docs));
+}
+
 function printMemberInitializerList(path, options, print) {
   return printCommaList(path.map(print, "member_initializer"));
 }
@@ -3396,6 +3437,8 @@ function printNode(path, options, print) {
       return printBaseType(path, options, print);
     case "class_type":
       return printClassType(path, options, print);
+    case "tuple_type":
+      return printTupleType(path, options, print);
     case "predefined_type":
     case "simple_type":
     case "numeric_type":
@@ -3473,6 +3516,8 @@ function printNode(path, options, print) {
     case "string_literal":
     case "boolean_literal":
       return printLiteral(path, options, print);
+    case "tuple_initializer":
+      return printTupleInitializer(path, options, print);
     case "member_access_expression":
       return printMemberAccessExpression(path, options, print);
     case "literal_access_expression":
@@ -3481,6 +3526,8 @@ function printNode(path, options, print) {
       return printPrimaryExpression(path, options, print);
     case "unary_expression":
       return printUnaryExpression(path, options, print);
+    case "tuple_expression":
+      return printTupleExpression(path, options, print);
     case "parenthesis_expressions":
       return printParenthesisExpression(path, options, print);
     case "simple_name_expression":
@@ -3696,6 +3743,10 @@ function printNode(path, options, print) {
       return printObjectInitializer(path, options, print);
     case "collection_initializer":
       return printCollectionInitializer(path, options, print);
+    case "tuple_initializer":
+      return printTupleInitializer(path, options, print);
+    case "tuple_element_initializer":
+      return printTupleElementInitializer(path, options, print);
     case "member_initializer_list":
       return printMemberInitializerList(path, options, print);
     case "member_initializer":

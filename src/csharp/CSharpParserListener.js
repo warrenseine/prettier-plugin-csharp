@@ -60,6 +60,12 @@ CSharpParserListener.prototype.enterFloating_point_type = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#floating_point_type.
 CSharpParserListener.prototype.exitFloating_point_type = function(ctx) {};
 
+// Enter a parse tree produced by CSharpParser#tuple_type.
+CSharpParserListener.prototype.enterTuple_type = function(ctx) {};
+
+// Exit a parse tree produced by CSharpParser#tuple_type.
+CSharpParserListener.prototype.exitTuple_type = function(ctx) {};
+
 // Enter a parse tree produced by CSharpParser#class_type.
 CSharpParserListener.prototype.enterClass_type = function(ctx) {};
 
@@ -230,6 +236,12 @@ CSharpParserListener.prototype.enterParenthesisExpressions = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#parenthesisExpressions.
 CSharpParserListener.prototype.exitParenthesisExpressions = function(ctx) {};
 
+// Enter a parse tree produced by CSharpParser#tupleExpression.
+CSharpParserListener.prototype.enterTupleExpression = function(ctx) {};
+
+// Exit a parse tree produced by CSharpParser#tupleExpression.
+CSharpParserListener.prototype.exitTupleExpression = function(ctx) {};
+
 // Enter a parse tree produced by CSharpParser#memberAccessExpression.
 CSharpParserListener.prototype.enterMemberAccessExpression = function(ctx) {};
 
@@ -373,6 +385,20 @@ CSharpParserListener.prototype.enterCollection_initializer = function(ctx) {};
 
 // Exit a parse tree produced by CSharpParser#collection_initializer.
 CSharpParserListener.prototype.exitCollection_initializer = function(ctx) {};
+
+// Enter a parse tree produced by CSharpParser#tuple_initializer.
+CSharpParserListener.prototype.enterTuple_initializer = function(ctx) {};
+
+// Exit a parse tree produced by CSharpParser#tuple_initializer.
+CSharpParserListener.prototype.exitTuple_initializer = function(ctx) {};
+
+// Enter a parse tree produced by CSharpParser#tuple_element_initializer.
+CSharpParserListener.prototype.enterTuple_element_initializer = function(
+  ctx
+) {};
+
+// Exit a parse tree produced by CSharpParser#tuple_element_initializer.
+CSharpParserListener.prototype.exitTuple_element_initializer = function(ctx) {};
 
 // Enter a parse tree produced by CSharpParser#element_initializer.
 CSharpParserListener.prototype.enterElement_initializer = function(ctx) {};

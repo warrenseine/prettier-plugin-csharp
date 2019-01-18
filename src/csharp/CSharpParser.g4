@@ -28,6 +28,7 @@ type
 base_type
 	: simple_type
 	| class_type  // represents types: enum, class, interface, delegate, type_parameter
+	| tuple_type
 	| VOID '*'
 	;
 
@@ -57,6 +58,10 @@ integral_type
 floating_point_type 
 	: FLOAT
 	| DOUBLE
+	;
+
+tuple_type
+	: OPEN_PARENS type ( ',' type)* CLOSE_PARENS
 	;
 
 /** namespace_or_type_name, OBJECT, STRING */
@@ -173,27 +178,29 @@ primary_expression  // Null-conditional operators C# 6: https://msdn.microsoft.c
 	;
 
 primary_expression_start
-	: literal                                   #literalExpression
-	| identifier type_argument_list?            #simpleNameExpression
-	| OPEN_PARENS expression CLOSE_PARENS       #parenthesisExpressions
-	| predefined_type                           #memberAccessExpression
-	| qualified_alias_member                    #memberAccessExpression
-	| LITERAL_ACCESS                            #literalAccessExpression
-	| THIS                                      #thisReferenceExpression
-	| BASE ('.' identifier type_argument_list? | '[' expression_list ']') #baseAccessExpression
+	: literal                                   							#literalExpression
+	| identifier type_argument_list?            							#simpleNameExpression
+	| OPEN_PARENS expression CLOSE_PARENS       							#parenthesisExpressions
+	| tuple_initializer										       			#tupleExpression
+	| predefined_type                           							#memberAccessExpression
+	| qualified_alias_member                    							#memberAccessExpression
+	| LITERAL_ACCESS                            							#literalAccessExpression
+	| THIS                                      							#thisReferenceExpression
+	| BASE ('.' identifier type_argument_list? | '[' expression_list ']') 	#baseAccessExpression
 	| NEW (type (object_creation_expression
 	             | object_or_collection_initializer
 	             | '[' expression_list ']' rank_specifier* array_initializer?
 	             | rank_specifier+ array_initializer)
 	      | anonymous_object_initializer
-	      | rank_specifier array_initializer)                       #objectCreationExpression
-	| TYPEOF OPEN_PARENS (unbound_type_name | type | VOID) CLOSE_PARENS   #typeofExpression
-	| CHECKED OPEN_PARENS expression CLOSE_PARENS                   #checkedExpression
-	| UNCHECKED OPEN_PARENS expression CLOSE_PARENS                 #uncheckedExpression
-	| DEFAULT (OPEN_PARENS type CLOSE_PARENS)?                      #defaultValueExpression
-	| ASYNC? DELEGATE (OPEN_PARENS explicit_anonymous_function_parameter_list? CLOSE_PARENS)? block #anonymousMethodExpression
-	| SIZEOF OPEN_PARENS type CLOSE_PARENS                          #sizeofExpression
-	| NAMEOF OPEN_PARENS (identifier '.')* identifier CLOSE_PARENS  #nameofExpression
+	      | rank_specifier array_initializer)                       		#objectCreationExpression
+	| TYPEOF OPEN_PARENS (unbound_type_name | type | VOID) CLOSE_PARENS   	#typeofExpression
+	| CHECKED OPEN_PARENS expression CLOSE_PARENS                   		#checkedExpression
+	| UNCHECKED OPEN_PARENS expression CLOSE_PARENS                 		#uncheckedExpression
+	| DEFAULT (OPEN_PARENS type CLOSE_PARENS)?                      		#defaultValueExpression
+	| ASYNC? DELEGATE (OPEN_PARENS
+	  explicit_anonymous_function_parameter_list? CLOSE_PARENS)? block 		#anonymousMethodExpression
+	| SIZEOF OPEN_PARENS type CLOSE_PARENS                          		#sizeofExpression
+	| NAMEOF OPEN_PARENS (identifier '.')* identifier CLOSE_PARENS  		#nameofExpression
 	;
 
 member_access
@@ -241,6 +248,14 @@ initializer_value
 
 collection_initializer
 	: OPEN_BRACE element_initializer (',' element_initializer)* ','? CLOSE_BRACE
+	;
+
+tuple_initializer
+	: OPEN_PARENS tuple_element_initializer (',' tuple_element_initializer)* CLOSE_PARENS
+	;
+
+tuple_element_initializer
+	: (identifier ':')? non_assignment_expression
 	;
 
 element_initializer
