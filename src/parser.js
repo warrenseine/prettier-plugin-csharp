@@ -1,15 +1,36 @@
 "use strict";
 
 const antlr4 = require("antlr4");
+const { ErrorListener } = require("antlr4/error/ErrorListener");
 const CSharpLexer = require("../asset/csharp/CSharpLexer");
 const CSharpParser = require("../asset/csharp/CSharpParser");
 const _ = require("lodash");
 
+class ThrowingErrorListener extends ErrorListener {
+  syntaxError(recognizer, offendingSymbol, line, column, msg, e) {
+    const error = new SyntaxError(msg + " (" + line + ":" + column + ")");
+    error.loc = {
+      start: {
+        line,
+        column
+      }
+    };
+    throw error;
+  }
+}
+
 function parseCSharp(text) {
+  const errorListener = new ThrowingErrorListener();
   const chars = new antlr4.InputStream(text);
   const lexer = new CSharpLexer.CSharpLexer(chars);
+  lexer.removeErrorListeners();
+  lexer.addErrorListener(errorListener);
+
   const tokens = new antlr4.CommonTokenStream(lexer);
   const parser = new CSharpParser.CSharpParser(tokens);
+  parser.removeErrorListeners();
+  parser.addErrorListener(errorListener);
+
   const compilationUnit = parser.compilation_unit();
   const result = simplifyTree(compilationUnit);
   result.comments = tokens.tokens
