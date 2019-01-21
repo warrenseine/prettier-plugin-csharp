@@ -2769,7 +2769,8 @@ function printCapturingStatement(path, options, print) {
     "pointer_type",
     "fixed_pointer_declarators"
   ]);
-  const hasBraces = !!getAny(node["embedded_statement"][0], "block");
+  const embeddedStatement = getDescendant(node, "embedded_statement");
+  const hasBraces = !!getAny(embeddedStatement, "block");
 
   const docs = [
     group(
@@ -2800,9 +2801,17 @@ function printCapturingStatement(path, options, print) {
     )
   ];
 
+  const onlyContainsACapturingStatement =
+    !hasBraces &&
+    !!getAny(embeddedStatement, [
+      "using_statement",
+      "fixed_statement",
+      "lock_statement"
+    ]);
+
   const statementDocs = path.call(print, "embedded_statement", 0);
 
-  if (hasBraces) {
+  if (hasBraces || onlyContainsACapturingStatement) {
     docs.push(hardline, statementDocs);
   } else {
     docs.push(indent(group(concat([hardline, statementDocs]))));
