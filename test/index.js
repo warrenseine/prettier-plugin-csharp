@@ -4,7 +4,7 @@ const fs = require("fs");
 const tests = ["AllInOne"];
 
 for (let test of tests) {
-  const referenceFile = `asset/csharp/examples/${test}.cs`;
+  const referenceFile = `test/${test}.cs`;
   const formattedFile = `test/${test}.Formatted.cs`;
 
   const referenceCode = fs.readFileSync(referenceFile, "utf8");
