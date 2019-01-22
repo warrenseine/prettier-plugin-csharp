@@ -2654,15 +2654,21 @@ function printCheckedExpression(path, options, print) {
 }
 
 function printDefaultValueExpression(path, options, print) {
-  return group(
-    concat([
-      "default",
+  const node = path.getValue();
+  const type = getAny(node, "type");
+
+  const docs = ["default"];
+
+  if (type) {
+    docs.push(
       "(",
       indent(group(concat([softline, path.call(print, "type", 0)]))),
       softline,
       ")"
-    ])
-  );
+    );
+  }
+
+  return group(concat(docs));
 }
 
 function printAnonymousMethodExpression(path, options, print) {

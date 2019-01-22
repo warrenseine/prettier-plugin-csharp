@@ -100,6 +100,7 @@ namespace My.Moy
             local3 = local4 = 1;
             var local5 = null as Action ?? null;
             var local6 = local5 is Action;
+            string local7 = default;
 
             var u = 1u;
             var U = 1U;

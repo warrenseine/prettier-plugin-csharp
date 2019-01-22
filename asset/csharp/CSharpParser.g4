@@ -190,10 +190,9 @@ primary_expression_start
 	| TYPEOF OPEN_PARENS (unbound_type_name | type | VOID) CLOSE_PARENS   #typeofExpression
 	| CHECKED OPEN_PARENS expression CLOSE_PARENS                   #checkedExpression
 	| UNCHECKED OPEN_PARENS expression CLOSE_PARENS                 #uncheckedExpression
-	| DEFAULT OPEN_PARENS type CLOSE_PARENS                         #defaultValueExpression
+	| DEFAULT (OPEN_PARENS type CLOSE_PARENS)?                      #defaultValueExpression
 	| ASYNC? DELEGATE (OPEN_PARENS explicit_anonymous_function_parameter_list? CLOSE_PARENS)? block #anonymousMethodExpression
 	| SIZEOF OPEN_PARENS type CLOSE_PARENS                          #sizeofExpression
-	// C# 6: https://msdn.microsoft.com/en-us/library/dn986596.aspx
 	| NAMEOF OPEN_PARENS (identifier '.')* identifier CLOSE_PARENS  #nameofExpression
 	;
 
