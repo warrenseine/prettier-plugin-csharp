@@ -2,8 +2,8 @@
 
 const antlr4 = require("antlr4");
 const { ErrorListener } = require("antlr4/error/ErrorListener");
-const CSharpLexer = require("../asset/csharp/CSharpLexer");
-const CSharpParser = require("../asset/csharp/CSharpParser");
+const CSharpLexer = require("./csharp/CSharpLexer");
+const CSharpParser = require("./csharp/CSharpParser");
 const _ = require("lodash");
 
 class ThrowingErrorListener extends ErrorListener {

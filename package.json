@@ -17,7 +17,7 @@
     "lint": "eslint src/**",
     "test:debug": "node --lazy --inspect-brk test",
     "test": "node test && git diff -- test/*.Formatted.cs",
-    "generate-parser": "antlr4 -Dlanguage=JavaScript asset/csharp/*.g4 && dos2unix asset/csharp/* && sed -i '1d' asset/csharp/*.js && prettier --write \"asset/csharp/*.js\"",
+    "generate-parser": "antlr4 -Dlanguage=JavaScript src/csharp/*.g4 && dos2unix src/csharp/* && sed -i '1d' src/csharp/*.js && prettier --write \"src/csharp/*.js\"",
     "prettier": "prettier --plugin=. --parser=cs",
     "prettier:debug": "node --lazy --inspect-brk src/debug.js"
   },
