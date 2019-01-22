@@ -33,9 +33,7 @@
 
 ## Intro
 
-Prettier C# adds C# support to the [Prettier](https://github.com/prettier/prettier) code formatter. Like Prettier,
-it is opinionated and restricts style options to a minimum. It runs where Prettier runs, including CI and pre-commit
-hooks.
+Prettier C# adds C# support to the [Prettier](https://github.com/prettier/prettier) code formatter. Like Prettier, it is opinionated and restricts style options to a minimum. It runs where Prettier runs, including CI and pre-commit hooks.
 
 ## WORK IN PROGRESS
 
@@ -57,25 +55,27 @@ prettier --plugin=prettier-csharp --parser=cs --write "**/*.cs"
 
 ## How it works
 
-The plugin is written in JavaScript. It depends on the JavaScript port of ANTLR and an
-[unmodified unofficial C# 6 grammar from ANTLR](https://github.com/antlr/grammars-v4/tree/master/csharp).
-The grammar is precompiled to plain JavaScript and ready to use in the project.
+The plugin is written in JavaScript. It depends on the JavaScript port of ANTLR and relies on a fork of an [unofficial C# 6 grammar from ANTLR](https://github.com/antlr/grammars-v4/tree/master/csharp). The grammar is precompiled to plain JavaScript and ready to use in the project.
 
 ## Contributing
 
-### Updating the grammar
+### Installing dependencies
 
-- Copy the latest version of the [grammar](https://github.com/antlr/grammars-v4/tree/master/csharp) to `asset/csharp`
-- Install ANTLR:
+Use your favorite Node package manager:
 
 ```bash
-brew install antlr4 # on macOS
+yarn
 ```
 
+### Updating the grammar
+
+The grammar supports C# 6 as a baseline, and tries to catch up with recent additions. Contributions are welcome. To update the grammar:
+
+- Update `src/csharp/*.g4` files.
+- Install ANTLR with your favorite package manager ([Homebrew](https://brew.sh/) on macOS, [Chocolatey](https://chocolatey.org/) on Windows).
 - Generate the JavaScript parser:
 
 ```bash
-yarn install
 yarn generate-parser
 ```
 
@@ -93,8 +93,7 @@ To test it out on an actual C# file:
 
 - Clone this repository.
 - Run `yarn`.
-- Create a file called `test.cs`.
-- Run `yarn prettier test.cs` to check the output.
+- Run `yarn prettier Your/File.cs` to check the output.
 
 ## Maintainers
 
