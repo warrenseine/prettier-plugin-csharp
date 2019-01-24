@@ -230,10 +230,10 @@ namespace My.Moy
                 new Dictionary<int, string> { { 1, "" }, { 2, "a" } };
             float[] a = new float[] { 0f, 1.1f };
             int[,,] cube =
-                {
-                    { { 111, 112 }, { 121, 122 } },
-                    { { 211, 212 }, { 221, 222 } }
-                };
+            {
+                { { 1111, 1121 }, { 1211, 1221 } },
+                { { 2111, 2121 }, { 2211, 2221 } }
+            };
             int[][] jagged = { { 111 }, { 121, 122 } };
             int[][,] arr = new int[5][,]; // as opposed to new int[][5,5]
             arr[0] = new int[5, 5]; // as opposed to arr[0,0] = new int[5];

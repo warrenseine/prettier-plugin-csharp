@@ -9,6 +9,7 @@ const line = docBuilders.line;
 const softline = docBuilders.softline;
 const trim = docBuilders.trim;
 const group = docBuilders.group;
+const conditionalGroup = docBuilders.conditionalGroup;
 const indent = docBuilders.indent;
 const dedentToRoot = docBuilders.dedentToRoot;
 const doublehardline = concat([hardline, hardline]);
@@ -2101,11 +2102,25 @@ function printVariableDeclarator(path, options, print) {
   const docs = [path.call(print, "identifier", 0)];
 
   if (initializer) {
-    docs.push(
-      " ",
-      "=",
-      indent(group(concat([line, path.call(print, initializer, 0)])))
+    docs.push(" ", "=");
+
+    const arrayInitializer = getDescendant(
+      node[initializer][0],
+      "array_initializer"
     );
+
+    const initializerPart = [line, path.call(print, initializer, 0)];
+
+    if (arrayInitializer) {
+      docs.push(
+        conditionalGroup([
+          indent(group(concat(initializerPart))),
+          group(concat(initializerPart))
+        ])
+      );
+    } else {
+      docs.push(indent(group(concat(initializerPart))));
+    }
   }
 
   return group(concat(docs));
