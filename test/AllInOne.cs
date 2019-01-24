@@ -760,6 +760,11 @@ namespace Comments.XmlComments.UndocumentedKeywords
         public string Name => First + " " + Last;
         public int this[long id] => id;
 
+        private void NoOp()
+        {
+            // Empty body.
+        }
+
         async void Test()
         {
             // Using static

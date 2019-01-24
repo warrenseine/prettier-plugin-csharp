@@ -938,6 +938,11 @@ namespace Comments.XmlComments.UndocumentedKeywords
 
         public int this[long id] => id
 
+        private void NoOp()
+        {
+            // Empty body.
+        }
+
         async void Test()
         {
             // Using static

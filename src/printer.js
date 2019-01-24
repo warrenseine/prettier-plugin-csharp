@@ -1312,6 +1312,8 @@ function printBlock(path, options, print) {
     docs.push(indent(concat([hardline, path.call(print, statementList, 0)])));
   }
 
+  docs.push(printDanglingComments(path, options));
+
   // FIXME: Decide whether we want a `hardline` or a `line` (which would inline empty blocks like `int F() { }`).
   docs.push(hardline, "}");
 
@@ -3838,6 +3840,8 @@ function isLastComment(path) {
 function printComment(path, options) {
   const node = path.getValue();
 
+  node.printed = true;
+
   if (node.value.startsWith("//")) {
     return node.value.trimRight();
   } else if (node.value.startsWith("#")) {
@@ -3905,6 +3909,29 @@ function handleOwnLineComments(
   }
 
   return false;
+}
+
+function printDanglingComments(path, options) {
+  const parts = [];
+  const node = path.getValue();
+
+  if (!node || !node.comments) {
+    return "";
+  }
+
+  path.each(commentPath => {
+    const comment = commentPath.getValue();
+
+    if (comment && !comment.leading && !comment.trailing) {
+      parts.push(printComment(commentPath, options));
+    }
+  }, "comments");
+
+  if (parts.length === 0) {
+    return "";
+  }
+
+  return indent(concat([hardline, join(hardline, parts)]));
 }
 
 module.exports = {
