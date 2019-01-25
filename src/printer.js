@@ -295,11 +295,29 @@ function printTupleType(path, options, print) {
   return group(
     concat([
       "(",
-      indent(concat([softline, printCommaList(path.map(print, "type"))])),
+      indent(
+        concat([
+          softline,
+          printCommaList(path.map(print, "tuple_element_type"))
+        ])
+      ),
       softline,
       ")"
     ])
   );
+}
+
+function printTupleElementType(path, options, print) {
+  const node = path.getValue();
+  const identifier = getAny(node, "identifier");
+
+  const docs = [path.call(print, "type", 0)];
+
+  if (identifier) {
+    docs.push(" ", path.call(print, "identifier", 0));
+  }
+
+  return group(concat(docs));
 }
 
 function printPointerType(path, options, print) {
@@ -2111,7 +2129,9 @@ function printVariableDeclarator(path, options, print) {
     "variable_initializer"
   ]);
 
-  const docs = [path.call(print, "identifier", 0)];
+  const identifier = getAny(node, ["local_variable_identifier", "identifier"]);
+
+  const docs = [path.call(print, identifier, 0)];
 
   if (initializer) {
     docs.push(" ", "=");
@@ -2136,6 +2156,23 @@ function printVariableDeclarator(path, options, print) {
   }
 
   return group(concat(docs));
+}
+
+function printLocalVariableIdentifier(path, options, print) {
+  const node = path.getValue();
+
+  if (node.children.length === 1) {
+    return path.call(print, "identifier", 0);
+  }
+
+  return group(
+    concat([
+      "(",
+      indent(concat([softline, printCommaList(path.map(print, "identifier"))])),
+      softline,
+      ")"
+    ])
+  );
 }
 
 function printVariableDeclaration(path, options, print) {
@@ -3439,6 +3476,8 @@ function printNode(path, options, print) {
       return printClassType(path, options, print);
     case "tuple_type":
       return printTupleType(path, options, print);
+    case "tuple_element_type":
+      return printTupleElementType(path, options, print);
     case "predefined_type":
     case "simple_type":
     case "numeric_type":
@@ -3649,6 +3688,8 @@ function printNode(path, options, print) {
       return printVariableDeclaration(path, options, print);
     case "local_constant_declaration":
       return printLocalConstantDeclaration(path, options, print);
+    case "local_variable_identifier":
+      return printLocalVariableIdentifier(path, options, print);
     case "expression_statement":
       return printExpressionStatement(path, options, print);
     case "empty_statement":

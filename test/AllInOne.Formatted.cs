@@ -412,11 +412,9 @@ namespace My.Moy
             var unnamed = ("one", "two", "three");
             var named = (first: "one", second: "two");
             (string, long) foo = ("foo", 42);
-
-            // (int? a, int? b) nullableMembers = (5, 10);
+            (int? a, int? b) nullableMembers = (5, 10);
             (int, (int, int)) nestedTuple = (1, (2, 3));
-
-            // var (a, b, c) = LookupName(42);
+            var (a, b, c) = LookupName(42);
             (a, b, c) = (a, b, c);
             return (named.first, named.second, id);
         }

@@ -61,7 +61,11 @@ floating_point_type
 	;
 
 tuple_type
-	: OPEN_PARENS type ( ',' type)* CLOSE_PARENS
+	: OPEN_PARENS tuple_element_type ( ',' tuple_element_type)* CLOSE_PARENS
+	;
+
+tuple_element_type
+	: type identifier?
 	;
 
 /** namespace_or_type_name, OBJECT, STRING */
@@ -425,10 +429,15 @@ local_variable_declaration
 local_variable_type 
 	: VAR
 	| type
-;
+	;
 
 local_variable_declarator
-	: identifier ('=' local_variable_initializer)?
+	: local_variable_identifier ('=' local_variable_initializer)?
+	;
+
+local_variable_identifier
+	: identifier
+	| OPEN_PARENS identifier (',' identifier)* CLOSE_PARENS
 	;
 
 local_variable_initializer

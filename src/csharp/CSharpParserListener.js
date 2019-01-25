@@ -66,6 +66,12 @@ CSharpParserListener.prototype.enterTuple_type = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#tuple_type.
 CSharpParserListener.prototype.exitTuple_type = function(ctx) {};
 
+// Enter a parse tree produced by CSharpParser#tuple_element_type.
+CSharpParserListener.prototype.enterTuple_element_type = function(ctx) {};
+
+// Exit a parse tree produced by CSharpParser#tuple_element_type.
+CSharpParserListener.prototype.exitTuple_element_type = function(ctx) {};
+
 // Enter a parse tree produced by CSharpParser#class_type.
 CSharpParserListener.prototype.enterClass_type = function(ctx) {};
 
@@ -753,6 +759,14 @@ CSharpParserListener.prototype.enterLocal_variable_declarator = function(
 
 // Exit a parse tree produced by CSharpParser#local_variable_declarator.
 CSharpParserListener.prototype.exitLocal_variable_declarator = function(ctx) {};
+
+// Enter a parse tree produced by CSharpParser#local_variable_identifier.
+CSharpParserListener.prototype.enterLocal_variable_identifier = function(
+  ctx
+) {};
+
+// Exit a parse tree produced by CSharpParser#local_variable_identifier.
+CSharpParserListener.prototype.exitLocal_variable_identifier = function(ctx) {};
 
 // Enter a parse tree produced by CSharpParser#local_variable_initializer.
 CSharpParserListener.prototype.enterLocal_variable_initializer = function(
