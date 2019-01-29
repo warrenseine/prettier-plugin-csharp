@@ -567,7 +567,11 @@ function printUnaryExpression(path, options, print) {
   return group(concat(path.map(print, "children")));
 }
 
-function printMemberAccessExpression(path, options, print) {
+function printPredefinedTypeExpression(path, options, print) {
+  return path.call(print, "children", 0);
+}
+
+function printQualifiedAliasMemberExpression(path, options, print) {
   return path.call(print, "children", 0);
 }
 
@@ -3527,8 +3531,10 @@ function printNode(path, options, print) {
       return printLiteral(path, options, print);
     case "tuple_initializer":
       return printTupleInitializer(path, options, print);
-    case "member_access_expression":
-      return printMemberAccessExpression(path, options, print);
+    case "predefined_type_expression":
+      return printPredefinedTypeExpression(path, options, print);
+    case "qualified_alias_member_expression":
+      return printQualifiedAliasMemberExpression(path, options, print);
     case "literal_access_expression":
       return printLiteralAccessExpression(path, options, print);
     case "primary_expression_start":

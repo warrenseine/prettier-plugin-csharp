@@ -6250,6 +6250,34 @@ NewExpressionContext.prototype.exitRule = function(listener) {
   }
 };
 
+function QualifiedAliasMemberExpressionContext(parser, ctx) {
+  Primary_expression_startContext.call(this, parser);
+  Primary_expression_startContext.prototype.copyFrom.call(this, ctx);
+  return this;
+}
+
+QualifiedAliasMemberExpressionContext.prototype = Object.create(
+  Primary_expression_startContext.prototype
+);
+QualifiedAliasMemberExpressionContext.prototype.constructor = QualifiedAliasMemberExpressionContext;
+
+CSharpParser.QualifiedAliasMemberExpressionContext = QualifiedAliasMemberExpressionContext;
+
+QualifiedAliasMemberExpressionContext.prototype.qualified_alias_member = function() {
+  return this.getTypedRuleContext(Qualified_alias_memberContext, 0);
+};
+QualifiedAliasMemberExpressionContext.prototype.enterRule = function(listener) {
+  if (listener instanceof CSharpParserListener) {
+    listener.enterQualifiedAliasMemberExpression(this);
+  }
+};
+
+QualifiedAliasMemberExpressionContext.prototype.exitRule = function(listener) {
+  if (listener instanceof CSharpParserListener) {
+    listener.exitQualifiedAliasMemberExpression(this);
+  }
+};
+
 function BaseAccessExpressionContext(parser, ctx) {
   Primary_expression_startContext.call(this, parser);
   Primary_expression_startContext.prototype.copyFrom.call(this, ctx);
@@ -6521,6 +6549,34 @@ TupleExpressionContext.prototype.exitRule = function(listener) {
   }
 };
 
+function PredefinedTypeExpressionContext(parser, ctx) {
+  Primary_expression_startContext.call(this, parser);
+  Primary_expression_startContext.prototype.copyFrom.call(this, ctx);
+  return this;
+}
+
+PredefinedTypeExpressionContext.prototype = Object.create(
+  Primary_expression_startContext.prototype
+);
+PredefinedTypeExpressionContext.prototype.constructor = PredefinedTypeExpressionContext;
+
+CSharpParser.PredefinedTypeExpressionContext = PredefinedTypeExpressionContext;
+
+PredefinedTypeExpressionContext.prototype.predefined_type = function() {
+  return this.getTypedRuleContext(Predefined_typeContext, 0);
+};
+PredefinedTypeExpressionContext.prototype.enterRule = function(listener) {
+  if (listener instanceof CSharpParserListener) {
+    listener.enterPredefinedTypeExpression(this);
+  }
+};
+
+PredefinedTypeExpressionContext.prototype.exitRule = function(listener) {
+  if (listener instanceof CSharpParserListener) {
+    listener.exitPredefinedTypeExpression(this);
+  }
+};
+
 function UncheckedExpressionContext(parser, ctx) {
   Primary_expression_startContext.call(this, parser);
   Primary_expression_startContext.prototype.copyFrom.call(this, ctx);
@@ -6586,38 +6642,6 @@ SimpleNameExpressionContext.prototype.enterRule = function(listener) {
 SimpleNameExpressionContext.prototype.exitRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.exitSimpleNameExpression(this);
-  }
-};
-
-function MemberAccessExpressionContext(parser, ctx) {
-  Primary_expression_startContext.call(this, parser);
-  Primary_expression_startContext.prototype.copyFrom.call(this, ctx);
-  return this;
-}
-
-MemberAccessExpressionContext.prototype = Object.create(
-  Primary_expression_startContext.prototype
-);
-MemberAccessExpressionContext.prototype.constructor = MemberAccessExpressionContext;
-
-CSharpParser.MemberAccessExpressionContext = MemberAccessExpressionContext;
-
-MemberAccessExpressionContext.prototype.predefined_type = function() {
-  return this.getTypedRuleContext(Predefined_typeContext, 0);
-};
-
-MemberAccessExpressionContext.prototype.qualified_alias_member = function() {
-  return this.getTypedRuleContext(Qualified_alias_memberContext, 0);
-};
-MemberAccessExpressionContext.prototype.enterRule = function(listener) {
-  if (listener instanceof CSharpParserListener) {
-    listener.enterMemberAccessExpression(this);
-  }
-};
-
-MemberAccessExpressionContext.prototype.exitRule = function(listener) {
-  if (listener instanceof CSharpParserListener) {
-    listener.exitMemberAccessExpression(this);
   }
 };
 
@@ -6784,14 +6808,14 @@ CSharpParser.prototype.primary_expression_start = function() {
         break;
 
       case 5:
-        localctx = new MemberAccessExpressionContext(this, localctx);
+        localctx = new PredefinedTypeExpressionContext(this, localctx);
         this.enterOuterAlt(localctx, 5);
         this.state = 731;
         this.predefined_type();
         break;
 
       case 6:
-        localctx = new MemberAccessExpressionContext(this, localctx);
+        localctx = new QualifiedAliasMemberExpressionContext(this, localctx);
         this.enterOuterAlt(localctx, 6);
         this.state = 732;
         this.qualified_alias_member();

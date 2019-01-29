@@ -248,11 +248,21 @@ CSharpParserListener.prototype.enterTupleExpression = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#tupleExpression.
 CSharpParserListener.prototype.exitTupleExpression = function(ctx) {};
 
-// Enter a parse tree produced by CSharpParser#memberAccessExpression.
-CSharpParserListener.prototype.enterMemberAccessExpression = function(ctx) {};
+// Enter a parse tree produced by CSharpParser#predefinedTypeExpression.
+CSharpParserListener.prototype.enterPredefinedTypeExpression = function(ctx) {};
 
-// Exit a parse tree produced by CSharpParser#memberAccessExpression.
-CSharpParserListener.prototype.exitMemberAccessExpression = function(ctx) {};
+// Exit a parse tree produced by CSharpParser#predefinedTypeExpression.
+CSharpParserListener.prototype.exitPredefinedTypeExpression = function(ctx) {};
+
+// Enter a parse tree produced by CSharpParser#qualifiedAliasMemberExpression.
+CSharpParserListener.prototype.enterQualifiedAliasMemberExpression = function(
+  ctx
+) {};
+
+// Exit a parse tree produced by CSharpParser#qualifiedAliasMemberExpression.
+CSharpParserListener.prototype.exitQualifiedAliasMemberExpression = function(
+  ctx
+) {};
 
 // Enter a parse tree produced by CSharpParser#literalAccessExpression.
 CSharpParserListener.prototype.enterLiteralAccessExpression = function(ctx) {};

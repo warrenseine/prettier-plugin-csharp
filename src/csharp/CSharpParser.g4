@@ -186,8 +186,8 @@ primary_expression_start
 	| simple_name                                                           #simpleNameExpression
 	| OPEN_PARENS expression CLOSE_PARENS                                   #parenthesisExpressions
 	| tuple_initializer                                                     #tupleExpression
-	| predefined_type                                                       #memberAccessExpression
-	| qualified_alias_member                                                #memberAccessExpression
+	| predefined_type                                                       #predefinedTypeExpression
+	| qualified_alias_member                                                #qualifiedAliasMemberExpression
 	| LITERAL_ACCESS                                                        #literalAccessExpression
 	| THIS                                                                  #thisReferenceExpression
 	| BASE ('.' identifier type_argument_list? | '[' expression_list ']')   #baseAccessExpression
