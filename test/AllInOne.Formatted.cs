@@ -73,10 +73,7 @@ namespace My.Moy
 
         static A()
         {
-            a.a.d()
-                .e()
-                .a->c.a++.b()
-                .a;
+            a.a.d().e().a->c.a++.b().a;
 
             var x =
                 1 * 1 +
@@ -599,13 +596,15 @@ namespace My.Moy
             void AsyncAnonymous() // C # 5 feature
             {
                 var task =
-                    Task.Factory.StartNew(async () =>
-                    {
-                        return
-                            await
-                                new WebClient()
-                                .DownloadStringTaskAsync("http://example.com");
-                    });
+                    Task
+                        .Factory
+                        .StartNew(async () =>
+                        {
+                            return
+                                await
+                                    new WebClient()
+                                        .DownloadStringTaskAsync("http://example.com");
+                        });
             }
         }
     }

@@ -272,11 +272,11 @@ CSharpParserListener.prototype.enterBaseAccessExpression = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#baseAccessExpression.
 CSharpParserListener.prototype.exitBaseAccessExpression = function(ctx) {};
 
-// Enter a parse tree produced by CSharpParser#objectCreationExpression.
-CSharpParserListener.prototype.enterObjectCreationExpression = function(ctx) {};
+// Enter a parse tree produced by CSharpParser#newExpression.
+CSharpParserListener.prototype.enterNewExpression = function(ctx) {};
 
-// Exit a parse tree produced by CSharpParser#objectCreationExpression.
-CSharpParserListener.prototype.exitObjectCreationExpression = function(ctx) {};
+// Exit a parse tree produced by CSharpParser#newExpression.
+CSharpParserListener.prototype.exitNewExpression = function(ctx) {};
 
 // Enter a parse tree produced by CSharpParser#typeofExpression.
 CSharpParserListener.prototype.enterTypeofExpression = function(ctx) {};
@@ -322,11 +322,11 @@ CSharpParserListener.prototype.enterNameofExpression = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#nameofExpression.
 CSharpParserListener.prototype.exitNameofExpression = function(ctx) {};
 
-// Enter a parse tree produced by CSharpParser#member_access.
-CSharpParserListener.prototype.enterMember_access = function(ctx) {};
+// Enter a parse tree produced by CSharpParser#simple_name.
+CSharpParserListener.prototype.enterSimple_name = function(ctx) {};
 
-// Exit a parse tree produced by CSharpParser#member_access.
-CSharpParserListener.prototype.exitMember_access = function(ctx) {};
+// Exit a parse tree produced by CSharpParser#simple_name.
+CSharpParserListener.prototype.exitSimple_name = function(ctx) {};
 
 // Enter a parse tree produced by CSharpParser#bracket_expression.
 CSharpParserListener.prototype.enterBracket_expression = function(ctx) {};

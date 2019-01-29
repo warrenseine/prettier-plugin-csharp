@@ -507,47 +507,35 @@ function printExpression(path, options, print) {
   return path.call(print, "children", 0);
 }
 
+function printPrimaryExpressionStart(path, options, print) {
+  return path.call(print, "children", 0);
+}
+
 function printPrimaryExpression(path, options, print) {
-  const parts = [];
+  const parts = path.map(print, "children");
 
-  let currentPart = null;
+  // Partition over ".".
+  const [headPart, ...tailParts] = parts.reduce(
+    (groups, part) => {
+      if (part === ".") {
+        groups.push([]);
+      }
 
-  path.each(path => {
-    const child = path.getValue();
+      groups[groups.length - 1].push(part);
 
-    if (currentPart === null) {
-      currentPart = [];
-      parts.push(currentPart);
-    }
-
-    currentPart.push(print(path, options, print));
-
-    if (isType(child, "method_invocation")) {
-      currentPart = null;
-    }
-  }, "children");
-
-  const [headPart, ...tailParts] = parts;
+      return groups;
+    },
+    [[]]
+  );
 
   if (tailParts.length === 0) {
     return group(concat(headPart));
   }
 
-  const separator = tailParts.length >= 3 ? hardline : softline;
-
-  return group(
-    concat([
-      group(concat(headPart)),
-      indent(
-        group(
-          concat([
-            separator,
-            join(separator, tailParts.map(part => group(concat(part))))
-          ])
-        )
-      )
-    ])
-  );
+  return concat([
+    group(concat(headPart)),
+    indent(group(concat([softline, join(softline, tailParts.map(concat))])))
+  ]);
 }
 
 function printUnaryExpression(path, options, print) {
@@ -600,16 +588,7 @@ function printTupleExpression(path, options, print) {
 }
 
 function printSimpleNameExpression(path, options, print) {
-  const node = path.getValue();
-  const typeArgumentList = getAny(node, "type_argument_list");
-
-  const docs = [path.call(print, "identifier", 0)];
-
-  if (typeArgumentList) {
-    docs.push(softline, path.call(print, typeArgumentList, 0));
-  }
-
-  return group(concat(docs));
+  return path.call(print, "children", 0);
 }
 
 function printNamespaceMemberDeclarations(path, options, print) {
@@ -1297,18 +1276,11 @@ function printMemberName(path, options, print) {
   return path.call(print, "namespace_or_type_name", 0);
 }
 
-function printMemberAccess(path, options, print) {
+function printSimpleName(path, options, print) {
   const node = path.getValue();
   const typeArgumentList = getAny(node, "type_argument_list");
-  const isNullCoalescent = isSymbol(node.children[0], "?");
 
-  const docs = [];
-
-  if (isNullCoalescent) {
-    docs.push("?");
-  }
-
-  docs.push(softline, ".", path.call(print, "identifier", 0));
+  const docs = [path.call(print, "identifier", 0)];
 
   if (typeArgumentList) {
     docs.push(softline, path.call(print, typeArgumentList, 0));
@@ -2250,7 +2222,7 @@ function printSizeofExpression(path, options, print) {
   );
 }
 
-function printObjectCreationExpression(path, options, print) {
+function printNewExpression(path, options, print) {
   const node = path.getValue();
 
   const expressionPart = [];
@@ -3506,6 +3478,8 @@ function printNode(path, options, print) {
       return printAttributeSection(path, options, print);
     case "attribute_target":
       return printAttributeTarget(path, options, print);
+    case "simple_name":
+      return printSimpleName(path, options, print);
     case "member_name":
       return printMemberName(path, options, print);
     case "formal_parameter_list":
@@ -3561,6 +3535,8 @@ function printNode(path, options, print) {
       return printMemberAccessExpression(path, options, print);
     case "literal_access_expression":
       return printLiteralAccessExpression(path, options, print);
+    case "primary_expression_start":
+      return printPrimaryExpressionStart(path, options, print);
     case "primary_expression":
       return printPrimaryExpression(path, options, print);
     case "unary_expression":
@@ -3672,8 +3648,6 @@ function printNode(path, options, print) {
       return printFieldDeclaration(path, options, print);
     case "event_declaration":
       return printEventDeclaration(path, options, print);
-    case "member_access":
-      return printMemberAccess(path, options, print);
     case "statement_list":
       return printStatementList(path, options, print);
     case "declaration_statement":
@@ -3703,6 +3677,8 @@ function printNode(path, options, print) {
       return printSizeofExpression(path, options, print);
     case "object_creation_expression":
       return printObjectCreationExpression(path, options, print);
+    case "new_expression":
+      return printNewExpression(path, options, print);
     case "base_access_expression":
       return printBaseAccessExpression(path, options, print);
     case "method_invocation":

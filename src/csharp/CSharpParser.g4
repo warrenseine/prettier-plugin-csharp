@@ -177,38 +177,38 @@ unary_expression
 	;
 
 primary_expression  // Null-conditional operators C# 6: https://msdn.microsoft.com/en-us/library/dn986595.aspx
-	: pe=primary_expression_start bracket_expression*
-	  ((member_access | method_invocation | '++' | '--' | '->' identifier) bracket_expression*)*
+	: primary_expression_start bracket_expression*
+	  ((('?'? '.' simple_name) | method_invocation | '++' | '--' | '->' identifier) bracket_expression*)*
 	;
 
 primary_expression_start
-	: literal                                   							#literalExpression
-	| identifier type_argument_list?            							#simpleNameExpression
-	| OPEN_PARENS expression CLOSE_PARENS       							#parenthesisExpressions
-	| tuple_initializer										       			#tupleExpression
-	| predefined_type                           							#memberAccessExpression
-	| qualified_alias_member                    							#memberAccessExpression
-	| LITERAL_ACCESS                            							#literalAccessExpression
-	| THIS                                      							#thisReferenceExpression
-	| BASE ('.' identifier type_argument_list? | '[' expression_list ']') 	#baseAccessExpression
+	: literal                                                               #literalExpression
+	| simple_name                                                           #simpleNameExpression
+	| OPEN_PARENS expression CLOSE_PARENS                                   #parenthesisExpressions
+	| tuple_initializer                                                     #tupleExpression
+	| predefined_type                                                       #memberAccessExpression
+	| qualified_alias_member                                                #memberAccessExpression
+	| LITERAL_ACCESS                                                        #literalAccessExpression
+	| THIS                                                                  #thisReferenceExpression
+	| BASE ('.' identifier type_argument_list? | '[' expression_list ']')   #baseAccessExpression
 	| NEW (type (object_creation_expression
 	             | object_or_collection_initializer
 	             | '[' expression_list ']' rank_specifier* array_initializer?
 	             | rank_specifier+ array_initializer)
 	      | anonymous_object_initializer
-	      | rank_specifier array_initializer)                       		#objectCreationExpression
-	| TYPEOF OPEN_PARENS (unbound_type_name | type | VOID) CLOSE_PARENS   	#typeofExpression
-	| CHECKED OPEN_PARENS expression CLOSE_PARENS                   		#checkedExpression
-	| UNCHECKED OPEN_PARENS expression CLOSE_PARENS                 		#uncheckedExpression
-	| DEFAULT (OPEN_PARENS type CLOSE_PARENS)?                      		#defaultValueExpression
+	      | rank_specifier array_initializer)                               #newExpression
+	| TYPEOF OPEN_PARENS (unbound_type_name | type | VOID) CLOSE_PARENS     #typeofExpression
+	| CHECKED OPEN_PARENS expression CLOSE_PARENS                           #checkedExpression
+	| UNCHECKED OPEN_PARENS expression CLOSE_PARENS                         #uncheckedExpression
+	| DEFAULT (OPEN_PARENS type CLOSE_PARENS)?                              #defaultValueExpression
 	| ASYNC? DELEGATE (OPEN_PARENS
-	  explicit_anonymous_function_parameter_list? CLOSE_PARENS)? block 		#anonymousMethodExpression
-	| SIZEOF OPEN_PARENS type CLOSE_PARENS                          		#sizeofExpression
-	| NAMEOF OPEN_PARENS (identifier '.')* identifier CLOSE_PARENS  		#nameofExpression
+	  explicit_anonymous_function_parameter_list? CLOSE_PARENS)? block      #anonymousMethodExpression
+	| SIZEOF OPEN_PARENS type CLOSE_PARENS                                  #sizeofExpression
+	| NAMEOF OPEN_PARENS (identifier '.')* identifier CLOSE_PARENS          #nameofExpression
 	;
 
-member_access
-	: '?'? '.' identifier type_argument_list?
+simple_name
+	: identifier type_argument_list?
 	;
 
 bracket_expression
