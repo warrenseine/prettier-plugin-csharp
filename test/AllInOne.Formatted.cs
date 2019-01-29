@@ -589,8 +589,7 @@ namespace My.Moy
             async void Wait()
             {
                 // await System.Threading.Tasks.Task.Foooooooooooooooooooo.Delay(0);
-                await
-                    SystemxThreadingxTasksxTaskxFooooooooooooooooooooxDelay(0);
+                await SystemxThreadingxTasksxTaskxFooooooooooooooooooooxDelay(0);
             }
 
             void AsyncAnonymous() // C # 5 feature
@@ -600,10 +599,8 @@ namespace My.Moy
                         .Factory
                         .StartNew(async () =>
                         {
-                            return
-                                await
-                                    new WebClient()
-                                        .DownloadStringTaskAsync("http://example.com");
+                            return await new WebClient()
+                                .DownloadStringTaskAsync("http://example.com");
                         });
             }
         }

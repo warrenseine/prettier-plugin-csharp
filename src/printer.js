@@ -561,9 +561,7 @@ function printUnaryExpression(path, options, print) {
   }
 
   if (isSymbol(node.children[0], "await")) {
-    return group(
-      concat(["await", indent(concat([line, path.call(print, "children", 1)]))])
-    );
+    return group(concat(["await", " ", path.call(print, "children", 1)]));
   }
 
   return group(concat(path.map(print, "children")));
@@ -2442,9 +2440,7 @@ function printBreakingStatement(path, options, print) {
   return group(
     concat([
       path.call(print, "terminal", 0),
-      expression
-        ? indent(concat([line, path.call(print, "expression", 0), ";"]))
-        : ";"
+      expression ? concat([" ", path.call(print, "expression", 0), ";"]) : ";"
     ])
   );
 }
@@ -2870,10 +2866,10 @@ function printYieldStatement(path, options, print) {
 
   if (expression) {
     docs.push(
-      indent(concat([line, "return", " ", path.call(print, "expression", 0)]))
+      indent(concat([" ", "return", " ", path.call(print, "expression", 0)]))
     );
   } else {
-    docs.push(line, "break");
+    docs.push(" ", "break");
   }
 
   docs.push(";");
