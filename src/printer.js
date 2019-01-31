@@ -50,7 +50,7 @@ function printCompilationUnit(path, options, print) {
 }
 
 function printExternAliasDirectives(path, options, print) {
-  return group(join(hardline, path.map(print, "extern_alias_directive")));
+  return join(hardline, path.map(print, "extern_alias_directive"));
 }
 
 function printExternAliasDirective(path, options, print) {
@@ -152,7 +152,7 @@ function printNamespaceOrTypeName(path, options, print) {
 
   pathParts.push(currentPathPart);
 
-  return group(join(".", pathParts.map(concat)));
+  return join(".", pathParts.map(concat));
 }
 
 function printUsingNamespaceDirective(path, options, print) {
@@ -317,15 +317,15 @@ function printTupleElementType(path, options, print) {
     docs.push(" ", path.call(print, "identifier", 0));
   }
 
-  return group(concat(docs));
+  return concat(docs);
 }
 
 function printPointerType(path, options, print) {
-  return group(concat(path.map(print, "children")));
+  return concat(path.map(print, "children"));
 }
 
 function printArrayType(path, options, print) {
-  return group(concat(path.map(print, "children")));
+  return concat(path.map(print, "children"));
 }
 
 function printDotList(list) {
@@ -401,7 +401,7 @@ function printAttributeArgument(path, options, print) {
 
   docs.push(path.call(print, "expression", 0));
 
-  return group(concat(docs));
+  return concat(docs);
 }
 
 function printAttributes(path, options, print) {
@@ -445,15 +445,13 @@ function printConditionalExpression(path, options, print) {
   return group(
     concat([
       path.call(print, nullCoalescingExpression, 0),
-      group(
-        indent(
-          concat([
-            line,
-            group(concat(["?", " ", expressions[0]])),
-            line,
-            group(concat([":", " ", expressions[1]]))
-          ])
-        )
+      indent(
+        concat([
+          line,
+          concat(["?", " ", expressions[0]]),
+          line,
+          concat([":", " ", expressions[1]])
+        ])
       )
     ])
   );
@@ -471,15 +469,11 @@ function printNullCoalescingExpression(path, options, print) {
   return group(
     concat([
       path.call(print, conditionalOrExpression, 0),
-      group(
-        indent(
-          concat([
-            line,
-            group(
-              concat(["??", " ", path.call(print, nullCoalescingExpression, 0)])
-            )
-          ])
-        )
+      indent(
+        concat([
+          line,
+          concat(["??", " ", path.call(print, nullCoalescingExpression, 0)])
+        ])
       )
     ])
   );
@@ -561,10 +555,10 @@ function printUnaryExpression(path, options, print) {
   }
 
   if (isSymbol(node.children[0], "await")) {
-    return group(concat(["await", " ", path.call(print, "children", 1)]));
+    return concat(["await", " ", path.call(print, "children", 1)]);
   }
 
-  return group(concat(path.map(print, "children")));
+  return concat(path.map(print, "children"));
 }
 
 function printPredefinedTypeExpression(path, options, print) {
@@ -580,9 +574,13 @@ function printLiteralAccessExpression(path, options, print) {
 }
 
 function printParenthesisExpression(path, options, print) {
-  return group(
-    concat(["(", softline, path.call(print, "expression", 0), softline, ")"])
-  );
+  return concat([
+    "(",
+    softline,
+    path.call(print, "expression", 0),
+    softline,
+    ")"
+  ]);
 }
 
 function printTupleExpression(path, options, print) {
