@@ -1,6 +1,6 @@
 {
   "name": "prettier-plugin-csharp",
-  "version": "0.5.0-development",
+  "version": "0.6.0-development",
   "description": "Prettier C# Plugin",
   "repository": "warrenseine/prettier-plugin-csharp",
   "author": "Warren Seine <@warrenseine>",
