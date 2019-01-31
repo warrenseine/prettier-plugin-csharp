@@ -17,7 +17,8 @@
     "lint": "eslint src/**",
     "test:debug": "node --lazy --inspect-brk test",
     "test": "node test && git diff -- test/*.Formatted.cs",
-    "generate-parser": "antlr4 -Dlanguage=JavaScript src/parser-antlr/*.g4 && dos2unix src/parser-antlr/* && sed -i '1d' src/parser-antlr/*.js && prettier --write \"src/parser-antlr/*.js\"",
+    "generate-roslyn-parser": "cd vendor/csharp/AstExport && dotnet build",
+    "generate-antlr-parser": "antlr4 -Dlanguage=JavaScript src/parser-antlr/*.g4 && dos2unix src/parser-antlr/* && sed -i '1d' src/parser-antlr/*.js && prettier --write \"src/parser-antlr/*.js\"",
     "prettier": "prettier --plugin=. --parser=cs",
     "prettier:debug": "node --lazy --inspect-brk src/debug.js"
   },

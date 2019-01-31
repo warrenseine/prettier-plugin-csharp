@@ -76,7 +76,7 @@ The grammar supports C# 6 as a baseline, and tries to catch up with recent addit
 - Generate the JavaScript parser:
 
 ```bash
-yarn generate-parser
+yarn generate-antlr-parser
 ```
 
 ### Testing

@@ -115,7 +115,7 @@ function loc(prop) {
 
 module.exports = {
   parse: parseCSharp,
-  astFormat: "cs",
+  astFormat: "antlr",
   locStart: loc("start"),
   locEnd: loc("end")
 };
