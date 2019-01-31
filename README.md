@@ -17,11 +17,11 @@
   <a href="https://gitter.im/jlongster/prettier">
     <img alt="Gitter" src="https://img.shields.io/gitter/room/jlongster/prettier.svg?style=flat-square">
   </a>
-  <a href="https://travis-ci.org/warrenseine/prettier-csharp">
-    <img alt="Travis" src="https://img.shields.io/travis/warrenseine/prettier-csharp/master.svg?style=flat-square">
+  <a href="https://travis-ci.org/warrenseine/prettier-plugin-csharp">
+    <img alt="Travis" src="https://img.shields.io/travis/warrenseine/prettier-plugin-csharp/master.svg?style=flat-square">
   </a>
-  <a href="https://www.npmjs.com/package/prettier-csharp">
-    <img alt="npm version" src="https://img.shields.io/npm/v/prettier-csharp.svg?style=flat-square">
+  <a href="https://www.npmjs.com/package/prettier-plugin-csharp">
+    <img alt="npm version" src="https://img.shields.io/npm/v/prettier-plugin-csharp.svg?style=flat-square">
   </a>
   <a href="#badge">
     <img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square">
@@ -44,13 +44,13 @@ Preview the result with this [diff example](https://github.com/warrenseine/prett
 ## Install
 
 ```bash
-yarn add --dev --exact prettier prettier-csharp
+yarn add --dev --exact prettier prettier-plugin-csharp
 ```
 
 ## Use
 
 ```bash
-prettier --plugin=prettier-csharp --parser=cs --write "**/*.cs"
+prettier --write "**/*.cs"
 ```
 
 ## How it works
