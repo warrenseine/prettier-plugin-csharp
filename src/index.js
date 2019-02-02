@@ -1,12 +1,12 @@
 "use strict";
 
-const parser = require("./parser");
-const printer = require("./printer");
+const antlr = require("./parser-antlr");
+const printer = require("./printer-antlr");
 
 const languages = [
   {
     name: "C#",
-    parsers: ["cs"],
+    parsers: ["antlr"],
     tmScope: "source.cs",
     aceMode: "csharp",
     codemirrorMode: "clike",
@@ -17,7 +17,7 @@ const languages = [
 ];
 
 const parsers = {
-  cs: parser
+  antlr
 };
 
 const printers = {

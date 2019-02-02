@@ -10,7 +10,7 @@ for (let test of tests) {
   const referenceCode = fs.readFileSync(referenceFile, "utf8");
 
   const formattedCode = prettier.format(referenceCode, {
-    parser: "cs",
+    parser: "antlr",
     plugins: ["."]
   });
 
