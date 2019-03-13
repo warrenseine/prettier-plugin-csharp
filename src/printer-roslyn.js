@@ -51,23 +51,42 @@ function printCompilationUnit(path, options, print) {
   const node = path.getValue();
   const parts = [];
 
-  if (node.externAliasDirective) {
-    parts.push(join(hardline, path.map(print, "externAliasDirective")));
+  const externAliasDirectives = [];
+  const usingDirectives = [];
+  const declarations = [];
+
+  path.each(path => {
+    const doc = print(path, options, print);
+    const node = path.getValue();
+
+    if (node.nodeType === "ExternAliasDirective") {
+      externAliasDirectives.push(doc);
+    } else if (node.nodeType === "UsingDirective") {
+      usingDirectives.push([node, doc]);
+    } else {
+      declarations.push(doc);
+    }
+  }, "children");
+
+  if (externAliasDirectives.length > 0) {
+    parts.push(join(hardline, externAliasDirectives));
   }
 
-  if (node.usingDirective) {
-    parts.push(printCompilationUnitUsingDirectives(path, options, print));
+  if (usingDirectives.length > 0) {
+    // parts.push(printCompilationUnitUsingDirectives(path, options, print));
   }
 
-  if (node.attributeList) {
-    parts.push(join(hardline, path.map(print, "attributeList")));
-  }
+  parts.push(...declarations);
 
-  if (node.namespaceDeclaration) {
-    parts.push(path.call(print, "namespaceDeclaration", 0));
-  }
+  // if (node.attributeList) {
+  //   parts.push(join(hardline, path.map(print, "attributeList")));
+  // }
 
-  return concat([join(doublehardline, parts), line]);
+  // if (node.namespaceDeclaration) {
+  //   parts.push(path.call(print, "namespaceDeclaration", 0));
+  // }
+
+  return concat([join(doublehardline, parts), hardline]);
 }
 
 function printCompilationUnitUsingDirectives(path, options, print) {
@@ -3400,11 +3419,11 @@ function printComment(path, options) {
   const node = path.getValue();
 
   node.printed = true;
-  console.log(
-    `leading: ${node.leading}, trailing: ${node.trailing}, ${node.lineStart}-${
-      node.lineEnd
-    }, "${node.value}"`
-  );
+  // console.log(
+  //   `leading: ${node.leading}, trailing: ${node.trailing}, ${node.lineStart}-${
+  //     node.lineEnd
+  //   }, "${node.value}"`
+  // );
 
   if (node.value.startsWith("//")) {
     return node.value.trimRight();
