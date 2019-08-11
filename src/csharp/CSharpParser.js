@@ -2044,9 +2044,9 @@ var symbolicNames = [
   "REAL_LITERAL",
   "CHARACTER_LITERAL",
   "REGULAR_STRING",
-  "VERBATIUM_STRING",
+  "VERBATIM_STRING",
   "INTERPOLATED_REGULAR_STRING_START",
-  "INTERPOLATED_VERBATIUM_STRING_START",
+  "INTERPOLATED_VERBATIM_STRING_START",
   "OPEN_BRACE",
   "CLOSE_BRACE",
   "OPEN_BRACKET",
@@ -2095,10 +2095,10 @@ var symbolicNames = [
   "DOUBLE_CURLY_INSIDE",
   "OPEN_BRACE_INSIDE",
   "REGULAR_CHAR_INSIDE",
-  "VERBATIUM_DOUBLE_QUOTE_INSIDE",
+  "VERBATIM_DOUBLE_QUOTE_INSIDE",
   "DOUBLE_QUOTE_INSIDE",
   "REGULAR_STRING_INSIDE",
-  "VERBATIUM_INSIDE_STRING",
+  "VERBATIM_INSIDE_STRING",
   "CLOSE_BRACE_INSIDE",
   "FORMAT_STRING",
   "DIRECTIVE_WHITESPACES",
@@ -2306,9 +2306,9 @@ var ruleNames = [
   "boolean_literal",
   "string_literal",
   "interpolated_regular_string",
-  "interpolated_verbatium_string",
+  "interpolated_verbatim_string",
   "interpolated_regular_string_part",
-  "interpolated_verbatium_string_part",
+  "interpolated_verbatim_string_part",
   "interpolated_string_expression",
   "keyword",
   "class_definition",
@@ -2476,9 +2476,9 @@ CSharpParser.HEX_INTEGER_LITERAL = 117;
 CSharpParser.REAL_LITERAL = 118;
 CSharpParser.CHARACTER_LITERAL = 119;
 CSharpParser.REGULAR_STRING = 120;
-CSharpParser.VERBATIUM_STRING = 121;
+CSharpParser.VERBATIM_STRING = 121;
 CSharpParser.INTERPOLATED_REGULAR_STRING_START = 122;
-CSharpParser.INTERPOLATED_VERBATIUM_STRING_START = 123;
+CSharpParser.INTERPOLATED_VERBATIM_STRING_START = 123;
 CSharpParser.OPEN_BRACE = 124;
 CSharpParser.CLOSE_BRACE = 125;
 CSharpParser.OPEN_BRACKET = 126;
@@ -2527,10 +2527,10 @@ CSharpParser.OP_LEFT_SHIFT_ASSIGNMENT = 168;
 CSharpParser.DOUBLE_CURLY_INSIDE = 169;
 CSharpParser.OPEN_BRACE_INSIDE = 170;
 CSharpParser.REGULAR_CHAR_INSIDE = 171;
-CSharpParser.VERBATIUM_DOUBLE_QUOTE_INSIDE = 172;
+CSharpParser.VERBATIM_DOUBLE_QUOTE_INSIDE = 172;
 CSharpParser.DOUBLE_QUOTE_INSIDE = 173;
 CSharpParser.REGULAR_STRING_INSIDE = 174;
-CSharpParser.VERBATIUM_INSIDE_STRING = 175;
+CSharpParser.VERBATIM_INSIDE_STRING = 175;
 CSharpParser.CLOSE_BRACE_INSIDE = 176;
 CSharpParser.FORMAT_STRING = 177;
 CSharpParser.DIRECTIVE_WHITESPACES = 178;
@@ -2736,9 +2736,9 @@ CSharpParser.RULE_literal = 181;
 CSharpParser.RULE_boolean_literal = 182;
 CSharpParser.RULE_string_literal = 183;
 CSharpParser.RULE_interpolated_regular_string = 184;
-CSharpParser.RULE_interpolated_verbatium_string = 185;
+CSharpParser.RULE_interpolated_verbatim_string = 185;
 CSharpParser.RULE_interpolated_regular_string_part = 186;
-CSharpParser.RULE_interpolated_verbatium_string_part = 187;
+CSharpParser.RULE_interpolated_verbatim_string_part = 187;
 CSharpParser.RULE_interpolated_string_expression = 188;
 CSharpParser.RULE_keyword = 189;
 CSharpParser.RULE_class_definition = 190;
@@ -2959,6 +2959,17 @@ Namespace_or_type_nameContext.prototype.qualified_alias_member = function() {
   return this.getTypedRuleContext(Qualified_alias_memberContext, 0);
 };
 
+Namespace_or_type_nameContext.prototype.DOT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.DOT);
+  } else {
+    return this.getToken(CSharpParser.DOT, i);
+  }
+};
+
 Namespace_or_type_nameContext.prototype.type_argument_list = function(i) {
   if (i === undefined) {
     i = null;
@@ -3065,6 +3076,17 @@ TypeContext.prototype.base_type = function() {
   return this.getTypedRuleContext(Base_typeContext, 0);
 };
 
+TypeContext.prototype.INTERR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.INTERR);
+  } else {
+    return this.getToken(CSharpParser.INTERR, i);
+  }
+};
+
 TypeContext.prototype.rank_specifier = function(i) {
   if (i === undefined) {
     i = null;
@@ -3073,6 +3095,17 @@ TypeContext.prototype.rank_specifier = function(i) {
     return this.getTypedRuleContexts(Rank_specifierContext);
   } else {
     return this.getTypedRuleContext(Rank_specifierContext, i);
+  }
+};
+
+TypeContext.prototype.STAR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.STAR);
+  } else {
+    return this.getToken(CSharpParser.STAR, i);
   }
 };
 
@@ -3169,6 +3202,10 @@ Base_typeContext.prototype.tuple_type = function() {
 
 Base_typeContext.prototype.VOID = function() {
   return this.getToken(CSharpParser.VOID, 0);
+};
+
+Base_typeContext.prototype.STAR = function() {
+  return this.getToken(CSharpParser.STAR, 0);
 };
 
 Base_typeContext.prototype.enterRule = function(listener) {
@@ -3666,6 +3703,17 @@ Tuple_typeContext.prototype.CLOSE_PARENS = function() {
   return this.getToken(CSharpParser.CLOSE_PARENS, 0);
 };
 
+Tuple_typeContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Tuple_typeContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterTuple_type(this);
@@ -3938,6 +3986,10 @@ Type_argument_listContext.prototype = Object.create(
 );
 Type_argument_listContext.prototype.constructor = Type_argument_listContext;
 
+Type_argument_listContext.prototype.LT = function() {
+  return this.getToken(CSharpParser.LT, 0);
+};
+
 Type_argument_listContext.prototype.type = function(i) {
   if (i === undefined) {
     i = null;
@@ -3946,6 +3998,21 @@ Type_argument_listContext.prototype.type = function(i) {
     return this.getTypedRuleContexts(TypeContext);
   } else {
     return this.getTypedRuleContext(TypeContext, i);
+  }
+};
+
+Type_argument_listContext.prototype.GT = function() {
+  return this.getToken(CSharpParser.GT, 0);
+};
+
+Type_argument_listContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -4030,6 +4097,17 @@ Argument_listContext.prototype.argument = function(i) {
   }
 };
 
+Argument_listContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Argument_listContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterArgument_list(this);
@@ -4101,6 +4179,10 @@ ArgumentContext.prototype.typed_argument = function() {
 
 ArgumentContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
+};
+
+ArgumentContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
 };
 
 ArgumentContext.prototype.REF = function() {
@@ -4508,6 +4590,46 @@ Assignment_operatorContext.prototype = Object.create(
 );
 Assignment_operatorContext.prototype.constructor = Assignment_operatorContext;
 
+Assignment_operatorContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
+};
+
+Assignment_operatorContext.prototype.OP_ADD_ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.OP_ADD_ASSIGNMENT, 0);
+};
+
+Assignment_operatorContext.prototype.OP_SUB_ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.OP_SUB_ASSIGNMENT, 0);
+};
+
+Assignment_operatorContext.prototype.OP_MULT_ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.OP_MULT_ASSIGNMENT, 0);
+};
+
+Assignment_operatorContext.prototype.OP_DIV_ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.OP_DIV_ASSIGNMENT, 0);
+};
+
+Assignment_operatorContext.prototype.OP_MOD_ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.OP_MOD_ASSIGNMENT, 0);
+};
+
+Assignment_operatorContext.prototype.OP_AND_ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.OP_AND_ASSIGNMENT, 0);
+};
+
+Assignment_operatorContext.prototype.OP_OR_ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.OP_OR_ASSIGNMENT, 0);
+};
+
+Assignment_operatorContext.prototype.OP_XOR_ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.OP_XOR_ASSIGNMENT, 0);
+};
+
+Assignment_operatorContext.prototype.OP_LEFT_SHIFT_ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.OP_LEFT_SHIFT_ASSIGNMENT, 0);
+};
+
 Assignment_operatorContext.prototype.right_shift_assignment = function() {
   return this.getTypedRuleContext(Right_shift_assignmentContext, 0);
 };
@@ -4627,6 +4749,10 @@ Conditional_expressionContext.prototype.null_coalescing_expression = function() 
   return this.getTypedRuleContext(Null_coalescing_expressionContext, 0);
 };
 
+Conditional_expressionContext.prototype.INTERR = function() {
+  return this.getToken(CSharpParser.INTERR, 0);
+};
+
 Conditional_expressionContext.prototype.expression = function(i) {
   if (i === undefined) {
     i = null;
@@ -4636,6 +4762,10 @@ Conditional_expressionContext.prototype.expression = function(i) {
   } else {
     return this.getTypedRuleContext(ExpressionContext, i);
   }
+};
+
+Conditional_expressionContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
 };
 
 Conditional_expressionContext.prototype.enterRule = function(listener) {
@@ -4707,6 +4837,10 @@ Null_coalescing_expressionContext.prototype.constructor = Null_coalescing_expres
 
 Null_coalescing_expressionContext.prototype.conditional_or_expression = function() {
   return this.getTypedRuleContext(Conditional_or_expressionContext, 0);
+};
+
+Null_coalescing_expressionContext.prototype.OP_COALESCING = function() {
+  return this.getToken(CSharpParser.OP_COALESCING, 0);
 };
 
 Null_coalescing_expressionContext.prototype.null_coalescing_expression = function() {
@@ -4979,6 +5113,17 @@ Inclusive_or_expressionContext.prototype.exclusive_or_expression = function(i) {
   }
 };
 
+Inclusive_or_expressionContext.prototype.BITWISE_OR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.BITWISE_OR);
+  } else {
+    return this.getToken(CSharpParser.BITWISE_OR, i);
+  }
+};
+
 Inclusive_or_expressionContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterInclusive_or_expression(this);
@@ -5060,6 +5205,17 @@ Exclusive_or_expressionContext.prototype.and_expression = function(i) {
   }
 };
 
+Exclusive_or_expressionContext.prototype.CARET = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.CARET);
+  } else {
+    return this.getToken(CSharpParser.CARET, i);
+  }
+};
+
 Exclusive_or_expressionContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterExclusive_or_expression(this);
@@ -5138,6 +5294,17 @@ And_expressionContext.prototype.equality_expression = function(i) {
     return this.getTypedRuleContexts(Equality_expressionContext);
   } else {
     return this.getTypedRuleContext(Equality_expressionContext, i);
+  }
+};
+
+And_expressionContext.prototype.AMP = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.AMP);
+  } else {
+    return this.getToken(CSharpParser.AMP, i);
   }
 };
 
@@ -5368,6 +5535,50 @@ Relational_expressionContext.prototype.type = function(i) {
   }
 };
 
+Relational_expressionContext.prototype.LT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.LT);
+  } else {
+    return this.getToken(CSharpParser.LT, i);
+  }
+};
+
+Relational_expressionContext.prototype.GT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.GT);
+  } else {
+    return this.getToken(CSharpParser.GT, i);
+  }
+};
+
+Relational_expressionContext.prototype.OP_LE = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.OP_LE);
+  } else {
+    return this.getToken(CSharpParser.OP_LE, i);
+  }
+};
+
+Relational_expressionContext.prototype.OP_GE = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.OP_GE);
+  } else {
+    return this.getToken(CSharpParser.OP_GE, i);
+  }
+};
+
 Relational_expressionContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterRelational_expression(this);
@@ -5494,6 +5705,17 @@ Shift_expressionContext.prototype.additive_expression = function(i) {
   }
 };
 
+Shift_expressionContext.prototype.OP_LEFT_SHIFT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.OP_LEFT_SHIFT);
+  } else {
+    return this.getToken(CSharpParser.OP_LEFT_SHIFT, i);
+  }
+};
+
 Shift_expressionContext.prototype.right_shift = function(i) {
   if (i === undefined) {
     i = null;
@@ -5595,6 +5817,28 @@ Additive_expressionContext.prototype.multiplicative_expression = function(i) {
   }
 };
 
+Additive_expressionContext.prototype.PLUS = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.PLUS);
+  } else {
+    return this.getToken(CSharpParser.PLUS, i);
+  }
+};
+
+Additive_expressionContext.prototype.MINUS = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.MINUS);
+  } else {
+    return this.getToken(CSharpParser.MINUS, i);
+  }
+};
+
 Additive_expressionContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterAdditive_expression(this);
@@ -5677,6 +5921,39 @@ Multiplicative_expressionContext.prototype.unary_expression = function(i) {
     return this.getTypedRuleContexts(Unary_expressionContext);
   } else {
     return this.getTypedRuleContext(Unary_expressionContext, i);
+  }
+};
+
+Multiplicative_expressionContext.prototype.STAR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.STAR);
+  } else {
+    return this.getToken(CSharpParser.STAR, i);
+  }
+};
+
+Multiplicative_expressionContext.prototype.DIV = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.DIV);
+  } else {
+    return this.getToken(CSharpParser.DIV, i);
+  }
+};
+
+Multiplicative_expressionContext.prototype.PERCENT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.PERCENT);
+  } else {
+    return this.getToken(CSharpParser.PERCENT, i);
   }
 };
 
@@ -5771,12 +6048,32 @@ Unary_expressionContext.prototype.primary_expression = function() {
   return this.getTypedRuleContext(Primary_expressionContext, 0);
 };
 
+Unary_expressionContext.prototype.PLUS = function() {
+  return this.getToken(CSharpParser.PLUS, 0);
+};
+
 Unary_expressionContext.prototype.unary_expression = function() {
   return this.getTypedRuleContext(Unary_expressionContext, 0);
 };
 
+Unary_expressionContext.prototype.MINUS = function() {
+  return this.getToken(CSharpParser.MINUS, 0);
+};
+
 Unary_expressionContext.prototype.BANG = function() {
   return this.getToken(CSharpParser.BANG, 0);
+};
+
+Unary_expressionContext.prototype.TILDE = function() {
+  return this.getToken(CSharpParser.TILDE, 0);
+};
+
+Unary_expressionContext.prototype.OP_INC = function() {
+  return this.getToken(CSharpParser.OP_INC, 0);
+};
+
+Unary_expressionContext.prototype.OP_DEC = function() {
+  return this.getToken(CSharpParser.OP_DEC, 0);
 };
 
 Unary_expressionContext.prototype.OPEN_PARENS = function() {
@@ -5793,6 +6090,14 @@ Unary_expressionContext.prototype.CLOSE_PARENS = function() {
 
 Unary_expressionContext.prototype.AWAIT = function() {
   return this.getToken(CSharpParser.AWAIT, 0);
+};
+
+Unary_expressionContext.prototype.AMP = function() {
+  return this.getToken(CSharpParser.AMP, 0);
+};
+
+Unary_expressionContext.prototype.STAR = function() {
+  return this.getToken(CSharpParser.STAR, 0);
 };
 
 Unary_expressionContext.prototype.enterRule = function(listener) {
@@ -5965,6 +6270,39 @@ Primary_expressionContext.prototype.method_invocation = function(i) {
   }
 };
 
+Primary_expressionContext.prototype.OP_INC = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.OP_INC);
+  } else {
+    return this.getToken(CSharpParser.OP_INC, i);
+  }
+};
+
+Primary_expressionContext.prototype.OP_DEC = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.OP_DEC);
+  } else {
+    return this.getToken(CSharpParser.OP_DEC, i);
+  }
+};
+
+Primary_expressionContext.prototype.OP_PTR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.OP_PTR);
+  } else {
+    return this.getToken(CSharpParser.OP_PTR, i);
+  }
+};
+
 Primary_expressionContext.prototype.identifier = function(i) {
   if (i === undefined) {
     i = null;
@@ -5976,6 +6314,17 @@ Primary_expressionContext.prototype.identifier = function(i) {
   }
 };
 
+Primary_expressionContext.prototype.DOT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.DOT);
+  } else {
+    return this.getToken(CSharpParser.DOT, i);
+  }
+};
+
 Primary_expressionContext.prototype.simple_name = function(i) {
   if (i === undefined) {
     i = null;
@@ -5984,6 +6333,17 @@ Primary_expressionContext.prototype.simple_name = function(i) {
     return this.getTypedRuleContexts(Simple_nameContext);
   } else {
     return this.getTypedRuleContext(Simple_nameContext, i);
+  }
+};
+
+Primary_expressionContext.prototype.INTERR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.INTERR);
+  } else {
+    return this.getToken(CSharpParser.INTERR, i);
   }
 };
 
@@ -6235,8 +6595,16 @@ NewExpressionContext.prototype.object_or_collection_initializer = function() {
   return this.getTypedRuleContext(Object_or_collection_initializerContext, 0);
 };
 
+NewExpressionContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 NewExpressionContext.prototype.expression_list = function() {
   return this.getTypedRuleContext(Expression_listContext, 0);
+};
+
+NewExpressionContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
 };
 NewExpressionContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
@@ -6295,12 +6663,24 @@ BaseAccessExpressionContext.prototype.BASE = function() {
   return this.getToken(CSharpParser.BASE, 0);
 };
 
+BaseAccessExpressionContext.prototype.DOT = function() {
+  return this.getToken(CSharpParser.DOT, 0);
+};
+
 BaseAccessExpressionContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+BaseAccessExpressionContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 BaseAccessExpressionContext.prototype.expression_list = function() {
   return this.getTypedRuleContext(Expression_listContext, 0);
+};
+
+BaseAccessExpressionContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
 };
 
 BaseAccessExpressionContext.prototype.type_argument_list = function() {
@@ -6748,6 +7128,18 @@ NameofExpressionContext.prototype.identifier = function(i) {
 NameofExpressionContext.prototype.CLOSE_PARENS = function() {
   return this.getToken(CSharpParser.CLOSE_PARENS, 0);
 };
+
+NameofExpressionContext.prototype.DOT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.DOT);
+  } else {
+    return this.getToken(CSharpParser.DOT, i);
+  }
+};
+
 NameofExpressionContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterNameofExpression(this);
@@ -7317,6 +7709,10 @@ Bracket_expressionContext.prototype = Object.create(
 );
 Bracket_expressionContext.prototype.constructor = Bracket_expressionContext;
 
+Bracket_expressionContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 Bracket_expressionContext.prototype.indexer_argument = function(i) {
   if (i === undefined) {
     i = null;
@@ -7325,6 +7721,25 @@ Bracket_expressionContext.prototype.indexer_argument = function(i) {
     return this.getTypedRuleContexts(Indexer_argumentContext);
   } else {
     return this.getTypedRuleContext(Indexer_argumentContext, i);
+  }
+};
+
+Bracket_expressionContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
+};
+
+Bracket_expressionContext.prototype.INTERR = function() {
+  return this.getToken(CSharpParser.INTERR, 0);
+};
+
+Bracket_expressionContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -7412,6 +7827,10 @@ Indexer_argumentContext.prototype.expression = function() {
 
 Indexer_argumentContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
+};
+
+Indexer_argumentContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
 };
 
 Indexer_argumentContext.prototype.enterRule = function(listener) {
@@ -7634,6 +8053,17 @@ Expression_listContext.prototype.expression = function(i) {
   }
 };
 
+Expression_listContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Expression_listContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterExpression_list(this);
@@ -7802,6 +8232,10 @@ Object_initializerContext.prototype.member_initializer_list = function() {
   return this.getTypedRuleContext(Member_initializer_listContext, 0);
 };
 
+Object_initializerContext.prototype.COMMA = function() {
+  return this.getToken(CSharpParser.COMMA, 0);
+};
+
 Object_initializerContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterObject_initializer(this);
@@ -7926,6 +8360,17 @@ Member_initializer_listContext.prototype.member_initializer = function(i) {
   }
 };
 
+Member_initializer_listContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Member_initializer_listContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterMember_initializer_list(this);
@@ -7997,6 +8442,10 @@ Member_initializerContext.prototype = Object.create(
 );
 Member_initializerContext.prototype.constructor = Member_initializerContext;
 
+Member_initializerContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
+};
+
 Member_initializerContext.prototype.initializer_value = function() {
   return this.getTypedRuleContext(Initializer_valueContext, 0);
 };
@@ -8005,8 +8454,16 @@ Member_initializerContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+Member_initializerContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 Member_initializerContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
+};
+
+Member_initializerContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
 };
 
 Member_initializerContext.prototype.enterRule = function(listener) {
@@ -8199,9 +8656,9 @@ CSharpParser.prototype.initializer_value = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.PLUS:
       case CSharpParser.MINUS:
@@ -8272,6 +8729,17 @@ Collection_initializerContext.prototype.element_initializer = function(i) {
 
 Collection_initializerContext.prototype.CLOSE_BRACE = function() {
   return this.getToken(CSharpParser.CLOSE_BRACE, 0);
+};
+
+Collection_initializerContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
 };
 
 Collection_initializerContext.prototype.enterRule = function(listener) {
@@ -8374,6 +8842,17 @@ Tuple_initializerContext.prototype.CLOSE_PARENS = function() {
   return this.getToken(CSharpParser.CLOSE_PARENS, 0);
 };
 
+Tuple_initializerContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Tuple_initializerContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterTuple_initializer(this);
@@ -8450,6 +8929,10 @@ Tuple_element_initializerContext.prototype.non_assignment_expression = function(
 
 Tuple_element_initializerContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
+};
+
+Tuple_element_initializerContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
 };
 
 Tuple_element_initializerContext.prototype.enterRule = function(listener) {
@@ -8616,9 +9099,9 @@ CSharpParser.prototype.element_initializer = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.PLUS:
       case CSharpParser.MINUS:
@@ -8686,6 +9169,10 @@ Anonymous_object_initializerContext.prototype.CLOSE_BRACE = function() {
 
 Anonymous_object_initializerContext.prototype.member_declarator_list = function() {
   return this.getTypedRuleContext(Member_declarator_listContext, 0);
+};
+
+Anonymous_object_initializerContext.prototype.COMMA = function() {
+  return this.getToken(CSharpParser.COMMA, 0);
 };
 
 Anonymous_object_initializerContext.prototype.enterRule = function(listener) {
@@ -8790,9 +9277,9 @@ CSharpParser.prototype.anonymous_object_initializer = function() {
             (1 << (CSharpParser.REAL_LITERAL - 97)) |
             (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
             (1 << (CSharpParser.REGULAR_STRING - 97)) |
-            (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+            (1 << (CSharpParser.VERBATIM_STRING - 97)) |
             (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-            (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+            (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
             (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
           0)
     ) {
@@ -8849,6 +9336,17 @@ Member_declarator_listContext.prototype.member_declarator = function(i) {
     return this.getTypedRuleContexts(Member_declaratorContext);
   } else {
     return this.getTypedRuleContext(Member_declaratorContext, i);
+  }
+};
+
+Member_declarator_listContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -8925,6 +9423,10 @@ Member_declaratorContext.prototype.primary_expression = function() {
 
 Member_declaratorContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
+};
+
+Member_declaratorContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
 };
 
 Member_declaratorContext.prototype.expression = function() {
@@ -9009,6 +9511,21 @@ Unbound_type_nameContext.prototype.identifier = function(i) {
     return this.getTypedRuleContexts(IdentifierContext);
   } else {
     return this.getTypedRuleContext(IdentifierContext, i);
+  }
+};
+
+Unbound_type_nameContext.prototype.DOUBLE_COLON = function() {
+  return this.getToken(CSharpParser.DOUBLE_COLON, 0);
+};
+
+Unbound_type_nameContext.prototype.DOT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.DOT);
+  } else {
+    return this.getToken(CSharpParser.DOT, i);
   }
 };
 
@@ -9129,6 +9646,25 @@ Generic_dimension_specifierContext.prototype = Object.create(
 );
 Generic_dimension_specifierContext.prototype.constructor = Generic_dimension_specifierContext;
 
+Generic_dimension_specifierContext.prototype.LT = function() {
+  return this.getToken(CSharpParser.LT, 0);
+};
+
+Generic_dimension_specifierContext.prototype.GT = function() {
+  return this.getToken(CSharpParser.GT, 0);
+};
+
+Generic_dimension_specifierContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Generic_dimension_specifierContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterGeneric_dimension_specifier(this);
@@ -9210,6 +9746,21 @@ IsTypeContext.prototype.rank_specifier = function(i) {
   } else {
     return this.getTypedRuleContext(Rank_specifierContext, i);
   }
+};
+
+IsTypeContext.prototype.STAR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.STAR);
+  } else {
+    return this.getToken(CSharpParser.STAR, i);
+  }
+};
+
+IsTypeContext.prototype.INTERR = function() {
+  return this.getToken(CSharpParser.INTERR, 0);
 };
 
 IsTypeContext.prototype.identifier = function() {
@@ -9528,6 +10079,19 @@ Explicit_anonymous_function_parameter_listContext.prototype.explicit_anonymous_f
   }
 };
 
+Explicit_anonymous_function_parameter_listContext.prototype.COMMA = function(
+  i
+) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Explicit_anonymous_function_parameter_listContext.prototype.enterRule = function(
   listener
 ) {
@@ -9727,6 +10291,19 @@ Implicit_anonymous_function_parameter_listContext.prototype.identifier = functio
   }
 };
 
+Implicit_anonymous_function_parameter_listContext.prototype.COMMA = function(
+  i
+) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Implicit_anonymous_function_parameter_listContext.prototype.enterRule = function(
   listener
 ) {
@@ -9899,9 +10476,9 @@ CSharpParser.prototype.anonymous_function_body = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.PLUS:
       case CSharpParser.MINUS:
@@ -10308,6 +10885,10 @@ Let_clauseContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+Let_clauseContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
+};
+
 Let_clauseContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
 };
@@ -10576,6 +11157,17 @@ Orderby_clauseContext.prototype.ordering = function(i) {
     return this.getTypedRuleContexts(OrderingContext);
   } else {
     return this.getTypedRuleContext(OrderingContext, i);
+  }
+};
+
+Orderby_clauseContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -10909,6 +11501,10 @@ DeclarationStatementContext.prototype.constructor = DeclarationStatementContext;
 
 CSharpParser.DeclarationStatementContext = DeclarationStatementContext;
 
+DeclarationStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 DeclarationStatementContext.prototype.local_variable_declaration = function() {
   return this.getTypedRuleContext(Local_variable_declarationContext, 0);
 };
@@ -11105,6 +11701,10 @@ Labeled_statementContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+Labeled_statementContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
+
 Labeled_statementContext.prototype.statement = function() {
   return this.getTypedRuleContext(StatementContext, 0);
 };
@@ -11277,9 +11877,9 @@ CSharpParser.prototype.embedded_statement = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.SEMICOLON:
       case CSharpParser.PLUS:
@@ -11346,6 +11946,9 @@ EmptyStatementContext.prototype.constructor = EmptyStatementContext;
 
 CSharpParser.EmptyStatementContext = EmptyStatementContext;
 
+EmptyStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
 EmptyStatementContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterEmptyStatement(this);
@@ -11447,6 +12050,10 @@ ThrowStatementContext.prototype.THROW = function() {
   return this.getToken(CSharpParser.THROW, 0);
 };
 
+ThrowStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 ThrowStatementContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
 };
@@ -11515,6 +12122,17 @@ ForStatementContext.prototype.OPEN_PARENS = function() {
   return this.getToken(CSharpParser.OPEN_PARENS, 0);
 };
 
+ForStatementContext.prototype.SEMICOLON = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.SEMICOLON);
+  } else {
+    return this.getToken(CSharpParser.SEMICOLON, i);
+  }
+};
+
 ForStatementContext.prototype.CLOSE_PARENS = function() {
   return this.getToken(CSharpParser.CLOSE_PARENS, 0);
 };
@@ -11561,6 +12179,10 @@ CSharpParser.BreakStatementContext = BreakStatementContext;
 
 BreakStatementContext.prototype.BREAK = function() {
   return this.getToken(CSharpParser.BREAK, 0);
+};
+
+BreakStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 BreakStatementContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
@@ -11646,6 +12268,10 @@ ReturnStatementContext.prototype.RETURN = function() {
   return this.getToken(CSharpParser.RETURN, 0);
 };
 
+ReturnStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 ReturnStatementContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
 };
@@ -11676,6 +12302,10 @@ CSharpParser.GotoStatementContext = GotoStatementContext;
 
 GotoStatementContext.prototype.GOTO = function() {
   return this.getToken(CSharpParser.GOTO, 0);
+};
+
+GotoStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 
 GotoStatementContext.prototype.identifier = function() {
@@ -11892,6 +12522,10 @@ DoStatementContext.prototype.expression = function() {
 DoStatementContext.prototype.CLOSE_PARENS = function() {
   return this.getToken(CSharpParser.CLOSE_PARENS, 0);
 };
+
+DoStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
 DoStatementContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterDoStatement(this);
@@ -12008,6 +12642,10 @@ CSharpParser.ExpressionStatementContext = ExpressionStatementContext;
 ExpressionStatementContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
 };
+
+ExpressionStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
 ExpressionStatementContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterExpressionStatement(this);
@@ -12035,6 +12673,10 @@ CSharpParser.ContinueStatementContext = ContinueStatementContext;
 
 ContinueStatementContext.prototype.CONTINUE = function() {
   return this.getToken(CSharpParser.CONTINUE, 0);
+};
+
+ContinueStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 ContinueStatementContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
@@ -12151,6 +12793,10 @@ CSharpParser.YieldStatementContext = YieldStatementContext;
 
 YieldStatementContext.prototype.YIELD = function() {
   return this.getToken(CSharpParser.YIELD, 0);
+};
+
+YieldStatementContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 
 YieldStatementContext.prototype.RETURN = function() {
@@ -12376,9 +13022,9 @@ CSharpParser.prototype.simple_embedded_statement = function() {
                 (1 << (CSharpParser.REAL_LITERAL - 97)) |
                 (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
                 (1 << (CSharpParser.REGULAR_STRING - 97)) |
-                (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+                (1 << (CSharpParser.VERBATIM_STRING - 97)) |
                 (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-                (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+                (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
                 (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
               0) ||
           (((_la - 134) & ~0x1f) == 0 &&
@@ -12475,9 +13121,9 @@ CSharpParser.prototype.simple_embedded_statement = function() {
                 (1 << (CSharpParser.REAL_LITERAL - 97)) |
                 (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
                 (1 << (CSharpParser.REGULAR_STRING - 97)) |
-                (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+                (1 << (CSharpParser.VERBATIM_STRING - 97)) |
                 (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-                (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+                (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
                 (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
               0) ||
           (((_la - 134) & ~0x1f) == 0 &&
@@ -12574,9 +13220,9 @@ CSharpParser.prototype.simple_embedded_statement = function() {
                 (1 << (CSharpParser.REAL_LITERAL - 97)) |
                 (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
                 (1 << (CSharpParser.REGULAR_STRING - 97)) |
-                (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+                (1 << (CSharpParser.VERBATIM_STRING - 97)) |
                 (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-                (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+                (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
                 (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
               0) ||
           (((_la - 134) & ~0x1f) == 0 &&
@@ -12777,9 +13423,9 @@ CSharpParser.prototype.simple_embedded_statement = function() {
                 (1 << (CSharpParser.REAL_LITERAL - 97)) |
                 (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
                 (1 << (CSharpParser.REGULAR_STRING - 97)) |
-                (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+                (1 << (CSharpParser.VERBATIM_STRING - 97)) |
                 (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-                (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+                (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
                 (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
               0) ||
           (((_la - 134) & ~0x1f) == 0 &&
@@ -12883,9 +13529,9 @@ CSharpParser.prototype.simple_embedded_statement = function() {
                 (1 << (CSharpParser.REAL_LITERAL - 97)) |
                 (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
                 (1 << (CSharpParser.REGULAR_STRING - 97)) |
-                (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+                (1 << (CSharpParser.VERBATIM_STRING - 97)) |
                 (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-                (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+                (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
                 (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
               0) ||
           (((_la - 134) & ~0x1f) == 0 &&
@@ -13196,9 +13842,9 @@ CSharpParser.prototype.block = function() {
             (1 << (CSharpParser.REAL_LITERAL - 96)) |
             (1 << (CSharpParser.CHARACTER_LITERAL - 96)) |
             (1 << (CSharpParser.REGULAR_STRING - 96)) |
-            (1 << (CSharpParser.VERBATIUM_STRING - 96)) |
+            (1 << (CSharpParser.VERBATIM_STRING - 96)) |
             (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 96)) |
-            (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 96)) |
+            (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 96)) |
             (1 << (CSharpParser.OPEN_BRACE - 96)))) !==
           0) ||
       (((_la - 128) & ~0x1f) == 0 &&
@@ -13267,6 +13913,17 @@ Local_variable_declarationContext.prototype.local_variable_declarator = function
     return this.getTypedRuleContexts(Local_variable_declaratorContext);
   } else {
     return this.getTypedRuleContext(Local_variable_declaratorContext, i);
+  }
+};
+
+Local_variable_declarationContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -13420,6 +14077,10 @@ Local_variable_declaratorContext.prototype.local_variable_identifier = function(
   return this.getTypedRuleContext(Local_variable_identifierContext, 0);
 };
 
+Local_variable_declaratorContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
+};
+
 Local_variable_declaratorContext.prototype.local_variable_initializer = function() {
   return this.getTypedRuleContext(Local_variable_initializerContext, 0);
 };
@@ -13508,6 +14169,17 @@ Local_variable_identifierContext.prototype.OPEN_PARENS = function() {
 
 Local_variable_identifierContext.prototype.CLOSE_PARENS = function() {
   return this.getToken(CSharpParser.CLOSE_PARENS, 0);
+};
+
+Local_variable_identifierContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
 };
 
 Local_variable_identifierContext.prototype.enterRule = function(listener) {
@@ -13722,9 +14394,9 @@ CSharpParser.prototype.local_variable_initializer = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.PLUS:
       case CSharpParser.MINUS:
@@ -13965,9 +14637,9 @@ CSharpParser.prototype.if_body = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.SEMICOLON:
       case CSharpParser.PLUS:
@@ -14107,6 +14779,10 @@ Switch_labelContext.prototype.CASE = function() {
 
 Switch_labelContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
+};
+
+Switch_labelContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
 };
 
 Switch_labelContext.prototype.type = function() {
@@ -14365,6 +15041,17 @@ For_initializerContext.prototype.expression = function(i) {
   }
 };
 
+For_initializerContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 For_initializerContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterFor_initializer(this);
@@ -14452,6 +15139,17 @@ For_iteratorContext.prototype.expression = function(i) {
     return this.getTypedRuleContexts(ExpressionContext);
   } else {
     return this.getTypedRuleContext(ExpressionContext, i);
+  }
+};
+
+For_iteratorContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -15072,6 +15770,10 @@ Namespace_declarationContext.prototype.qualified_identifier = function() {
   return this.getTypedRuleContext(Qualified_identifierContext, 0);
 };
 
+Namespace_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Namespace_declarationContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterNamespace_declaration(this);
@@ -15145,6 +15847,17 @@ Qualified_identifierContext.prototype.identifier = function(i) {
     return this.getTypedRuleContexts(IdentifierContext);
   } else {
     return this.getTypedRuleContext(IdentifierContext, i);
+  }
+};
+
+Qualified_identifierContext.prototype.DOT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.DOT);
+  } else {
+    return this.getToken(CSharpParser.DOT, i);
   }
 };
 
@@ -15443,6 +16156,10 @@ Extern_alias_directiveContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+Extern_alias_directiveContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Extern_alias_directiveContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterExtern_alias_directive(this);
@@ -15600,8 +16317,16 @@ UsingAliasDirectiveContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+UsingAliasDirectiveContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
+};
+
 UsingAliasDirectiveContext.prototype.namespace_or_type_name = function() {
   return this.getTypedRuleContext(Namespace_or_type_nameContext, 0);
+};
+
+UsingAliasDirectiveContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 UsingAliasDirectiveContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
@@ -15634,6 +16359,10 @@ UsingNamespaceDirectiveContext.prototype.USING = function() {
 
 UsingNamespaceDirectiveContext.prototype.namespace_or_type_name = function() {
   return this.getTypedRuleContext(Namespace_or_type_nameContext, 0);
+};
+
+UsingNamespaceDirectiveContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 UsingNamespaceDirectiveContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
@@ -15670,6 +16399,10 @@ UsingStaticDirectiveContext.prototype.STATIC = function() {
 
 UsingStaticDirectiveContext.prototype.namespace_or_type_name = function() {
   return this.getTypedRuleContext(Namespace_or_type_nameContext, 0);
+};
+
+UsingStaticDirectiveContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 UsingStaticDirectiveContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
@@ -16138,6 +16871,10 @@ Qualified_alias_memberContext.prototype.identifier = function(i) {
   }
 };
 
+Qualified_alias_memberContext.prototype.DOUBLE_COLON = function() {
+  return this.getToken(CSharpParser.DOUBLE_COLON, 0);
+};
+
 Qualified_alias_memberContext.prototype.type_argument_list = function() {
   return this.getTypedRuleContext(Type_argument_listContext, 0);
 };
@@ -16206,6 +16943,10 @@ Type_parameter_listContext.prototype = Object.create(
 );
 Type_parameter_listContext.prototype.constructor = Type_parameter_listContext;
 
+Type_parameter_listContext.prototype.LT = function() {
+  return this.getToken(CSharpParser.LT, 0);
+};
+
 Type_parameter_listContext.prototype.type_parameter = function(i) {
   if (i === undefined) {
     i = null;
@@ -16214,6 +16955,21 @@ Type_parameter_listContext.prototype.type_parameter = function(i) {
     return this.getTypedRuleContexts(Type_parameterContext);
   } else {
     return this.getTypedRuleContext(Type_parameterContext, i);
+  }
+};
+
+Type_parameter_listContext.prototype.GT = function() {
+  return this.getToken(CSharpParser.GT, 0);
+};
+
+Type_parameter_listContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -16355,8 +17111,23 @@ function Class_baseContext(parser, parent, invokingState) {
 Class_baseContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
 Class_baseContext.prototype.constructor = Class_baseContext;
 
+Class_baseContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
+
 Class_baseContext.prototype.class_type = function() {
   return this.getTypedRuleContext(Class_typeContext, 0);
+};
+
+Class_baseContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
 };
 
 Class_baseContext.prototype.namespace_or_type_name = function(i) {
@@ -16446,6 +17217,17 @@ Interface_type_listContext.prototype.namespace_or_type_name = function(i) {
     return this.getTypedRuleContexts(Namespace_or_type_nameContext);
   } else {
     return this.getTypedRuleContext(Namespace_or_type_nameContext, i);
+  }
+};
+
+Interface_type_listContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -16621,6 +17403,10 @@ Type_parameter_constraints_clauseContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+Type_parameter_constraints_clauseContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
+
 Type_parameter_constraints_clauseContext.prototype.type_parameter_constraints = function() {
   return this.getTypedRuleContext(Type_parameter_constraintsContext, 0);
 };
@@ -16702,6 +17488,17 @@ Type_parameter_constraintsContext.prototype.constructor_constraint = function() 
 
 Type_parameter_constraintsContext.prototype.primary_constraint = function() {
   return this.getTypedRuleContext(Primary_constraintContext, 0);
+};
+
+Type_parameter_constraintsContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
 };
 
 Type_parameter_constraintsContext.prototype.secondary_constraints = function() {
@@ -16949,6 +17746,17 @@ Secondary_constraintsContext.prototype.namespace_or_type_name = function(i) {
     return this.getTypedRuleContexts(Namespace_or_type_nameContext);
   } else {
     return this.getTypedRuleContext(Namespace_or_type_nameContext, i);
+  }
+};
+
+Secondary_constraintsContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -17816,6 +18624,10 @@ Common_member_declarationContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
 };
 
+Common_member_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Common_member_declarationContext.prototype.constructor_declaration = function() {
   return this.getTypedRuleContext(Constructor_declarationContext, 0);
 };
@@ -18001,6 +18813,10 @@ Typed_member_declarationContext.prototype.namespace_or_type_name = function() {
   return this.getTypedRuleContext(Namespace_or_type_nameContext, 0);
 };
 
+Typed_member_declarationContext.prototype.DOT = function() {
+  return this.getToken(CSharpParser.DOT, 0);
+};
+
 Typed_member_declarationContext.prototype.indexer_declaration = function() {
   return this.getTypedRuleContext(Indexer_declarationContext, 0);
 };
@@ -18127,6 +18943,17 @@ Constant_declaratorsContext.prototype.constant_declarator = function(i) {
   }
 };
 
+Constant_declaratorsContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Constant_declaratorsContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterConstant_declarators(this);
@@ -18195,6 +19022,10 @@ Constant_declaratorContext.prototype.constructor = Constant_declaratorContext;
 
 Constant_declaratorContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
+};
+
+Constant_declaratorContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
 };
 
 Constant_declaratorContext.prototype.expression = function() {
@@ -18269,6 +19100,17 @@ Variable_declaratorsContext.prototype.variable_declarator = function(i) {
   }
 };
 
+Variable_declaratorsContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Variable_declaratorsContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterVariable_declarators(this);
@@ -18337,6 +19179,10 @@ Variable_declaratorContext.prototype.constructor = Variable_declaratorContext;
 
 Variable_declaratorContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
+};
+
+Variable_declaratorContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
 };
 
 Variable_declaratorContext.prototype.variable_initializer = function() {
@@ -18496,9 +19342,9 @@ CSharpParser.prototype.variable_initializer = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.PLUS:
       case CSharpParser.MINUS:
@@ -18687,6 +19533,10 @@ Method_bodyContext.prototype.block = function() {
   return this.getTypedRuleContext(BlockContext, 0);
 };
 
+Method_bodyContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Method_bodyContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterMethod_body(this);
@@ -18759,6 +19609,10 @@ Formal_parameter_listContext.prototype.parameter_array = function() {
 
 Formal_parameter_listContext.prototype.fixed_parameters = function() {
   return this.getTypedRuleContext(Fixed_parametersContext, 0);
+};
+
+Formal_parameter_listContext.prototype.COMMA = function() {
+  return this.getToken(CSharpParser.COMMA, 0);
 };
 
 Formal_parameter_listContext.prototype.enterRule = function(listener) {
@@ -18846,6 +19700,17 @@ Fixed_parametersContext.prototype.fixed_parameter = function(i) {
     return this.getTypedRuleContexts(Fixed_parameterContext);
   } else {
     return this.getTypedRuleContext(Fixed_parameterContext, i);
+  }
+};
+
+Fixed_parametersContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -19644,6 +20509,10 @@ Accessor_bodyContext.prototype.block = function() {
   return this.getTypedRuleContext(BlockContext, 0);
 };
 
+Accessor_bodyContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Accessor_bodyContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterAccessor_body(this);
@@ -19980,8 +20849,28 @@ Overloadable_operatorContext.prototype = Object.create(
 );
 Overloadable_operatorContext.prototype.constructor = Overloadable_operatorContext;
 
+Overloadable_operatorContext.prototype.PLUS = function() {
+  return this.getToken(CSharpParser.PLUS, 0);
+};
+
+Overloadable_operatorContext.prototype.MINUS = function() {
+  return this.getToken(CSharpParser.MINUS, 0);
+};
+
 Overloadable_operatorContext.prototype.BANG = function() {
   return this.getToken(CSharpParser.BANG, 0);
+};
+
+Overloadable_operatorContext.prototype.TILDE = function() {
+  return this.getToken(CSharpParser.TILDE, 0);
+};
+
+Overloadable_operatorContext.prototype.OP_INC = function() {
+  return this.getToken(CSharpParser.OP_INC, 0);
+};
+
+Overloadable_operatorContext.prototype.OP_DEC = function() {
+  return this.getToken(CSharpParser.OP_DEC, 0);
 };
 
 Overloadable_operatorContext.prototype.TRUE = function() {
@@ -19990,6 +20879,34 @@ Overloadable_operatorContext.prototype.TRUE = function() {
 
 Overloadable_operatorContext.prototype.FALSE = function() {
   return this.getToken(CSharpParser.FALSE, 0);
+};
+
+Overloadable_operatorContext.prototype.STAR = function() {
+  return this.getToken(CSharpParser.STAR, 0);
+};
+
+Overloadable_operatorContext.prototype.DIV = function() {
+  return this.getToken(CSharpParser.DIV, 0);
+};
+
+Overloadable_operatorContext.prototype.PERCENT = function() {
+  return this.getToken(CSharpParser.PERCENT, 0);
+};
+
+Overloadable_operatorContext.prototype.AMP = function() {
+  return this.getToken(CSharpParser.AMP, 0);
+};
+
+Overloadable_operatorContext.prototype.BITWISE_OR = function() {
+  return this.getToken(CSharpParser.BITWISE_OR, 0);
+};
+
+Overloadable_operatorContext.prototype.CARET = function() {
+  return this.getToken(CSharpParser.CARET, 0);
+};
+
+Overloadable_operatorContext.prototype.OP_LEFT_SHIFT = function() {
+  return this.getToken(CSharpParser.OP_LEFT_SHIFT, 0);
 };
 
 Overloadable_operatorContext.prototype.right_shift = function() {
@@ -20002,6 +20919,22 @@ Overloadable_operatorContext.prototype.OP_EQ = function() {
 
 Overloadable_operatorContext.prototype.OP_NE = function() {
   return this.getToken(CSharpParser.OP_NE, 0);
+};
+
+Overloadable_operatorContext.prototype.GT = function() {
+  return this.getToken(CSharpParser.GT, 0);
+};
+
+Overloadable_operatorContext.prototype.LT = function() {
+  return this.getToken(CSharpParser.LT, 0);
+};
+
+Overloadable_operatorContext.prototype.OP_GE = function() {
+  return this.getToken(CSharpParser.OP_GE, 0);
+};
+
+Overloadable_operatorContext.prototype.OP_LE = function() {
+  return this.getToken(CSharpParser.OP_LE, 0);
 };
 
 Overloadable_operatorContext.prototype.enterRule = function(listener) {
@@ -20296,6 +21229,10 @@ Constructor_initializerContext.prototype = Object.create(
 );
 Constructor_initializerContext.prototype.constructor = Constructor_initializerContext;
 
+Constructor_initializerContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
+
 Constructor_initializerContext.prototype.OPEN_PARENS = function() {
   return this.getToken(CSharpParser.OPEN_PARENS, 0);
 };
@@ -20431,9 +21368,9 @@ CSharpParser.prototype.constructor_initializer = function() {
             (1 << (CSharpParser.REAL_LITERAL - 97)) |
             (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
             (1 << (CSharpParser.REGULAR_STRING - 97)) |
-            (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+            (1 << (CSharpParser.VERBATIM_STRING - 97)) |
             (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-            (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+            (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
             (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
           0) ||
       (((_la - 134) & ~0x1f) == 0 &&
@@ -20486,6 +21423,10 @@ BodyContext.prototype.constructor = BodyContext;
 
 BodyContext.prototype.block = function() {
   return this.getTypedRuleContext(BlockContext, 0);
+};
+
+BodyContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 
 BodyContext.prototype.enterRule = function(listener) {
@@ -20553,6 +21494,10 @@ Struct_interfacesContext.prototype = Object.create(
   antlr4.ParserRuleContext.prototype
 );
 Struct_interfacesContext.prototype.constructor = Struct_interfacesContext;
+
+Struct_interfacesContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
 
 Struct_interfacesContext.prototype.interface_type_list = function() {
   return this.getTypedRuleContext(Interface_type_listContext, 0);
@@ -20793,6 +21738,10 @@ Struct_member_declarationContext.prototype.type = function() {
   return this.getTypedRuleContext(TypeContext, 0);
 };
 
+Struct_member_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Struct_member_declarationContext.prototype.attributes = function() {
   return this.getTypedRuleContext(AttributesContext, 0);
 };
@@ -21020,6 +21969,28 @@ Array_typeContext.prototype.rank_specifier = function(i) {
   }
 };
 
+Array_typeContext.prototype.STAR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.STAR);
+  } else {
+    return this.getToken(CSharpParser.STAR, i);
+  }
+};
+
+Array_typeContext.prototype.INTERR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.INTERR);
+  } else {
+    return this.getToken(CSharpParser.INTERR, i);
+  }
+};
+
 Array_typeContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterArray_type(this);
@@ -21107,6 +22078,25 @@ Rank_specifierContext.prototype = Object.create(
 );
 Rank_specifierContext.prototype.constructor = Rank_specifierContext;
 
+Rank_specifierContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
+Rank_specifierContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
+};
+
+Rank_specifierContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Rank_specifierContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterRank_specifier(this);
@@ -21189,6 +22179,17 @@ Array_initializerContext.prototype.variable_initializer = function(i) {
     return this.getTypedRuleContexts(Variable_initializerContext);
   } else {
     return this.getTypedRuleContext(Variable_initializerContext, i);
+  }
+};
+
+Array_initializerContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -21290,9 +22291,9 @@ CSharpParser.prototype.array_initializer = function() {
             (1 << (CSharpParser.REAL_LITERAL - 97)) |
             (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
             (1 << (CSharpParser.REGULAR_STRING - 97)) |
-            (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+            (1 << (CSharpParser.VERBATIM_STRING - 97)) |
             (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-            (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+            (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
             (1 << (CSharpParser.OPEN_BRACE - 97)) |
             (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
           0) ||
@@ -21368,6 +22369,10 @@ Variant_type_parameter_listContext.prototype = Object.create(
 );
 Variant_type_parameter_listContext.prototype.constructor = Variant_type_parameter_listContext;
 
+Variant_type_parameter_listContext.prototype.LT = function() {
+  return this.getToken(CSharpParser.LT, 0);
+};
+
 Variant_type_parameter_listContext.prototype.variant_type_parameter = function(
   i
 ) {
@@ -21378,6 +22383,21 @@ Variant_type_parameter_listContext.prototype.variant_type_parameter = function(
     return this.getTypedRuleContexts(Variant_type_parameterContext);
   } else {
     return this.getTypedRuleContext(Variant_type_parameterContext, i);
+  }
+};
+
+Variant_type_parameter_listContext.prototype.GT = function() {
+  return this.getToken(CSharpParser.GT, 0);
+};
+
+Variant_type_parameter_listContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -21605,6 +22625,10 @@ Interface_baseContext.prototype = Object.create(
 );
 Interface_baseContext.prototype.constructor = Interface_baseContext;
 
+Interface_baseContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
+
 Interface_baseContext.prototype.interface_type_list = function() {
   return this.getTypedRuleContext(Interface_type_listContext, 0);
 };
@@ -21831,6 +22855,10 @@ Interface_member_declarationContext.prototype.CLOSE_PARENS = function() {
   return this.getToken(CSharpParser.CLOSE_PARENS, 0);
 };
 
+Interface_member_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Interface_member_declarationContext.prototype.EVENT = function() {
   return this.getToken(CSharpParser.EVENT, 0);
 };
@@ -21859,8 +22887,16 @@ Interface_member_declarationContext.prototype.THIS = function() {
   return this.getToken(CSharpParser.THIS, 0);
 };
 
+Interface_member_declarationContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 Interface_member_declarationContext.prototype.formal_parameter_list = function() {
   return this.getTypedRuleContext(Formal_parameter_listContext, 0);
+};
+
+Interface_member_declarationContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
 };
 
 Interface_member_declarationContext.prototype.UNSAFE = function() {
@@ -22217,6 +23253,17 @@ Interface_accessorsContext.prototype.GET = function() {
   return this.getToken(CSharpParser.GET, 0);
 };
 
+Interface_accessorsContext.prototype.SEMICOLON = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.SEMICOLON);
+  } else {
+    return this.getToken(CSharpParser.SEMICOLON, i);
+  }
+};
+
 Interface_accessorsContext.prototype.SET = function() {
   return this.getToken(CSharpParser.SET, 0);
 };
@@ -22344,6 +23391,10 @@ function Enum_baseContext(parser, parent, invokingState) {
 Enum_baseContext.prototype = Object.create(antlr4.ParserRuleContext.prototype);
 Enum_baseContext.prototype.constructor = Enum_baseContext;
 
+Enum_baseContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
+
 Enum_baseContext.prototype.type = function() {
   return this.getTypedRuleContext(TypeContext, 0);
 };
@@ -22417,6 +23468,17 @@ Enum_bodyContext.prototype.enum_member_declaration = function(i) {
     return this.getTypedRuleContexts(Enum_member_declarationContext);
   } else {
     return this.getTypedRuleContext(Enum_member_declarationContext, i);
+  }
+};
+
+Enum_bodyContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -22556,6 +23618,10 @@ Enum_member_declarationContext.prototype.attributes = function() {
   return this.getTypedRuleContext(AttributesContext, 0);
 };
 
+Enum_member_declarationContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
+};
+
 Enum_member_declarationContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
 };
@@ -22635,12 +23701,28 @@ Global_attribute_sectionContext.prototype = Object.create(
 );
 Global_attribute_sectionContext.prototype.constructor = Global_attribute_sectionContext;
 
+Global_attribute_sectionContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 Global_attribute_sectionContext.prototype.global_attribute_target = function() {
   return this.getTypedRuleContext(Global_attribute_targetContext, 0);
 };
 
+Global_attribute_sectionContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
+
 Global_attribute_sectionContext.prototype.attribute_list = function() {
   return this.getTypedRuleContext(Attribute_listContext, 0);
+};
+
+Global_attribute_sectionContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
+};
+
+Global_attribute_sectionContext.prototype.COMMA = function() {
+  return this.getToken(CSharpParser.COMMA, 0);
 };
 
 Global_attribute_sectionContext.prototype.enterRule = function(listener) {
@@ -22969,12 +24051,28 @@ Attribute_sectionContext.prototype = Object.create(
 );
 Attribute_sectionContext.prototype.constructor = Attribute_sectionContext;
 
+Attribute_sectionContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 Attribute_sectionContext.prototype.attribute_list = function() {
   return this.getTypedRuleContext(Attribute_listContext, 0);
 };
 
+Attribute_sectionContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
+};
+
 Attribute_sectionContext.prototype.attribute_target = function() {
   return this.getTypedRuleContext(Attribute_targetContext, 0);
+};
+
+Attribute_sectionContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
+
+Attribute_sectionContext.prototype.COMMA = function() {
+  return this.getToken(CSharpParser.COMMA, 0);
 };
 
 Attribute_sectionContext.prototype.enterRule = function(listener) {
@@ -23240,6 +24338,17 @@ Attribute_listContext.prototype.attribute = function(i) {
   }
 };
 
+Attribute_listContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Attribute_listContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterAttribute_list(this);
@@ -23325,6 +24434,17 @@ AttributeContext.prototype.attribute_argument = function(i) {
     return this.getTypedRuleContexts(Attribute_argumentContext);
   } else {
     return this.getTypedRuleContext(Attribute_argumentContext, i);
+  }
+};
+
+AttributeContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
   }
 };
 
@@ -23432,9 +24552,9 @@ CSharpParser.prototype.attribute = function() {
               (1 << (CSharpParser.REAL_LITERAL - 97)) |
               (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
               (1 << (CSharpParser.REGULAR_STRING - 97)) |
-              (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+              (1 << (CSharpParser.VERBATIM_STRING - 97)) |
               (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-              (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+              (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
               (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
             0) ||
         (((_la - 134) & ~0x1f) == 0 &&
@@ -23508,6 +24628,10 @@ Attribute_argumentContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+Attribute_argumentContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
+};
+
 Attribute_argumentContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterAttribute_argument(this);
@@ -23570,6 +24694,10 @@ Pointer_typeContext.prototype = Object.create(
 );
 Pointer_typeContext.prototype.constructor = Pointer_typeContext;
 
+Pointer_typeContext.prototype.STAR = function() {
+  return this.getToken(CSharpParser.STAR, 0);
+};
+
 Pointer_typeContext.prototype.simple_type = function() {
   return this.getTypedRuleContext(Simple_typeContext, 0);
 };
@@ -23586,6 +24714,17 @@ Pointer_typeContext.prototype.rank_specifier = function(i) {
     return this.getTypedRuleContexts(Rank_specifierContext);
   } else {
     return this.getTypedRuleContext(Rank_specifierContext, i);
+  }
+};
+
+Pointer_typeContext.prototype.INTERR = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.INTERR);
+  } else {
+    return this.getToken(CSharpParser.INTERR, i);
   }
 };
 
@@ -23797,6 +24936,17 @@ Fixed_pointer_declaratorsContext.prototype.fixed_pointer_declarator = function(
   }
 };
 
+Fixed_pointer_declaratorsContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
 Fixed_pointer_declaratorsContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterFixed_pointer_declarators(this);
@@ -23871,6 +25021,10 @@ Fixed_pointer_declaratorContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+Fixed_pointer_declaratorContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
+};
+
 Fixed_pointer_declaratorContext.prototype.fixed_pointer_initializer = function() {
   return this.getTypedRuleContext(Fixed_pointer_initializerContext, 0);
 };
@@ -23938,6 +25092,10 @@ Fixed_pointer_initializerContext.prototype.constructor = Fixed_pointer_initializ
 
 Fixed_pointer_initializerContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
+};
+
+Fixed_pointer_initializerContext.prototype.AMP = function() {
+  return this.getToken(CSharpParser.AMP, 0);
 };
 
 Fixed_pointer_initializerContext.prototype.local_variable_initializer_unsafe = function() {
@@ -24030,9 +25188,9 @@ CSharpParser.prototype.fixed_pointer_initializer = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.PLUS:
       case CSharpParser.MINUS:
@@ -24097,8 +25255,16 @@ Fixed_size_buffer_declaratorContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
 };
 
+Fixed_size_buffer_declaratorContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 Fixed_size_buffer_declaratorContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
+};
+
+Fixed_size_buffer_declaratorContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
 };
 
 Fixed_size_buffer_declaratorContext.prototype.enterRule = function(listener) {
@@ -24176,8 +25342,16 @@ Local_variable_initializer_unsafeContext.prototype.type = function() {
   return this.getTypedRuleContext(TypeContext, 0);
 };
 
+Local_variable_initializer_unsafeContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 Local_variable_initializer_unsafeContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
+};
+
+Local_variable_initializer_unsafeContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
 };
 
 Local_variable_initializer_unsafeContext.prototype.enterRule = function(
@@ -24255,6 +25429,14 @@ Right_arrowContext.prototype = Object.create(
 );
 Right_arrowContext.prototype.constructor = Right_arrowContext;
 
+Right_arrowContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
+};
+
+Right_arrowContext.prototype.GT = function() {
+  return this.getToken(CSharpParser.GT, 0);
+};
+
 Right_arrowContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterRight_arrow(this);
@@ -24324,6 +25506,17 @@ Right_shiftContext.prototype = Object.create(
 );
 Right_shiftContext.prototype.constructor = Right_shiftContext;
 
+Right_shiftContext.prototype.GT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.GT);
+  } else {
+    return this.getToken(CSharpParser.GT, i);
+  }
+};
+
 Right_shiftContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterRight_shift(this);
@@ -24392,6 +25585,14 @@ Right_shift_assignmentContext.prototype = Object.create(
   antlr4.ParserRuleContext.prototype
 );
 Right_shift_assignmentContext.prototype.constructor = Right_shift_assignmentContext;
+
+Right_shift_assignmentContext.prototype.GT = function() {
+  return this.getToken(CSharpParser.GT, 0);
+};
+
+Right_shift_assignmentContext.prototype.OP_GE = function() {
+  return this.getToken(CSharpParser.OP_GE, 0);
+};
 
 Right_shift_assignmentContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
@@ -24514,9 +25715,9 @@ CSharpParser.prototype.literal = function() {
         this.boolean_literal();
         break;
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
         this.enterOuterAlt(localctx, 2);
         this.state = 2172;
         this.string_literal();
@@ -24653,16 +25854,16 @@ String_literalContext.prototype.interpolated_regular_string = function() {
   return this.getTypedRuleContext(Interpolated_regular_stringContext, 0);
 };
 
-String_literalContext.prototype.interpolated_verbatium_string = function() {
-  return this.getTypedRuleContext(Interpolated_verbatium_stringContext, 0);
+String_literalContext.prototype.interpolated_verbatim_string = function() {
+  return this.getTypedRuleContext(Interpolated_verbatim_stringContext, 0);
 };
 
 String_literalContext.prototype.REGULAR_STRING = function() {
   return this.getToken(CSharpParser.REGULAR_STRING, 0);
 };
 
-String_literalContext.prototype.VERBATIUM_STRING = function() {
-  return this.getToken(CSharpParser.VERBATIUM_STRING, 0);
+String_literalContext.prototype.VERBATIM_STRING = function() {
+  return this.getToken(CSharpParser.VERBATIM_STRING, 0);
 };
 
 String_literalContext.prototype.enterRule = function(listener) {
@@ -24691,20 +25892,20 @@ CSharpParser.prototype.string_literal = function() {
         this.state = 2182;
         this.interpolated_regular_string();
         break;
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
         this.enterOuterAlt(localctx, 2);
         this.state = 2183;
-        this.interpolated_verbatium_string();
+        this.interpolated_verbatim_string();
         break;
       case CSharpParser.REGULAR_STRING:
         this.enterOuterAlt(localctx, 3);
         this.state = 2184;
         this.match(CSharpParser.REGULAR_STRING);
         break;
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
         this.enterOuterAlt(localctx, 4);
         this.state = 2185;
-        this.match(CSharpParser.VERBATIUM_STRING);
+        this.match(CSharpParser.VERBATIM_STRING);
         break;
       default:
         throw new antlr4.error.NoViableAltException(this);
@@ -24864,9 +26065,9 @@ CSharpParser.prototype.interpolated_regular_string = function() {
             (1 << (CSharpParser.REAL_LITERAL - 97)) |
             (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
             (1 << (CSharpParser.REGULAR_STRING - 97)) |
-            (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+            (1 << (CSharpParser.VERBATIM_STRING - 97)) |
             (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-            (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+            (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
             (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
           0) ||
       (((_la - 134) & ~0x1f) == 0 &&
@@ -24909,7 +26110,7 @@ CSharpParser.prototype.interpolated_regular_string = function() {
   return localctx;
 };
 
-function Interpolated_verbatium_stringContext(parser, parent, invokingState) {
+function Interpolated_verbatim_stringContext(parser, parent, invokingState) {
   if (parent === undefined) {
     parent = null;
   }
@@ -24918,69 +26119,65 @@ function Interpolated_verbatium_stringContext(parser, parent, invokingState) {
   }
   antlr4.ParserRuleContext.call(this, parent, invokingState);
   this.parser = parser;
-  this.ruleIndex = CSharpParser.RULE_interpolated_verbatium_string;
+  this.ruleIndex = CSharpParser.RULE_interpolated_verbatim_string;
   return this;
 }
 
-Interpolated_verbatium_stringContext.prototype = Object.create(
+Interpolated_verbatim_stringContext.prototype = Object.create(
   antlr4.ParserRuleContext.prototype
 );
-Interpolated_verbatium_stringContext.prototype.constructor = Interpolated_verbatium_stringContext;
+Interpolated_verbatim_stringContext.prototype.constructor = Interpolated_verbatim_stringContext;
 
-Interpolated_verbatium_stringContext.prototype.INTERPOLATED_VERBATIUM_STRING_START = function() {
-  return this.getToken(CSharpParser.INTERPOLATED_VERBATIUM_STRING_START, 0);
+Interpolated_verbatim_stringContext.prototype.INTERPOLATED_VERBATIM_STRING_START = function() {
+  return this.getToken(CSharpParser.INTERPOLATED_VERBATIM_STRING_START, 0);
 };
 
-Interpolated_verbatium_stringContext.prototype.DOUBLE_QUOTE_INSIDE = function() {
+Interpolated_verbatim_stringContext.prototype.DOUBLE_QUOTE_INSIDE = function() {
   return this.getToken(CSharpParser.DOUBLE_QUOTE_INSIDE, 0);
 };
 
-Interpolated_verbatium_stringContext.prototype.interpolated_verbatium_string_part = function(
+Interpolated_verbatim_stringContext.prototype.interpolated_verbatim_string_part = function(
   i
 ) {
   if (i === undefined) {
     i = null;
   }
   if (i === null) {
-    return this.getTypedRuleContexts(Interpolated_verbatium_string_partContext);
+    return this.getTypedRuleContexts(Interpolated_verbatim_string_partContext);
   } else {
     return this.getTypedRuleContext(
-      Interpolated_verbatium_string_partContext,
+      Interpolated_verbatim_string_partContext,
       i
     );
   }
 };
 
-Interpolated_verbatium_stringContext.prototype.enterRule = function(listener) {
+Interpolated_verbatim_stringContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
-    listener.enterInterpolated_verbatium_string(this);
+    listener.enterInterpolated_verbatim_string(this);
   }
 };
 
-Interpolated_verbatium_stringContext.prototype.exitRule = function(listener) {
+Interpolated_verbatim_stringContext.prototype.exitRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
-    listener.exitInterpolated_verbatium_string(this);
+    listener.exitInterpolated_verbatim_string(this);
   }
 };
 
-CSharpParser.Interpolated_verbatium_stringContext = Interpolated_verbatium_stringContext;
+CSharpParser.Interpolated_verbatim_stringContext = Interpolated_verbatim_stringContext;
 
-CSharpParser.prototype.interpolated_verbatium_string = function() {
-  var localctx = new Interpolated_verbatium_stringContext(
+CSharpParser.prototype.interpolated_verbatim_string = function() {
+  var localctx = new Interpolated_verbatim_stringContext(
     this,
     this._ctx,
     this.state
   );
-  this.enterRule(
-    localctx,
-    370,
-    CSharpParser.RULE_interpolated_verbatium_string
-  );
+  this.enterRule(localctx, 370, CSharpParser.RULE_interpolated_verbatim_string);
   var _la = 0; // Token type
   try {
     this.enterOuterAlt(localctx, 1);
     this.state = 2197;
-    this.match(CSharpParser.INTERPOLATED_VERBATIUM_STRING_START);
+    this.match(CSharpParser.INTERPOLATED_VERBATIM_STRING_START);
     this.state = 2201;
     this._errHandler.sync(this);
     _la = this._input.LA(1);
@@ -25057,9 +26254,9 @@ CSharpParser.prototype.interpolated_verbatium_string = function() {
             (1 << (CSharpParser.REAL_LITERAL - 97)) |
             (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
             (1 << (CSharpParser.REGULAR_STRING - 97)) |
-            (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+            (1 << (CSharpParser.VERBATIM_STRING - 97)) |
             (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-            (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+            (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
             (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
           0) ||
       (((_la - 134) & ~0x1f) == 0 &&
@@ -25076,12 +26273,12 @@ CSharpParser.prototype.interpolated_verbatium_string = function() {
       (((_la - 169) & ~0x1f) == 0 &&
         ((1 << (_la - 169)) &
           ((1 << (CSharpParser.DOUBLE_CURLY_INSIDE - 169)) |
-            (1 << (CSharpParser.VERBATIUM_DOUBLE_QUOTE_INSIDE - 169)) |
-            (1 << (CSharpParser.VERBATIUM_INSIDE_STRING - 169)))) !==
+            (1 << (CSharpParser.VERBATIM_DOUBLE_QUOTE_INSIDE - 169)) |
+            (1 << (CSharpParser.VERBATIM_INSIDE_STRING - 169)))) !==
           0)
     ) {
       this.state = 2198;
-      this.interpolated_verbatium_string_part();
+      this.interpolated_verbatim_string_part();
       this.state = 2203;
       this._errHandler.sync(this);
       _la = this._input.LA(1);
@@ -25234,9 +26431,9 @@ CSharpParser.prototype.interpolated_regular_string_part = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.PLUS:
       case CSharpParser.MINUS:
@@ -25282,7 +26479,7 @@ CSharpParser.prototype.interpolated_regular_string_part = function() {
   return localctx;
 };
 
-function Interpolated_verbatium_string_partContext(
+function Interpolated_verbatim_string_partContext(
   parser,
   parent,
   invokingState
@@ -25295,51 +26492,51 @@ function Interpolated_verbatium_string_partContext(
   }
   antlr4.ParserRuleContext.call(this, parent, invokingState);
   this.parser = parser;
-  this.ruleIndex = CSharpParser.RULE_interpolated_verbatium_string_part;
+  this.ruleIndex = CSharpParser.RULE_interpolated_verbatim_string_part;
   return this;
 }
 
-Interpolated_verbatium_string_partContext.prototype = Object.create(
+Interpolated_verbatim_string_partContext.prototype = Object.create(
   antlr4.ParserRuleContext.prototype
 );
-Interpolated_verbatium_string_partContext.prototype.constructor = Interpolated_verbatium_string_partContext;
+Interpolated_verbatim_string_partContext.prototype.constructor = Interpolated_verbatim_string_partContext;
 
-Interpolated_verbatium_string_partContext.prototype.interpolated_string_expression = function() {
+Interpolated_verbatim_string_partContext.prototype.interpolated_string_expression = function() {
   return this.getTypedRuleContext(Interpolated_string_expressionContext, 0);
 };
 
-Interpolated_verbatium_string_partContext.prototype.DOUBLE_CURLY_INSIDE = function() {
+Interpolated_verbatim_string_partContext.prototype.DOUBLE_CURLY_INSIDE = function() {
   return this.getToken(CSharpParser.DOUBLE_CURLY_INSIDE, 0);
 };
 
-Interpolated_verbatium_string_partContext.prototype.VERBATIUM_DOUBLE_QUOTE_INSIDE = function() {
-  return this.getToken(CSharpParser.VERBATIUM_DOUBLE_QUOTE_INSIDE, 0);
+Interpolated_verbatim_string_partContext.prototype.VERBATIM_DOUBLE_QUOTE_INSIDE = function() {
+  return this.getToken(CSharpParser.VERBATIM_DOUBLE_QUOTE_INSIDE, 0);
 };
 
-Interpolated_verbatium_string_partContext.prototype.VERBATIUM_INSIDE_STRING = function() {
-  return this.getToken(CSharpParser.VERBATIUM_INSIDE_STRING, 0);
+Interpolated_verbatim_string_partContext.prototype.VERBATIM_INSIDE_STRING = function() {
+  return this.getToken(CSharpParser.VERBATIM_INSIDE_STRING, 0);
 };
 
-Interpolated_verbatium_string_partContext.prototype.enterRule = function(
+Interpolated_verbatim_string_partContext.prototype.enterRule = function(
   listener
 ) {
   if (listener instanceof CSharpParserListener) {
-    listener.enterInterpolated_verbatium_string_part(this);
+    listener.enterInterpolated_verbatim_string_part(this);
   }
 };
 
-Interpolated_verbatium_string_partContext.prototype.exitRule = function(
+Interpolated_verbatim_string_partContext.prototype.exitRule = function(
   listener
 ) {
   if (listener instanceof CSharpParserListener) {
-    listener.exitInterpolated_verbatium_string_part(this);
+    listener.exitInterpolated_verbatim_string_part(this);
   }
 };
 
-CSharpParser.Interpolated_verbatium_string_partContext = Interpolated_verbatium_string_partContext;
+CSharpParser.Interpolated_verbatim_string_partContext = Interpolated_verbatim_string_partContext;
 
-CSharpParser.prototype.interpolated_verbatium_string_part = function() {
-  var localctx = new Interpolated_verbatium_string_partContext(
+CSharpParser.prototype.interpolated_verbatim_string_part = function() {
+  var localctx = new Interpolated_verbatim_string_partContext(
     this,
     this._ctx,
     this.state
@@ -25347,7 +26544,7 @@ CSharpParser.prototype.interpolated_verbatium_string_part = function() {
   this.enterRule(
     localctx,
     374,
-    CSharpParser.RULE_interpolated_verbatium_string_part
+    CSharpParser.RULE_interpolated_verbatim_string_part
   );
   try {
     this.state = 2216;
@@ -25414,9 +26611,9 @@ CSharpParser.prototype.interpolated_verbatium_string_part = function() {
       case CSharpParser.REAL_LITERAL:
       case CSharpParser.CHARACTER_LITERAL:
       case CSharpParser.REGULAR_STRING:
-      case CSharpParser.VERBATIUM_STRING:
+      case CSharpParser.VERBATIM_STRING:
       case CSharpParser.INTERPOLATED_REGULAR_STRING_START:
-      case CSharpParser.INTERPOLATED_VERBATIUM_STRING_START:
+      case CSharpParser.INTERPOLATED_VERBATIM_STRING_START:
       case CSharpParser.OPEN_PARENS:
       case CSharpParser.PLUS:
       case CSharpParser.MINUS:
@@ -25435,15 +26632,15 @@ CSharpParser.prototype.interpolated_verbatium_string_part = function() {
         this.state = 2213;
         this.match(CSharpParser.DOUBLE_CURLY_INSIDE);
         break;
-      case CSharpParser.VERBATIUM_DOUBLE_QUOTE_INSIDE:
+      case CSharpParser.VERBATIM_DOUBLE_QUOTE_INSIDE:
         this.enterOuterAlt(localctx, 3);
         this.state = 2214;
-        this.match(CSharpParser.VERBATIUM_DOUBLE_QUOTE_INSIDE);
+        this.match(CSharpParser.VERBATIM_DOUBLE_QUOTE_INSIDE);
         break;
-      case CSharpParser.VERBATIUM_INSIDE_STRING:
+      case CSharpParser.VERBATIM_INSIDE_STRING:
         this.enterOuterAlt(localctx, 4);
         this.state = 2215;
-        this.match(CSharpParser.VERBATIUM_INSIDE_STRING);
+        this.match(CSharpParser.VERBATIM_INSIDE_STRING);
         break;
       default:
         throw new antlr4.error.NoViableAltException(this);
@@ -25489,6 +26686,21 @@ Interpolated_string_expressionContext.prototype.expression = function(i) {
   } else {
     return this.getTypedRuleContext(ExpressionContext, i);
   }
+};
+
+Interpolated_string_expressionContext.prototype.COMMA = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.COMMA);
+  } else {
+    return this.getToken(CSharpParser.COMMA, i);
+  }
+};
+
+Interpolated_string_expressionContext.prototype.COLON = function() {
+  return this.getToken(CSharpParser.COLON, 0);
 };
 
 Interpolated_string_expressionContext.prototype.FORMAT_STRING = function(i) {
@@ -26075,6 +27287,10 @@ Class_definitionContext.prototype.type_parameter_constraints_clauses = function(
   return this.getTypedRuleContext(Type_parameter_constraints_clausesContext, 0);
 };
 
+Class_definitionContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Class_definitionContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterClass_definition(this);
@@ -26186,6 +27402,10 @@ Struct_definitionContext.prototype.struct_interfaces = function() {
 
 Struct_definitionContext.prototype.type_parameter_constraints_clauses = function() {
   return this.getTypedRuleContext(Type_parameter_constraints_clausesContext, 0);
+};
+
+Struct_definitionContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 
 Struct_definitionContext.prototype.enterRule = function(listener) {
@@ -26301,6 +27521,10 @@ Interface_definitionContext.prototype.type_parameter_constraints_clauses = funct
   return this.getTypedRuleContext(Type_parameter_constraints_clausesContext, 0);
 };
 
+Interface_definitionContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Interface_definitionContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterInterface_definition(this);
@@ -26406,6 +27630,10 @@ Enum_definitionContext.prototype.enum_base = function() {
   return this.getTypedRuleContext(Enum_baseContext, 0);
 };
 
+Enum_definitionContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Enum_definitionContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterEnum_definition(this);
@@ -26497,6 +27725,10 @@ Delegate_definitionContext.prototype.OPEN_PARENS = function() {
 
 Delegate_definitionContext.prototype.CLOSE_PARENS = function() {
   return this.getToken(CSharpParser.CLOSE_PARENS, 0);
+};
+
+Delegate_definitionContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 
 Delegate_definitionContext.prototype.variant_type_parameter_list = function() {
@@ -26674,6 +27906,10 @@ Event_declarationContext.prototype.variable_declarators = function() {
   return this.getTypedRuleContext(Variable_declaratorsContext, 0);
 };
 
+Event_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Event_declarationContext.prototype.member_name = function() {
   return this.getTypedRuleContext(Member_nameContext, 0);
 };
@@ -26771,6 +28007,10 @@ Field_declarationContext.prototype.variable_declarators = function() {
   return this.getTypedRuleContext(Variable_declaratorsContext, 0);
 };
 
+Field_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Field_declarationContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterField_declaration(this);
@@ -26848,6 +28088,14 @@ Property_declarationContext.prototype.right_arrow = function() {
 
 Property_declarationContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
+};
+
+Property_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
+Property_declarationContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
 };
 
 Property_declarationContext.prototype.variable_initializer = function() {
@@ -26954,6 +28202,10 @@ Constant_declarationContext.prototype.constant_declarators = function() {
   return this.getTypedRuleContext(Constant_declaratorsContext, 0);
 };
 
+Constant_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Constant_declarationContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterConstant_declaration(this);
@@ -27017,8 +28269,16 @@ Indexer_declarationContext.prototype.THIS = function() {
   return this.getToken(CSharpParser.THIS, 0);
 };
 
+Indexer_declarationContext.prototype.OPEN_BRACKET = function() {
+  return this.getToken(CSharpParser.OPEN_BRACKET, 0);
+};
+
 Indexer_declarationContext.prototype.formal_parameter_list = function() {
   return this.getTypedRuleContext(Formal_parameter_listContext, 0);
+};
+
+Indexer_declarationContext.prototype.CLOSE_BRACKET = function() {
+  return this.getToken(CSharpParser.CLOSE_BRACKET, 0);
 };
 
 Indexer_declarationContext.prototype.OPEN_BRACE = function() {
@@ -27039,6 +28299,10 @@ Indexer_declarationContext.prototype.right_arrow = function() {
 
 Indexer_declarationContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
+};
+
+Indexer_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
 };
 
 Indexer_declarationContext.prototype.enterRule = function(listener) {
@@ -27121,6 +28385,10 @@ Destructor_definitionContext.prototype = Object.create(
   antlr4.ParserRuleContext.prototype
 );
 Destructor_definitionContext.prototype.constructor = Destructor_definitionContext;
+
+Destructor_definitionContext.prototype.TILDE = function() {
+  return this.getToken(CSharpParser.TILDE, 0);
+};
 
 Destructor_definitionContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
@@ -27390,6 +28658,10 @@ Method_declarationContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
 };
 
+Method_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
 Method_declarationContext.prototype.type_parameter_list = function() {
   return this.getTypedRuleContext(Type_parameter_listContext, 0);
 };
@@ -27577,6 +28849,21 @@ Method_member_nameContext.prototype.identifier = function(i) {
   }
 };
 
+Method_member_nameContext.prototype.DOUBLE_COLON = function() {
+  return this.getToken(CSharpParser.DOUBLE_COLON, 0);
+};
+
+Method_member_nameContext.prototype.DOT = function(i) {
+  if (i === undefined) {
+    i = null;
+  }
+  if (i === null) {
+    return this.getTokens(CSharpParser.DOT);
+  } else {
+    return this.getToken(CSharpParser.DOT, i);
+  }
+};
+
 Method_member_nameContext.prototype.type_argument_list = function(i) {
   if (i === undefined) {
     i = null;
@@ -27719,6 +29006,14 @@ Operator_declarationContext.prototype.expression = function() {
   return this.getTypedRuleContext(ExpressionContext, 0);
 };
 
+Operator_declarationContext.prototype.SEMICOLON = function() {
+  return this.getToken(CSharpParser.SEMICOLON, 0);
+};
+
+Operator_declarationContext.prototype.COMMA = function() {
+  return this.getToken(CSharpParser.COMMA, 0);
+};
+
 Operator_declarationContext.prototype.enterRule = function(listener) {
   if (listener instanceof CSharpParserListener) {
     listener.enterOperator_declaration(this);
@@ -27816,6 +29111,10 @@ Arg_declarationContext.prototype.type = function() {
 
 Arg_declarationContext.prototype.identifier = function() {
   return this.getTypedRuleContext(IdentifierContext, 0);
+};
+
+Arg_declarationContext.prototype.ASSIGNMENT = function() {
+  return this.getToken(CSharpParser.ASSIGNMENT, 0);
 };
 
 Arg_declarationContext.prototype.expression = function() {
@@ -28000,9 +29299,9 @@ CSharpParser.prototype.method_invocation = function() {
             (1 << (CSharpParser.REAL_LITERAL - 97)) |
             (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
             (1 << (CSharpParser.REGULAR_STRING - 97)) |
-            (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+            (1 << (CSharpParser.VERBATIM_STRING - 97)) |
             (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-            (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+            (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
             (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
           0) ||
       (((_la - 134) & ~0x1f) == 0 &&
@@ -28176,9 +29475,9 @@ CSharpParser.prototype.object_creation_expression = function() {
             (1 << (CSharpParser.REAL_LITERAL - 97)) |
             (1 << (CSharpParser.CHARACTER_LITERAL - 97)) |
             (1 << (CSharpParser.REGULAR_STRING - 97)) |
-            (1 << (CSharpParser.VERBATIUM_STRING - 97)) |
+            (1 << (CSharpParser.VERBATIM_STRING - 97)) |
             (1 << (CSharpParser.INTERPOLATED_REGULAR_STRING_START - 97)) |
-            (1 << (CSharpParser.INTERPOLATED_VERBATIUM_STRING_START - 97)) |
+            (1 << (CSharpParser.INTERPOLATED_VERBATIM_STRING_START - 97)) |
             (1 << (CSharpParser.OPEN_PARENS - 97)))) !==
           0) ||
       (((_la - 134) & ~0x1f) == 0 &&

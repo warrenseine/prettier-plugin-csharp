@@ -2339,11 +2339,11 @@ function printLiteral(path, options, print) {
   return path.call(print, "children", 0);
 }
 
-function printInterpolatedVerbatiumString(path, options, print) {
+function printInterpolatedVerbatimString(path, options, print) {
   return group(
     concat([
       '$@"',
-      concat(path.map(print, "interpolated_verbatium_string_part")),
+      concat(path.map(print, "interpolated_verbatim_string_part")),
       '"'
     ])
   );
@@ -3683,12 +3683,12 @@ function printNode(path, options, print) {
       return printBaseAccessExpression(path, options, print);
     case "method_invocation":
       return printMethodInvocation(path, options, print);
-    case "interpolated_verbatium_string":
-      return printInterpolatedVerbatiumString(path, options, print);
+    case "interpolated_verbatim_string":
+      return printInterpolatedVerbatimString(path, options, print);
     case "interpolated_regular_string":
       return printInterpolatedRegularString(path, options, print);
     case "interpolated_regular_string_part":
-    case "interpolated_verbatium_string_part":
+    case "interpolated_verbatim_string_part":
       return printInterpolatedStringPart(path, options, print);
     case "interpolated_string_expression":
       return printInterpolatedStringExpression(path, options, print);

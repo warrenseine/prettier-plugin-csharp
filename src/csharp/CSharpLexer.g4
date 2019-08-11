@@ -8,9 +8,9 @@ channels { COMMENTS_CHANNEL, DIRECTIVE }
 
 @lexer::members
 {var interpolatedStringLevel = 0;
-var interpolatedVerbatiums = []; // new Stack<Boolean>();
+var interpolatedVerbatims = []; // new Stack<Boolean>();
 var curlyLevels = []; //new Stack<Integer>();
-var verbatium = false;
+var verbatim = false;
 }
 
 BYTE_ORDER_MARK: '\u00EF\u00BB\u00BF';
@@ -144,11 +144,11 @@ REAL_LITERAL:        [0-9]* '.' [0-9]+ ExponentPart? [FfDdMm]? | [0-9]+ ([FfDdMm
 
 CHARACTER_LITERAL:                   '\'' (~['\\\r\n\u0085\u2028\u2029] | CommonCharacter) '\'';
 REGULAR_STRING:                      '"'  (~["\\\r\n\u0085\u2028\u2029] | CommonCharacter)* '"';
-VERBATIUM_STRING:                    '@"' (~'"' | '""')* '"';
+VERBATIM_STRING:                    '@"' (~'"' | '""')* '"';
 INTERPOLATED_REGULAR_STRING_START:   '$"'
-    { interpolatedStringLevel++; interpolatedVerbatiums.push(false); verbatium = false; } -> pushMode(INTERPOLATION_STRING);
-INTERPOLATED_VERBATIUM_STRING_START: '$@"'
-    { interpolatedStringLevel++; interpolatedVerbatiums.push(true); verbatium = true; }  -> pushMode(INTERPOLATION_STRING);
+    { interpolatedStringLevel++; interpolatedVerbatims.push(false); verbatim = false; } -> pushMode(INTERPOLATION_STRING);
+INTERPOLATED_VERBATIM_STRING_START: '$@"'
+    { interpolatedStringLevel++; interpolatedVerbatims.push(true); verbatim = true; }  -> pushMode(INTERPOLATION_STRING);
 
 //B.1.9 Operators And Punctuators
 OPEN_BRACE:               '{'
@@ -240,12 +240,12 @@ mode INTERPOLATION_STRING;
 
 DOUBLE_CURLY_INSIDE:           '{{';
 OPEN_BRACE_INSIDE:             '{' { curlyLevels.push(1); } -> skip, pushMode(DEFAULT_MODE);
-REGULAR_CHAR_INSIDE:           { !verbatium }? SimpleEscapeSequence;
-VERBATIUM_DOUBLE_QUOTE_INSIDE: {  verbatium }? '""';
-DOUBLE_QUOTE_INSIDE:           '"' { interpolatedStringLevel--; interpolatedVerbatiums.pop();
-    verbatium = (interpolatedVerbatiums.length > 0 ? interpolatedVerbatiums[interpolatedVerbatiums.length - 1] : false); } -> popMode;
-REGULAR_STRING_INSIDE:         { !verbatium }? ~('{' | '\\' | '"')+;
-VERBATIUM_INSIDE_STRING:       {  verbatium }? ~('{' | '"')+;
+REGULAR_CHAR_INSIDE:           { !verbatim }? SimpleEscapeSequence;
+VERBATIM_DOUBLE_QUOTE_INSIDE: {  verbatim }? '""';
+DOUBLE_QUOTE_INSIDE:           '"' { interpolatedStringLevel--; interpolatedVerbatims.pop();
+    verbatim = (interpolatedVerbatims.length > 0 ? interpolatedVerbatims[interpolatedVerbatims.length - 1] : false); } -> popMode;
+REGULAR_STRING_INSIDE:         { !verbatim }? ~('{' | '\\' | '"')+;
+VERBATIM_INSIDE_STRING:       {  verbatim }? ~('{' | '"')+;
 
 mode INTERPOLATION_FORMAT;
 

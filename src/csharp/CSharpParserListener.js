@@ -1490,13 +1490,13 @@ CSharpParserListener.prototype.exitInterpolated_regular_string = function(
   ctx
 ) {};
 
-// Enter a parse tree produced by CSharpParser#interpolated_verbatium_string.
-CSharpParserListener.prototype.enterInterpolated_verbatium_string = function(
+// Enter a parse tree produced by CSharpParser#interpolated_verbatim_string.
+CSharpParserListener.prototype.enterInterpolated_verbatim_string = function(
   ctx
 ) {};
 
-// Exit a parse tree produced by CSharpParser#interpolated_verbatium_string.
-CSharpParserListener.prototype.exitInterpolated_verbatium_string = function(
+// Exit a parse tree produced by CSharpParser#interpolated_verbatim_string.
+CSharpParserListener.prototype.exitInterpolated_verbatim_string = function(
   ctx
 ) {};
 
@@ -1510,13 +1510,13 @@ CSharpParserListener.prototype.exitInterpolated_regular_string_part = function(
   ctx
 ) {};
 
-// Enter a parse tree produced by CSharpParser#interpolated_verbatium_string_part.
-CSharpParserListener.prototype.enterInterpolated_verbatium_string_part = function(
+// Enter a parse tree produced by CSharpParser#interpolated_verbatim_string_part.
+CSharpParserListener.prototype.enterInterpolated_verbatim_string_part = function(
   ctx
 ) {};
 
-// Exit a parse tree produced by CSharpParser#interpolated_verbatium_string_part.
-CSharpParserListener.prototype.exitInterpolated_verbatium_string_part = function(
+// Exit a parse tree produced by CSharpParser#interpolated_verbatim_string_part.
+CSharpParserListener.prototype.exitInterpolated_verbatim_string_part = function(
   ctx
 ) {};
 
