@@ -16,12 +16,12 @@ compilation_unit
 
 //B.2.1 Basic concepts
 
-namespace_or_type_name 
+namespace_or_type_name
 	: (identifier type_argument_list? | qualified_alias_member) ('.' identifier type_argument_list?)*
 	;
 
 //B.2.2 Types
-type 
+type
 	: base_type ('?' | rank_specifier | '*')*
 	;
 
@@ -32,18 +32,18 @@ base_type
 	| VOID '*'
 	;
 
-simple_type 
+simple_type
 	: numeric_type
 	| BOOL
 	;
 
-numeric_type 
+numeric_type
 	: integral_type
 	| floating_point_type
 	| DECIMAL
 	;
 
-integral_type 
+integral_type
 	: SBYTE
 	| BYTE
 	| SHORT
@@ -55,7 +55,7 @@ integral_type
 	| CHAR
 	;
 
-floating_point_type 
+floating_point_type
 	: FLOAT
 	| DOUBLE
 	;
@@ -69,19 +69,19 @@ tuple_element_type
 	;
 
 /** namespace_or_type_name, OBJECT, STRING */
-class_type 
+class_type
 	: namespace_or_type_name
 	| OBJECT
 	| DYNAMIC
 	| STRING
 	;
 
-type_argument_list 
+type_argument_list
 	: '<' type ( ',' type)* '>'
 	;
 
 //B.2.4 Expressions
-argument_list 
+argument_list
 	: argument ( ',' argument)*
 	;
 
@@ -378,7 +378,7 @@ statement
 	;
 
 labeled_statement
-	: identifier ':' statement  
+	: identifier ':' statement
 	;
 
 embedded_statement
@@ -426,7 +426,7 @@ local_variable_declaration
 	: local_variable_type local_variable_declarator ( ','  local_variable_declarator)*
 	;
 
-local_variable_type 
+local_variable_type
 	: VAR
 	| type
 	;
@@ -966,9 +966,9 @@ boolean_literal
 
 string_literal
 	: interpolated_regular_string
-	| interpolated_verbatium_string
+	| interpolated_verbatim_string
 	| REGULAR_STRING
-	| VERBATIUM_STRING
+	| VERBATIM_STRING
 	;
 
 interpolated_regular_string
@@ -976,8 +976,8 @@ interpolated_regular_string
 	;
 
 
-interpolated_verbatium_string
-	: INTERPOLATED_VERBATIUM_STRING_START interpolated_verbatium_string_part* DOUBLE_QUOTE_INSIDE
+interpolated_verbatim_string
+	: INTERPOLATED_VERBATIM_STRING_START interpolated_verbatim_string_part* DOUBLE_QUOTE_INSIDE
 	;
 
 interpolated_regular_string_part
@@ -987,11 +987,11 @@ interpolated_regular_string_part
 	| REGULAR_STRING_INSIDE
 	;
 
-interpolated_verbatium_string_part
+interpolated_verbatim_string_part
 	: interpolated_string_expression
 	| DOUBLE_CURLY_INSIDE
-	| VERBATIUM_DOUBLE_QUOTE_INSIDE
-	| VERBATIUM_INSIDE_STRING
+	| VERBATIM_DOUBLE_QUOTE_INSIDE
+	| VERBATIM_INSIDE_STRING
 	;
 
 interpolated_string_expression

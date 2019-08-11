@@ -1532,9 +1532,9 @@ CSharpLexer.HEX_INTEGER_LITERAL = 117;
 CSharpLexer.REAL_LITERAL = 118;
 CSharpLexer.CHARACTER_LITERAL = 119;
 CSharpLexer.REGULAR_STRING = 120;
-CSharpLexer.VERBATIUM_STRING = 121;
+CSharpLexer.VERBATIM_STRING = 121;
 CSharpLexer.INTERPOLATED_REGULAR_STRING_START = 122;
-CSharpLexer.INTERPOLATED_VERBATIUM_STRING_START = 123;
+CSharpLexer.INTERPOLATED_VERBATIM_STRING_START = 123;
 CSharpLexer.OPEN_BRACE = 124;
 CSharpLexer.CLOSE_BRACE = 125;
 CSharpLexer.OPEN_BRACKET = 126;
@@ -1583,10 +1583,10 @@ CSharpLexer.OP_LEFT_SHIFT_ASSIGNMENT = 168;
 CSharpLexer.DOUBLE_CURLY_INSIDE = 169;
 CSharpLexer.OPEN_BRACE_INSIDE = 170;
 CSharpLexer.REGULAR_CHAR_INSIDE = 171;
-CSharpLexer.VERBATIUM_DOUBLE_QUOTE_INSIDE = 172;
+CSharpLexer.VERBATIM_DOUBLE_QUOTE_INSIDE = 172;
 CSharpLexer.DOUBLE_QUOTE_INSIDE = 173;
 CSharpLexer.REGULAR_STRING_INSIDE = 174;
-CSharpLexer.VERBATIUM_INSIDE_STRING = 175;
+CSharpLexer.VERBATIM_INSIDE_STRING = 175;
 CSharpLexer.CLOSE_BRACE_INSIDE = 176;
 CSharpLexer.FORMAT_STRING = 177;
 CSharpLexer.DIRECTIVE_WHITESPACES = 178;
@@ -1950,9 +1950,9 @@ CSharpLexer.prototype.symbolicNames = [
   "REAL_LITERAL",
   "CHARACTER_LITERAL",
   "REGULAR_STRING",
-  "VERBATIUM_STRING",
+  "VERBATIM_STRING",
   "INTERPOLATED_REGULAR_STRING_START",
-  "INTERPOLATED_VERBATIUM_STRING_START",
+  "INTERPOLATED_VERBATIM_STRING_START",
   "OPEN_BRACE",
   "CLOSE_BRACE",
   "OPEN_BRACKET",
@@ -2001,10 +2001,10 @@ CSharpLexer.prototype.symbolicNames = [
   "DOUBLE_CURLY_INSIDE",
   "OPEN_BRACE_INSIDE",
   "REGULAR_CHAR_INSIDE",
-  "VERBATIUM_DOUBLE_QUOTE_INSIDE",
+  "VERBATIM_DOUBLE_QUOTE_INSIDE",
   "DOUBLE_QUOTE_INSIDE",
   "REGULAR_STRING_INSIDE",
-  "VERBATIUM_INSIDE_STRING",
+  "VERBATIM_INSIDE_STRING",
   "CLOSE_BRACE_INSIDE",
   "FORMAT_STRING",
   "DIRECTIVE_WHITESPACES",
@@ -2147,9 +2147,9 @@ CSharpLexer.prototype.ruleNames = [
   "REAL_LITERAL",
   "CHARACTER_LITERAL",
   "REGULAR_STRING",
-  "VERBATIUM_STRING",
+  "VERBATIM_STRING",
   "INTERPOLATED_REGULAR_STRING_START",
-  "INTERPOLATED_VERBATIUM_STRING_START",
+  "INTERPOLATED_VERBATIM_STRING_START",
   "OPEN_BRACE",
   "CLOSE_BRACE",
   "OPEN_BRACKET",
@@ -2198,10 +2198,10 @@ CSharpLexer.prototype.ruleNames = [
   "DOUBLE_CURLY_INSIDE",
   "OPEN_BRACE_INSIDE",
   "REGULAR_CHAR_INSIDE",
-  "VERBATIUM_DOUBLE_QUOTE_INSIDE",
+  "VERBATIM_DOUBLE_QUOTE_INSIDE",
   "DOUBLE_QUOTE_INSIDE",
   "REGULAR_STRING_INSIDE",
-  "VERBATIUM_INSIDE_STRING",
+  "VERBATIM_INSIDE_STRING",
   "DOUBLE_CURLY_CLOSE_INSIDE",
   "CLOSE_BRACE_INSIDE",
   "FORMAT_STRING",
@@ -2272,9 +2272,9 @@ CSharpLexer.prototype.ruleNames = [
 CSharpLexer.prototype.grammarFileName = "CSharpLexer.g4";
 
 var interpolatedStringLevel = 0;
-var interpolatedVerbatiums = []; // new Stack<Boolean>();
+var interpolatedVerbatims = []; // new Stack<Boolean>();
 var curlyLevels = []; //new Stack<Integer>();
-var verbatium = false;
+var verbatim = false;
 
 CSharpLexer.prototype.action = function(localctx, ruleIndex, actionIndex) {
   switch (ruleIndex) {
@@ -2282,7 +2282,7 @@ CSharpLexer.prototype.action = function(localctx, ruleIndex, actionIndex) {
       this.INTERPOLATED_REGULAR_STRING_START_action(localctx, actionIndex);
       break;
     case 122:
-      this.INTERPOLATED_VERBATIUM_STRING_START_action(localctx, actionIndex);
+      this.INTERPOLATED_VERBATIM_STRING_START_action(localctx, actionIndex);
       break;
     case 123:
       this.OPEN_BRACE_action(localctx, actionIndex);
@@ -2314,23 +2314,23 @@ CSharpLexer.prototype.INTERPOLATED_REGULAR_STRING_START_action = function(
   switch (actionIndex) {
     case 0:
       interpolatedStringLevel++;
-      interpolatedVerbatiums.push(false);
-      verbatium = false;
+      interpolatedVerbatims.push(false);
+      verbatim = false;
       break;
     default:
       throw "No registered action for:" + actionIndex;
   }
 };
 
-CSharpLexer.prototype.INTERPOLATED_VERBATIUM_STRING_START_action = function(
+CSharpLexer.prototype.INTERPOLATED_VERBATIM_STRING_START_action = function(
   localctx,
   actionIndex
 ) {
   switch (actionIndex) {
     case 1:
       interpolatedStringLevel++;
-      interpolatedVerbatiums.push(true);
-      verbatium = true;
+      interpolatedVerbatims.push(true);
+      verbatim = true;
       break;
     default:
       throw "No registered action for:" + actionIndex;
@@ -2412,10 +2412,10 @@ CSharpLexer.prototype.DOUBLE_QUOTE_INSIDE_action = function(
   switch (actionIndex) {
     case 6:
       interpolatedStringLevel--;
-      interpolatedVerbatiums.pop();
-      verbatium =
-        interpolatedVerbatiums.length > 0
-          ? interpolatedVerbatiums[interpolatedVerbatiums.length - 1]
+      interpolatedVerbatims.pop();
+      verbatim =
+        interpolatedVerbatims.length > 0
+          ? interpolatedVerbatims[interpolatedVerbatims.length - 1]
           : false;
       break;
     default:
@@ -2440,11 +2440,11 @@ CSharpLexer.prototype.sempred = function(localctx, ruleIndex, predIndex) {
     case 170:
       return this.REGULAR_CHAR_INSIDE_sempred(localctx, predIndex);
     case 171:
-      return this.VERBATIUM_DOUBLE_QUOTE_INSIDE_sempred(localctx, predIndex);
+      return this.VERBATIM_DOUBLE_QUOTE_INSIDE_sempred(localctx, predIndex);
     case 173:
       return this.REGULAR_STRING_INSIDE_sempred(localctx, predIndex);
     case 174:
-      return this.VERBATIUM_INSIDE_STRING_sempred(localctx, predIndex);
+      return this.VERBATIM_INSIDE_STRING_sempred(localctx, predIndex);
     default:
       throw "No registered predicate for:" + ruleIndex;
   }
@@ -2456,19 +2456,19 @@ CSharpLexer.prototype.REGULAR_CHAR_INSIDE_sempred = function(
 ) {
   switch (predIndex) {
     case 0:
-      return !verbatium;
+      return !verbatim;
     default:
       throw "No predicate with index:" + predIndex;
   }
 };
 
-CSharpLexer.prototype.VERBATIUM_DOUBLE_QUOTE_INSIDE_sempred = function(
+CSharpLexer.prototype.VERBATIM_DOUBLE_QUOTE_INSIDE_sempred = function(
   localctx,
   predIndex
 ) {
   switch (predIndex) {
     case 1:
-      return verbatium;
+      return verbatim;
     default:
       throw "No predicate with index:" + predIndex;
   }
@@ -2480,19 +2480,19 @@ CSharpLexer.prototype.REGULAR_STRING_INSIDE_sempred = function(
 ) {
   switch (predIndex) {
     case 2:
-      return !verbatium;
+      return !verbatim;
     default:
       throw "No predicate with index:" + predIndex;
   }
 };
 
-CSharpLexer.prototype.VERBATIUM_INSIDE_STRING_sempred = function(
+CSharpLexer.prototype.VERBATIM_INSIDE_STRING_sempred = function(
   localctx,
   predIndex
 ) {
   switch (predIndex) {
     case 3:
-      return verbatium;
+      return verbatim;
     default:
       throw "No predicate with index:" + predIndex;
   }
