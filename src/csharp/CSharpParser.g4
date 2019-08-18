@@ -171,12 +171,12 @@ unary_expression
 	| '++' unary_expression
 	| '--' unary_expression
 	| OPEN_PARENS type CLOSE_PARENS unary_expression
-	| AWAIT unary_expression // C# 5
+	| AWAIT unary_expression
 	| '&' unary_expression
 	| '*' unary_expression
 	;
 
-primary_expression  // Null-conditional operators C# 6: https://msdn.microsoft.com/en-us/library/dn986595.aspx
+primary_expression
 	: primary_expression_start bracket_expression*
 	  ((('?'? '.' simple_name) | method_invocation | '++' | '--' | '->' identifier) bracket_expression*)*
 	;
@@ -242,7 +242,7 @@ member_initializer_list
 	;
 
 member_initializer
-	: (identifier | '[' expression ']') '=' initializer_value // C# 6
+	: (identifier | '[' expression ']') '=' initializer_value
 	;
 
 initializer_value
@@ -494,7 +494,7 @@ general_catch_clause
 	: CATCH exception_filter? block
 	;
 
-exception_filter // C# 6
+exception_filter
 	: WHEN OPEN_PARENS expression CLOSE_PARENS
 	;
 
@@ -535,7 +535,6 @@ using_directives
 using_directive
 	: USING identifier '=' namespace_or_type_name ';'            #usingAliasDirective
 	| USING namespace_or_type_name ';'                           #usingNamespaceDirective
-	// C# 6: https://msdn.microsoft.com/en-us/library/ms228593.aspx
 	| USING STATIC namespace_or_type_name ';'                    #usingStaticDirective
 	;
 
@@ -634,7 +633,7 @@ all_member_modifier
 	| UNSAFE
 	| EXTERN
 	| PARTIAL
-	| ASYNC  // C# 5
+	| ASYNC
 	;
 
 // represents the intersection of struct_member_declaration and class_member_declaration
@@ -642,7 +641,7 @@ common_member_declaration
 	: constant_declaration
 	| typed_member_declaration
 	| event_declaration
-	| conversion_operator_declarator (body | right_arrow expression ';') // C# 6
+	| conversion_operator_declarator (body | right_arrow expression ';')
 	| constructor_declaration
 	| VOID method_declaration
 	| class_definition
@@ -1113,7 +1112,7 @@ field_declaration
 	: variable_declarators ';'
 	;
 
-property_declaration // Property initializer & lambda in properties C# 6
+property_declaration
 	: member_name (OPEN_BRACE accessor_declarations CLOSE_BRACE ('=' variable_initializer ';')? | right_arrow expression ';')
 	;
 
@@ -1121,7 +1120,7 @@ constant_declaration
 	: CONST type constant_declarators ';'
 	;
 
-indexer_declaration // lamdas from C# 6
+indexer_declaration
 	: THIS '[' formal_parameter_list ']' (OPEN_BRACE accessor_declarations CLOSE_BRACE | right_arrow expression ';')
 	;
 
@@ -1133,7 +1132,7 @@ constructor_declaration
 	: identifier OPEN_PARENS formal_parameter_list? CLOSE_PARENS constructor_initializer? body
 	;
 
-method_declaration // lamdas from C# 6
+method_declaration
 	: method_member_name type_parameter_list? OPEN_PARENS formal_parameter_list? CLOSE_PARENS
 	    type_parameter_constraints_clauses? (method_body | right_arrow expression ';')
 	;
@@ -1142,7 +1141,7 @@ method_member_name
 	: (identifier | identifier '::' identifier) (type_argument_list? '.' identifier)*
 	;
 
-operator_declaration // lamdas form C# 6
+operator_declaration
 	: OPERATOR overloadable_operator OPEN_PARENS arg_declaration
 	       (',' arg_declaration)? CLOSE_PARENS (body | right_arrow expression ';')
 	;
