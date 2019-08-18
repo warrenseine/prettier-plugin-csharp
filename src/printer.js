@@ -2416,13 +2416,7 @@ function printInterpolatedStringPart(path, options, print) {
   const expression = getAny(node, "interpolated_string_expression");
 
   if (expression) {
-    return group(
-      concat([
-        "{",
-        indent(concat([softline, group(path.call(print, expression, 0))])),
-        "}"
-      ])
-    );
+    return group(concat(["{", path.call(print, expression, 0), "}"]));
   }
 
   return path.call(print, "children", 0);

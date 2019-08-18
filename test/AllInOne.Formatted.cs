@@ -973,8 +973,11 @@ namespace Comments.XmlComments.UndocumentedKeywords
             s = $@"\{p.Name}
                                    ""\";
             s =
-                $"Color [ R={func(b: 3):#0.##}, G={G:#0.##}, B={B:#0.##}, A={
-                    A:#0.##} ]";
+                $"Color [ R={func(b: 3):#0.##}, G={G:#0.##}, B={B:#0.##}, A={A:#0.##} ]";
+
+            Logging
+                .Log
+                .Error($"Some error message text: ({someVariableValue} did not work)");
 
             // nameof expressions
             if (x == null) throw new ArgumentNullException(nameof(x));
