@@ -988,6 +988,11 @@ namespace Comments.XmlComments.UndocumentedKeywords
                     [13] = "thirteen"
                 };
 
+            string LocalFunction(string arg)
+            {
+                return arg;
+            }
+
             // Exception filters
             try
             {

@@ -293,6 +293,11 @@ isType
 	: base_type (rank_specifier | '*')* '?'? identifier?
 	;
 
+local_function_declaration
+	: typed_member_declaration
+	| VOID method_declaration
+	;
+
 lambda_expression
 	: ASYNC? anonymous_function_signature right_arrow anonymous_function_body
 	;
@@ -373,7 +378,8 @@ query_continuation
 //B.2.5 Statements
 statement
 	: labeled_statement			                                     #labeledStatement
-	| (local_variable_declaration | local_constant_declaration) ';'  #declarationStatement
+	| (local_variable_declaration | local_constant_declaration) ';'  #variableDeclarationStatement
+	| local_function_declaration									 #functionDeclarationStatement
 	| embedded_statement                                             #embeddedStatement
 	;
 

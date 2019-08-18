@@ -466,6 +466,16 @@ CSharpParserListener.prototype.enterIsType = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#isType.
 CSharpParserListener.prototype.exitIsType = function(ctx) {};
 
+// Enter a parse tree produced by CSharpParser#local_function_declaration.
+CSharpParserListener.prototype.enterLocal_function_declaration = function(
+  ctx
+) {};
+
+// Exit a parse tree produced by CSharpParser#local_function_declaration.
+CSharpParserListener.prototype.exitLocal_function_declaration = function(
+  ctx
+) {};
+
 // Enter a parse tree produced by CSharpParser#lambda_expression.
 CSharpParserListener.prototype.enterLambda_expression = function(ctx) {};
 
@@ -590,11 +600,25 @@ CSharpParserListener.prototype.enterLabeledStatement = function(ctx) {};
 // Exit a parse tree produced by CSharpParser#labeledStatement.
 CSharpParserListener.prototype.exitLabeledStatement = function(ctx) {};
 
-// Enter a parse tree produced by CSharpParser#declarationStatement.
-CSharpParserListener.prototype.enterDeclarationStatement = function(ctx) {};
+// Enter a parse tree produced by CSharpParser#variableDeclarationStatement.
+CSharpParserListener.prototype.enterVariableDeclarationStatement = function(
+  ctx
+) {};
 
-// Exit a parse tree produced by CSharpParser#declarationStatement.
-CSharpParserListener.prototype.exitDeclarationStatement = function(ctx) {};
+// Exit a parse tree produced by CSharpParser#variableDeclarationStatement.
+CSharpParserListener.prototype.exitVariableDeclarationStatement = function(
+  ctx
+) {};
+
+// Enter a parse tree produced by CSharpParser#functionDeclarationStatement.
+CSharpParserListener.prototype.enterFunctionDeclarationStatement = function(
+  ctx
+) {};
+
+// Exit a parse tree produced by CSharpParser#functionDeclarationStatement.
+CSharpParserListener.prototype.exitFunctionDeclarationStatement = function(
+  ctx
+) {};
 
 // Enter a parse tree produced by CSharpParser#embeddedStatement.
 CSharpParserListener.prototype.enterEmbeddedStatement = function(ctx) {};

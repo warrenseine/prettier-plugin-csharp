@@ -891,7 +891,10 @@ function printEnumMemberDeclaration(path, options, print) {
 function printCommonMemberDeclaration(path, options, print) {
   const node = path.getValue();
   const conversionOperator = getAny(node, "conversion_operator_declarator");
-  const methodDeclaration = getAny(node, "method_declaration");
+  const declaration = getAny(node, [
+    "method_declaration",
+    "typed_member_declaration"
+  ]);
 
   if (conversionOperator) {
     const body = getAny(node, "body");
@@ -910,8 +913,53 @@ function printCommonMemberDeclaration(path, options, print) {
     }
 
     return group(concat(docs));
-  } else if (methodDeclaration) {
-    return group(concat(["void", " ", path.call(print, methodDeclaration, 0)]));
+  } else if (declaration === "method_declaration") {
+    // It's always void (otherwise it's a typed_member_declaration).
+    return group(
+      concat([
+        group(
+          concat([
+            "void",
+            " ",
+            path.call(
+              () => printMethodDeclarationSignatureBase(path, options, print),
+              declaration,
+              0
+            ),
+            path.call(
+              () =>
+                printMethodDeclarationSignatureConstraints(
+                  path,
+                  options,
+                  print
+                ),
+              declaration,
+              0
+            )
+          ])
+        ),
+        path.call(
+          () => printMethodDeclarationBody(path, options, print),
+          declaration,
+          0
+        )
+      ])
+    );
+  } else if (declaration === "typed_member_declaration") {
+    return group(
+      concat([
+        path.call(
+          () => printTypedMemberDeclarationSignature(path, options, print),
+          declaration,
+          0
+        ),
+        path.call(
+          () => printTypedMemberDeclarationBody(path, options, print),
+          declaration,
+          0
+        )
+      ])
+    );
   } else {
     return join(line, path.map(print, "children"));
   }
@@ -2071,7 +2119,11 @@ function printEmptyStatement() {
   return empty;
 }
 
-function printDeclarationStatement(path, options, print) {
+function printFunctionDeclarationStatement(path, options, print) {
+  return path.call(print, "local_function_declaration", 0);
+}
+
+function printVariableDeclarationStatement(path, options, print) {
   const node = path.getValue();
 
   const identifier = getAny(node, "identifier");
@@ -3590,6 +3642,8 @@ function printNode(path, options, print) {
     case "class_member_declaration":
     case "struct_member_declaration":
       return printClassOrStructMemberDeclaration(path, options, print);
+    case "local_function_declaration":
+      return printCommonMemberDeclaration(path, options, print);
     case "common_member_declaration":
       return printCommonMemberDeclaration(path, options, print);
     case "constructor_declaration":
@@ -3650,8 +3704,10 @@ function printNode(path, options, print) {
       return printEventDeclaration(path, options, print);
     case "statement_list":
       return printStatementList(path, options, print);
-    case "declaration_statement":
-      return printDeclarationStatement(path, options, print);
+    case "variable_declaration_statement":
+      return printVariableDeclarationStatement(path, options, print);
+    case "function_declaration_statement":
+      return printFunctionDeclarationStatement(path, options, print);
     case "labeled_statement":
       return printLabeledStatement(path, options, print);
     case "embedded_statement":
