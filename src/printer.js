@@ -2054,7 +2054,7 @@ function printOperatorDeclarationBody(path, options, print) {
     concat([
       " ",
       "=>",
-      indent(group(concat([line, path.call(print, "expression", 0)])))
+      indent(group(concat([line, path.call(print, "expression", 0), ";"])))
     ])
   );
 }

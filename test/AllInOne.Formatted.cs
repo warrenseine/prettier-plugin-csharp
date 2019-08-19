@@ -934,7 +934,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
         // Expression bodies on method-like members
         public Point Move(int dx, int dy) => new Point(x + dx, y + dy);
 
-        public static Complex operator +(Complex a, Complex b) => a.Add(b)
+        public static Complex operator +(Complex a, Complex b) => a.Add(b);
 
         public static implicit operator string(Person p)
             => p.First + " " + p.Last;
