@@ -1,0 +1,5 @@
+{
+  "[csharp]": {
+    "files.trimTrailingWhitespace": false
+  }
+}
