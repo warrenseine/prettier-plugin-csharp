@@ -103,6 +103,11 @@ non_assignment_expression
 	: lambda_expression
 	| query_expression
 	| conditional_expression
+	| throw_expression
+	;
+
+throw_expression
+	: THROW expression
 	;
 
 assignment
