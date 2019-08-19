@@ -2481,6 +2481,12 @@ function printIfStatement(path, options, print) {
   return group(concat(docs));
 }
 
+function printThrowExpression(path, options, print) {
+  const node = path.getValue();
+
+  return group(concat(["throw", " ", path.call(print, "expression", 0)]));
+}
+
 function printBreakingStatement(path, options, print) {
   const node = path.getValue();
   const expression = getAny(node, "expression");
@@ -3552,6 +3558,8 @@ function printNode(path, options, print) {
       return printExpression(path, options, print);
     case "non_assignment_expression":
       return printNonAssignmentExpression(path, options, print);
+    case "throw_expression":
+      return printThrowExpression(path, options, print);
     case "conditional_expression":
       return printConditionalExpression(path, options, print);
     case "null_coalescing_expression":

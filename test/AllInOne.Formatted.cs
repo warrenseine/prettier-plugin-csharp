@@ -1027,8 +1027,22 @@ namespace Comments.XmlComments.UndocumentedKeywords
             (a, b, c) = (a, b, c);
             return (named.first, named.second, id);
         }
+
+        int ThrowExpressionExample() => 3 == 3 ? 2 : throw new Exception();
+
+        class C : Exception
+        {
+            public static C operator +(C c1, C c2) => default;
+
+            void ThrowBinaryExpression()
+            {
+                throw new C() + new C();
+            }
+        }
     }
 }
+
+
 #line 6
 #line 2 "test.cs"
 #line default
