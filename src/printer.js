@@ -2017,7 +2017,7 @@ function printIndexerDeclarationBody(path, options, print) {
     docs.push(
       " ",
       "=>",
-      indent(group(concat([line, path.call(print, expression, 0)])))
+      indent(group(concat([line, path.call(print, expression, 0), ";"])))
     );
   }
 

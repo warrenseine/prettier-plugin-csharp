@@ -944,7 +944,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
         // Expression bodies on property-like function members
         public string Name => First + " " + Last;
 
-        public int this[long id] => id
+        public int this[long id] => id;
 
         private void NoOp()
         {
