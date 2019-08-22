@@ -404,18 +404,6 @@ namespace My.Moy
         {
         }
 
-        (string, string, long) LookupName(long id)
-        {
-            var unnamed = ("one", "two", "three");
-            var named = (first: "one", second: "two");
-            (string, long) foo = ("foo", 42);
-            (int? a, int? b) nullableMembers = (5, 10);
-            (int, (int, int)) nestedTuple = (1, (2, 3));
-            var (a, b, c) = LookupName(42);
-            (a, b, c) = (a, b, c);
-            return (named.first, named.second, id);
-        }
-
         public int m<T>(T t)
             where T : class, new()
         {
@@ -1018,6 +1006,26 @@ namespace Comments.XmlComments.UndocumentedKeywords
             {
                 if (res != null) await res.CloseAsync(); // … and this.
             }
+        }
+    }
+
+    class CSharp7Features
+    {
+        (string, string, long) Tuples(long id)
+        {
+            int a;
+
+            // variable assignment is valid inside a tuple literal.
+            var foo = (2, a = 1);
+
+            var unnamed = ("one", "two", "three");
+            var named = (first: "one", second: "two");
+            (string, long) foo = ("foo", 42);
+            (int? a, int? b) nullableMembers = (5, 10);
+            (int, (int, int)) nestedTuple = (1, (2, 3));
+            var (a, b, c) = Tuples(42);
+            (a, b, c) = (a, b, c);
+            return (named.first, named.second, id);
         }
     }
 }
