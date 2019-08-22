@@ -254,8 +254,8 @@ collection_initializer
 	: OPEN_BRACE element_initializer (',' element_initializer)* ','? CLOSE_BRACE
 	;
 
-tuple_initializer
-	: OPEN_PARENS tuple_element_initializer (',' tuple_element_initializer)* CLOSE_PARENS
+tuple_literal
+	: OPEN_PARENS tuple_element_initializer (',' tuple_element_initializer)+ CLOSE_PARENS
 	;
 
 tuple_element_initializer
