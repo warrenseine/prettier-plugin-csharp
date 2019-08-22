@@ -10,7 +10,7 @@ cache:
   directories:
   - node_modules
 script:
-- yarn generate-parser && yarn test
+- yarn fetch-antlr && yarn generate-parser && yarn test
 deploy:
   provider: npm
   email: warren.seine@gmail.com

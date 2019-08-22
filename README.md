@@ -72,7 +72,13 @@ yarn
 The grammar supports C# 6 as a baseline, and tries to catch up with recent additions. Contributions are welcome. To update the grammar:
 
 - Update `src/csharp/*.g4` files.
-- Install ANTLR with your favorite package manager ([Homebrew](https://brew.sh/) on macOS, [Chocolatey](https://chocolatey.org/) on Windows).
+- Ensure you have Java 8+ installed on your machine.
+- Fetch a local copy of ANTLR:
+
+```bash
+yarn fetch-antlr
+```
+
 - Generate the JavaScript parser:
 
 ```bash

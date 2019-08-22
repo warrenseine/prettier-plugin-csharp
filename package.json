@@ -17,6 +17,7 @@
     "lint": "eslint src/**",
     "test:debug": "node --lazy --inspect-brk test",
     "test": "node test && git diff -- test/*.Formatted.cs",
+    "fetch-antlr": "node fetch",
     "generate-parser": "java -jar bin/antlr-4.7.2-complete.jar -Dlanguage=JavaScript src/csharp/*.g4",
     "prettier": "prettier --plugin=. --parser=cs",
     "prettier:debug": "node --lazy --inspect-brk src/debug.js"
