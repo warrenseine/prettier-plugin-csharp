@@ -3051,7 +3051,7 @@ function printCollectionInitializer(path, options, print) {
   );
 }
 
-function printTupleInitializer(path, options, print) {
+function printTupleLiteral(path, options, print) {
   return group(
     concat([
       "(",
@@ -3077,7 +3077,7 @@ function printTupleElementInitializer(path, options, print) {
     docs.push(path.call(print, identifier, 0), ":", line);
   }
 
-  docs.push(path.call(print, "non_assignment_expression", 0));
+  docs.push(path.call(print, "expression", 0));
 
   return group(concat(docs));
 }
@@ -3573,8 +3573,8 @@ function printNode(path, options, print) {
     case "string_literal":
     case "boolean_literal":
       return printLiteral(path, options, print);
-    case "tuple_initializer":
-      return printTupleInitializer(path, options, print);
+    case "tuple_literal":
+      return printTupleLiteral(path, options, print);
     case "predefined_type_expression":
       return printPredefinedTypeExpression(path, options, print);
     case "qualified_alias_member_expression":
@@ -3811,7 +3811,7 @@ function printNode(path, options, print) {
     case "collection_initializer":
       return printCollectionInitializer(path, options, print);
     case "tuple_initializer":
-      return printTupleInitializer(path, options, print);
+      return printTupleLiteral(path, options, print);
     case "tuple_element_initializer":
       return printTupleElementInitializer(path, options, print);
     case "member_initializer_list":

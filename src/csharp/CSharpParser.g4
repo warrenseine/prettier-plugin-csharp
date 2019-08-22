@@ -185,7 +185,7 @@ primary_expression_start
 	: literal                                                               #literalExpression
 	| simple_name                                                           #simpleNameExpression
 	| OPEN_PARENS expression CLOSE_PARENS                                   #parenthesisExpressions
-	| tuple_initializer                                                     #tupleExpression
+	| tuple_literal                                                         #tupleExpression
 	| predefined_type                                                       #predefinedTypeExpression
 	| qualified_alias_member                                                #qualifiedAliasMemberExpression
 	| LITERAL_ACCESS                                                        #literalAccessExpression
@@ -259,7 +259,7 @@ tuple_literal
 	;
 
 tuple_element_initializer
-	: (identifier ':')? non_assignment_expression
+	: (identifier ':')? expression
 	;
 
 element_initializer
