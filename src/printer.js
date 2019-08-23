@@ -2435,7 +2435,7 @@ function printInterpolatedStringExpression(path, options, print) {
   return group(concat(docs));
 }
 
-function printIsType(path, options, print) {
+function printTypeOrVarPattern(path, options, print) {
   const [baseType, ...rest] = path.map(print, "children");
 
   if (rest.length === 0) {
@@ -2443,6 +2443,10 @@ function printIsType(path, options, print) {
   }
 
   return group(concat([baseType, " ", concat(rest)]));
+}
+
+function printConstantPattern(path, options, print) {
+  return path.call(print, "conditional_or_expression", 0);
 }
 
 function printIfStatement(path, options, print) {
@@ -3488,8 +3492,11 @@ function printNode(path, options, print) {
       return printArgument(path, options, print);
     case "typed_argument":
       return printTypedArgument(path, options, print);
-    case "is_type":
-      return printIsType(path, options, print);
+    case "type_pattern":
+    case "var_pattern":
+      return printTypeOrVarPattern(path, options, print);
+    case "constant_pattern":
+      return printConstantPattern(path, options, print);
     case "type":
       return printType(path, options, print);
     case "base_type":
