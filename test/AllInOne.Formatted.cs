@@ -1039,6 +1039,31 @@ namespace Comments.XmlComments.UndocumentedKeywords
                 throw new C() + new C();
             }
         }
+
+        void IsPatternMatch()
+        {
+            if (3 is int foo)
+            {
+            }
+            if (3 is var bar)
+            {
+            }
+            if (3 is 3)
+            {
+            }
+            if (new object() is null)
+            {
+            }
+            if (0 is default(int) - 3)
+            {
+            }
+            if (true is false ^ false)
+            {
+            }
+            if (8 is sizeof(long))
+            {
+            }
+        }
     }
 }
 

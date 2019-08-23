@@ -151,7 +151,7 @@ equality_expression
 	;
 
 relational_expression
-	: shift_expression (('<' | '>' | '<=' | '>=') shift_expression | IS isType | AS type)*
+	: shift_expression (('<' | '>' | '<=' | '>=') shift_expression | IS pattern | AS type)*
 	;
 
 shift_expression
@@ -294,8 +294,10 @@ generic_dimension_specifier
 	: '<' ','* '>'
 	;
 
-isType
-	: base_type (rank_specifier | '*')* '?'? identifier?
+pattern
+	: conditional_or_expression #constantPattern
+	| type identifier? 					#typePattern
+	| VAR identifier   					#varPattern
 	;
 
 local_function_declaration
