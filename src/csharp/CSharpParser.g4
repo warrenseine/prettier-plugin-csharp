@@ -604,6 +604,7 @@ primary_constraint
     : class_type
     | CLASS
     | STRUCT
+    | UNMANAGED
     ;
 
 // namespace_or_type_name includes identifier

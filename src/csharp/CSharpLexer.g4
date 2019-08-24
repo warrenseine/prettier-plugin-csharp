@@ -118,6 +118,7 @@ TYPEOF:        'typeof';
 UINT:          'uint';
 ULONG:         'ulong';
 UNCHECKED:     'unchecked';
+UNMANAGED:     'unmanaged';
 UNSAFE:        'unsafe';
 USHORT:        'ushort';
 USING:         'using';
