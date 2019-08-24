@@ -892,6 +892,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
             if (true is false ^ false) {}
             if (8 is sizeof(long)) {}
         }
+
+        void UnmanagedConstraint<T>() where T : unmanaged { }
     }
 }
 

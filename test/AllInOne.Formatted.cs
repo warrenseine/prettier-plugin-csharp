@@ -1098,6 +1098,11 @@ namespace Comments.XmlComments.UndocumentedKeywords
             {
             }
         }
+
+        void UnmanagedConstraint<T>()
+            where T : unmanaged
+        {
+        }
     }
 }
 
