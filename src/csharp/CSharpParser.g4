@@ -377,7 +377,8 @@ query_continuation
 
 //B.2.5 Statements
 statement
-	: labeled_statement			                                     #labeledStatement
+	: ';'                                                            #emptyStatement
+	| labeled_statement			                                     #labeledStatement
 	| (local_variable_declaration | local_constant_declaration) ';'  #variableDeclarationStatement
 	| local_function_declaration									 #functionDeclarationStatement
 	| embedded_statement                                             #embeddedStatement
@@ -387,18 +388,22 @@ labeled_statement
 	: identifier ':' statement
 	;
 
+empty_embedded_statement
+	: ';'
+	;
+
 embedded_statement
-	: block
+	: empty_embedded_statement
+	| block
 	| simple_embedded_statement
 	;
 
 simple_embedded_statement
-	: ';'                                                         #emptyStatement
-	| expression ';'                                              #expressionStatement
+	: expression ';'                                              #expressionStatement
 
 	// selection statements
-	| IF OPEN_PARENS expression CLOSE_PARENS if_body (ELSE if_body)?               #ifStatement
-    | SWITCH OPEN_PARENS expression CLOSE_PARENS OPEN_BRACE switch_section* CLOSE_BRACE           #switchStatement
+	| IF OPEN_PARENS expression CLOSE_PARENS embedded_statement (ELSE embedded_statement)? #ifStatement
+	| SWITCH OPEN_PARENS expression CLOSE_PARENS OPEN_BRACE switch_section* CLOSE_BRACE    #switchStatement
 
     // iteration statements
 	| WHILE OPEN_PARENS expression CLOSE_PARENS embedded_statement                                        #whileStatement
@@ -454,11 +459,6 @@ local_variable_initializer
 
 local_constant_declaration
 	: CONST type constant_declarators
-	;
-
-if_body
-	: block
-	| simple_embedded_statement
 	;
 
 switch_section
