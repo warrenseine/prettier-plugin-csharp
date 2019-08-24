@@ -1103,6 +1103,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
             where T : unmanaged
         {
         }
+
+        int binaryLiterals = 0b01 + 0B10;
     }
 }
 

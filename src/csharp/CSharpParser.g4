@@ -968,6 +968,7 @@ literal
     | string_literal
     | INTEGER_LITERAL
     | HEX_INTEGER_LITERAL
+    | BINARY_INTEGER_LITERAL
     | REAL_LITERAL
     | CHARACTER_LITERAL
     | NULL

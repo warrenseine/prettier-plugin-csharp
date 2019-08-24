@@ -894,6 +894,8 @@ namespace Comments.XmlComments.UndocumentedKeywords
         }
 
         void UnmanagedConstraint<T>() where T : unmanaged { }
+
+        int binaryLiterals = 0b01 + 0B10;
     }
 }
 

@@ -141,6 +141,7 @@ IDENTIFIER:          '@'? IdentifierOrKeyword;
 LITERAL_ACCESS:      [0-9]+ IntegerTypeSuffix? '.' '@'? IdentifierOrKeyword;
 INTEGER_LITERAL:     [0-9]+ IntegerTypeSuffix?;
 HEX_INTEGER_LITERAL: '0' [xX] HexDigit+ IntegerTypeSuffix?;
+BINARY_INTEGER_LITERAL: '0' [bB] BinaryDigit+ IntegerTypeSuffix?;
 REAL_LITERAL:        [0-9]* '.' [0-9]+ ExponentPart? [FfDdMm]? | [0-9]+ ([FfDdMm] | ExponentPart [FfDdMm]?);
 
 CHARACTER_LITERAL:                   '\'' (~['\\\r\n\u0085\u2028\u2029] | CommonCharacter) '\'';
@@ -432,6 +433,7 @@ fragment UnicodeEscapeSequence
     ;
 
 fragment HexDigit : [0-9] | [A-F] | [a-f];
+fragment BinaryDigit : [0-1];
 
 // Unicode character classes
 fragment UnicodeClassLU
