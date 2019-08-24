@@ -1774,7 +1774,7 @@ function printReturnType(path, options, print) {
 }
 
 function printTypeParameterConstraintsClauses(path, options, print) {
-  return printCommaList(path.map(print, "type_parameter_constraints_clause"));
+  return join(line, path.map(print, "type_parameter_constraints_clause"));
 }
 
 function printTypeParameterConstraintsClause(path, options, print) {
