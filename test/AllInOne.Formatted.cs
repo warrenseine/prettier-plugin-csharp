@@ -749,6 +749,40 @@ namespace ConsoleApplication1
             List<int> i = null;
             int c = i.Count;
         }
+
+        class Foo : IDisposable
+        {
+            public int N;
+
+            public void Dispose()
+            {
+            }
+        }
+
+        unsafe void EmptyEmbeddedStatment()
+        {
+            // useless empty statements get deleted
+
+
+            // but nontrivial ones remain
+            if (true)
+                ;
+            else if (true)
+                ;
+            else
+                ;
+            while (false) ;
+            do ; while (false);
+            for (; ; ) ;
+            foreach (var x in "") ;
+            lock (new object())
+                ;
+            using (var d = new Foo())
+                ;
+            var o = new Foo();
+            fixed (int* d = &o.N)
+                ;
+        }
     }
 }
 

@@ -2093,11 +2093,11 @@ function printLabeledStatement(path, options, print) {
   }
 
   const statement = getAny(node, [
+    "empty_statement",
     "labeled_statement",
     "declaration_statement",
     "embedded_statement"
   ]);
-
   return group(
     concat([
       path.call(print, identifier, 0),
@@ -2117,6 +2117,10 @@ function printExpressionStatement(path, options, print) {
 
 function printEmptyStatement() {
   return empty;
+}
+
+function printEmptyEmbeddedStatement() {
+  return ";";
 }
 
 function printFunctionDeclarationStatement(path, options, print) {
@@ -2452,11 +2456,11 @@ function printConstantPattern(path, options, print) {
 function printIfStatement(path, options, print) {
   const node = path.getValue();
   const expression = path.call(print, "expression", 0);
-  const ifBodies = path.map(print, "if_body");
+  const ifBodies = path.map(print, "embedded_statement");
   const hasElse = ifBodies.length > 1;
-  const ifHasBraces = !!node["if_body"][0]["block"];
-  const elseHasBraces = hasElse && !!node["if_body"][1]["block"];
-  const hasElseIf = hasElse && !!node["if_body"][1]["if_statement"];
+  const ifHasBraces = !!node["embedded_statement"][0]["block"];
+  const elseHasBraces = hasElse && !!node["embedded_statement"][1]["block"];
+  const hasElseIf = hasElse && !!node["embedded_statement"][1]["if_statement"];
 
   const docs = [
     "if",
@@ -3720,7 +3724,6 @@ function printNode(path, options, print) {
     case "labeled_statement":
       return printLabeledStatement(path, options, print);
     case "embedded_statement":
-    case "if_body":
       return printEmbeddedStatement(path, options, print);
     case "local_variable_declaration":
     case "variable_declarators":
@@ -3733,6 +3736,8 @@ function printNode(path, options, print) {
       return printExpressionStatement(path, options, print);
     case "empty_statement":
       return printEmptyStatement(path, options, print);
+    case "empty_embedded_statement":
+      return printEmptyEmbeddedStatement(path, options, print);
     case "local_variable_type":
       return printLocalVariableType(path, options, print);
     case "variable_declarator":
