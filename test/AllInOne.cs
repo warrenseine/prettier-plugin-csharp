@@ -198,6 +198,10 @@ namespace My.Moy
             arr[0] = new int[5,5];  // as opposed to arr[0,0] = new int[5];
             arr[0][0,0] = 47;
             int[] arrayTypeInference = new[] { 0, 1, };
+
+            // case without statement
+            switch(1) { case 2: }
+            // switch without case
             switch (3) { }
             switch (i)
             {

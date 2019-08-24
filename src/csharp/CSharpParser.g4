@@ -470,7 +470,7 @@ local_constant_declaration
     ;
 
 switch_section
-    : switch_label+ statement_list
+    : switch_label+ statement_list?
     ;
 
 switch_label

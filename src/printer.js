@@ -2687,12 +2687,14 @@ function printSwitchStatement(path, options, print) {
 }
 
 function printSwitchSection(path, options, print) {
-  return group(
-    concat([
-      join(hardline, path.map(print, "switch_label")),
+  const docs = [join(hardline, path.map(print, "switch_label"))];
+
+  if (getAny(path.getValue(), "statement_list")) {
+    docs.push(
       indent(concat([hardline, path.call(print, "statement_list", 0)]))
-    ])
-  );
+    );
+  }
+  return group(concat(docs));
 }
 
 function printSwitchLabel(path, options, print) {
