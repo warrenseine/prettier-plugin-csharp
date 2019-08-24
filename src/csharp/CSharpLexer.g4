@@ -138,11 +138,14 @@ IDENTIFIER:          '@'? IdentifierOrKeyword;
 
 //B.1.8 Literals
 // 0.Equals() would be parsed as an invalid real (1. branch) causing a lexer error
-LITERAL_ACCESS:      [0-9]+ IntegerTypeSuffix? '.' '@'? IdentifierOrKeyword;
-INTEGER_LITERAL:     [0-9]+ IntegerTypeSuffix?;
-HEX_INTEGER_LITERAL: '0' [xX] HexDigit+ IntegerTypeSuffix?;
-BINARY_INTEGER_LITERAL: '0' [bB] BinaryDigit+ IntegerTypeSuffix?;
-REAL_LITERAL:        [0-9]* '.' [0-9]+ ExponentPart? [FfDdMm]? | [0-9]+ ([FfDdMm] | ExponentPart [FfDdMm]?);
+LITERAL_ACCESS:         DecimalDigitsWithSeparators IntegerTypeSuffix? '.' '@'? IdentifierOrKeyword;
+INTEGER_LITERAL:        DecimalDigitsWithSeparators IntegerTypeSuffix?;
+HEX_INTEGER_LITERAL:    '0' [xX] ('_' | HexDigit)* HexDigit IntegerTypeSuffix?;
+BINARY_INTEGER_LITERAL: '0' [bB] ('_' | BinaryDigit)* BinaryDigit IntegerTypeSuffix?;
+REAL_LITERAL
+    : DecimalDigitsWithSeparators? '.' DecimalDigitsWithSeparators ExponentPart? [FfDdMm]?
+    | DecimalDigitsWithSeparators ([FfDdMm] | ExponentPart [FfDdMm]?)
+    ;
 
 CHARACTER_LITERAL:                   '\'' (~['\\\r\n\u0085\u2028\u2029] | CommonCharacter) '\'';
 REGULAR_STRING:                      '"'  (~["\\\r\n\u0085\u2028\u2029] | CommonCharacter)* '"';
@@ -304,8 +307,11 @@ fragment NewLineCharacter
     | '\u2029' //'<Paragraph Separator CHARACTER (U+2029)>'
     ;
 
-fragment IntegerTypeSuffix:         [lL]? [uU] | [uU]? [lL];
-fragment ExponentPart:              [eE] ('+' | '-')? [0-9]+;
+fragment DecimalDigit: [0-9];
+fragment DecimalDigitsWithSeparators: DecimalDigit (('_' | DecimalDigit)* DecimalDigit)?;
+
+fragment IntegerTypeSuffix: [lL]? [uU] | [uU]? [lL];
+fragment ExponentPart:      [eE] ('+' | '-')? DecimalDigitsWithSeparators;
 
 fragment CommonCharacter
     : SimpleEscapeSequence
