@@ -639,7 +639,7 @@ namespace ConsoleApplication1
             public class Foo : IEnumerable<T>
             {
                 public void Method<K, V>(K k, T t, U u)
-                    where K : IList<V>, IList<T>, IList<U>,
+                    where K : IList<V>, IList<T>, IList<U>
                     where V : IList<K>
                 {
                     A<int> a;
