@@ -643,42 +643,45 @@ function printBraceBody(path, options, print) {
     externAliasDirectives ||
     usingDirectives;
 
-  if (!hasDeclarations) {
-    return group(concat(["{", line, "}"]));
-  }
+  const docs = ["{"];
 
-  const declarationParts = [];
+  docs.push(printDanglingComments(path, options));
 
-  if (externAliasDirectives) {
-    declarationParts.push(path.call(print, externAliasDirectives, 0));
-  }
+  if (hasDeclarations) {
+    const declarationParts = [];
 
-  if (usingDirectives) {
-    declarationParts.push(path.call(print, usingDirectives, 0));
-  }
+    if (externAliasDirectives) {
+      declarationParts.push(path.call(print, externAliasDirectives, 0));
+    }
 
-  if (groupedDeclarations) {
-    declarationParts.push(path.call(print, groupedDeclarations, 0));
-  }
+    if (usingDirectives) {
+      declarationParts.push(path.call(print, usingDirectives, 0));
+    }
 
-  if (lineSeparatedDeclarations.length) {
-    declarationParts.push(...path.map(print, lineSeparatedDeclarations));
-  }
+    if (groupedDeclarations) {
+      declarationParts.push(path.call(print, groupedDeclarations, 0));
+    }
 
-  if (commaSeparatedDeclarations.length) {
-    declarationParts.push(
-      printCommaList(path.map(print, commaSeparatedDeclarations))
+    if (lineSeparatedDeclarations.length) {
+      declarationParts.push(...path.map(print, lineSeparatedDeclarations));
+    }
+
+    if (commaSeparatedDeclarations.length) {
+      declarationParts.push(
+        printCommaList(path.map(print, commaSeparatedDeclarations))
+      );
+    }
+
+    docs.push(
+      indent(concat([hardline, join(doublehardline, declarationParts)]))
     );
+    docs.push(hardline);
+  } else {
+    docs.push(line);
   }
+  docs.push("}");
 
-  return group(
-    concat([
-      "{",
-      indent(concat([hardline, join(doublehardline, declarationParts)])),
-      hardline,
-      "}"
-    ])
-  );
+  return group(concat(docs));
 }
 
 function printTypeDeclaration(path, options, print) {

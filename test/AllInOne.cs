@@ -895,6 +895,11 @@ namespace Comments.XmlComments.UndocumentedKeywords
     }
 }
 
+namespace Empty
+{
+    // Don't forget this comment!
+}
+
 #line 6
 #line 2 "test.cs"
 #line default
