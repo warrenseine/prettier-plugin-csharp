@@ -384,7 +384,8 @@ query_continuation
 
 //B.2.5 Statements
 statement
-    : labeled_statement                                              #labeledStatement
+    : ';'                                                            #emptyStatement
+    | labeled_statement                                              #labeledStatement
     | (local_variable_declaration | local_constant_declaration) ';'  #variableDeclarationStatement
     | local_function_declaration                                     #functionDeclarationStatement
     | embedded_statement                                             #embeddedStatement
