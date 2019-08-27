@@ -871,6 +871,13 @@ namespace Comments.XmlComments.UndocumentedKeywords
             return (named.first, named.second, id);
         }
 
+        unsafe void StackAllocInitializer() 
+        {
+            int* intializer = stackalloc int[3] {1, 2, 3};
+            int* inferredLength = stackalloc int[] {1, 2, 3};
+            Span<int> inferredLengthAndType = stackalloc [] {1, 2, 3};
+        }
+
         int ThrowExpressionExample() =>
             3 == 3 ? 2 : throw new Exception();
 

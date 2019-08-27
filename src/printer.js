@@ -1464,15 +1464,21 @@ function printFixedSizeBufferDeclarator(path, options, print) {
 }
 
 function printLocalVariableInitializerUnsafe(path, options, print) {
+  const node = path.getValue();
   return group(
     concat([
       "stackalloc",
       line,
-      path.call(print, "type", 0),
+      getAny(node, "type") ? path.call(print, "type", 0) : "",
       "[",
-      indent(group(concat([softline, path.call(print, "expression", 0)]))),
+      getAny(node, "expression")
+        ? indent(group(concat([softline, path.call(print, "expression", 0)])))
+        : "",
       softline,
-      "]"
+      "]",
+      getAny(node, "array_initializer")
+        ? path.call(print, "array_initializer", 0)
+        : ""
     ])
   );
 }

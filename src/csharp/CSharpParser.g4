@@ -948,7 +948,7 @@ fixed_size_buffer_declarator
     ;
 
 local_variable_initializer_unsafe
-    : STACKALLOC type '[' expression ']'
+    : STACKALLOC type? '[' expression? ']' array_initializer?
     ;
 
 right_arrow
