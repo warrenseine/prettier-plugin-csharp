@@ -11,7 +11,7 @@ const languages = [
     aceMode: "csharp",
     codemirrorMode: "clike",
     extensions: [".cs", ".cake", ".cshtml", ".csx"],
-    vscodeLanguageIds: ["cs"],
+    vscodeLanguageIds: ["csharp"],
     linguistLanguageId: 42
   }
 ];
