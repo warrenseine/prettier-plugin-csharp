@@ -1,6 +1,10 @@
 <p align="center">
-    :construction: Work in Progress! :construction:
+    ❌ This repository is unmaintained and the project is incomplete, don't expect anything else than a toy C# project to reformat correctly! ❌
 </p>
+<p align="center">
+    Have a look at <a href="https://github.com/belav/csharpier">CSharpier</a> instead.
+</p>
+<hr>
 
 <div align="center">
 <img alt="Prettier"
@@ -35,9 +39,9 @@
 
 Prettier C# adds C# support to the [Prettier](https://github.com/prettier/prettier) code formatter. Like Prettier, it is opinionated and restricts style options to a minimum. It runs where Prettier runs, including CI and pre-commit hooks.
 
-## WORK IN PROGRESS
+## Unmaintained
 
-Please note that this plugin is under active development, and might not be ready to run on production code yet. **It will break your code.**
+This repository is unmaintained and the project is incomplete, don't expect anything else than a toy C# project to reformat correctly! **It will break your code.**
 
 Preview the result with this [diff example](https://github.com/warrenseine/prettier-csharp-demo/pull/1/commits/8652271a499740b726e6342346e97447abd23162).
 
